@@ -13,7 +13,7 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
   const [theme, setTheme] = useState("purple");
   const [chatStyle, setChatStyle] = useState("modern");
   const [temperature, setTemperature] = useState(0.7);
-  const [model, setModel] = useState("gpt-4");
+  const [model, setModel] = useState("mixtral-8x7b-32768");
   const [language, setLanguage] = useState("it");
 
   const handleThemeChange = (newTheme: string) => {
@@ -123,11 +123,8 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
                 onValueChange={(value) => value && setModel(value)}
                 className="flex flex-wrap gap-2"
               >
-                <ToggleGroupItem value="gpt-4" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-                  GPT-4
-                </ToggleGroupItem>
-                <ToggleGroupItem value="gpt-3.5" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-                  GPT-3.5
+                <ToggleGroupItem value="mixtral-8x7b-32768" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+                  Mixtral 8x7B
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>

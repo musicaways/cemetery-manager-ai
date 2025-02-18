@@ -10,6 +10,7 @@
     --chat-bg: #1A1F2C;
     --message-bg: #2A2F3C;
     --border-color: #3A3F4C;
+    --avatar-shape: circle;
   }
 
   * {
@@ -44,4 +45,36 @@
 
 .scroll-area-viewport.scrolling::-webkit-scrollbar-track {
   background: transparent;
+}
+
+/* Chat Styles */
+.chat-modern {
+  --message-padding: 1rem;
+  --message-radius: 1rem;
+  --avatar-size: 2.5rem;
+}
+
+.chat-classic {
+  --message-padding: 0.75rem;
+  --message-radius: 0.5rem;
+  --avatar-size: 2rem;
+}
+
+.chat-compact {
+  --message-padding: 0.5rem;
+  --message-radius: 0.25rem;
+  --avatar-size: 1.75rem;
+}
+
+/* Avatar Shapes */
+.avatar-circle {
+  border-radius: 50%;
+}
+
+.avatar-square {
+  border-radius: 0.5rem;
+}
+
+.avatar-hexagon {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }

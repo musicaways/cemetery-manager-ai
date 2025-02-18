@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Settings, X, Sun, Moon, Palette } from "lucide-react";
 import { toast } from "sonner";
@@ -13,6 +12,7 @@ interface SettingsProps {
 export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
   const [theme, setTheme] = useState("purple");
   const [chatStyle, setChatStyle] = useState("modern");
+  const [avatarShape, setAvatarShape] = useState("circle");
   const [temperature, setTemperature] = useState(0.7);
   const [provider, setProvider] = useState("groq");
   const [model, setModel] = useState("mixtral-8x7b-32768");
@@ -28,7 +28,6 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
 
   const handleProviderChange = (newProvider: string) => {
     setProvider(newProvider);
-    // Reset model to default for new provider
     switch (newProvider) {
       case "groq":
         setModel("mixtral-8x7b-32768");
@@ -38,6 +37,9 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
         break;
       case "ollama":
         setModel("llama2");
+        break;
+      case "perplexity":
+        setModel("llama-3.1-sonar-small-128k-online");
         break;
     }
     toast.success(`Provider AI cambiato in ${newProvider}`);
@@ -116,6 +118,25 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
             <ToggleGroupItem value="codellama" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
               CodeLlama
             </ToggleGroupItem>
+            <ToggleGroupItem value="neural-chat" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+              Neural Chat
+            </ToggleGroupItem>
+          </ToggleGroup>
+        );
+      case "perplexity":
+        return (
+          <ToggleGroup 
+            type="single" 
+            value={model}
+            onValueChange={(value) => value && handleModelChange(value)}
+            className="flex flex-wrap gap-2"
+          >
+            <ToggleGroupItem value="llama-3.1-sonar-small-128k-online" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+              Llama 3.1 Sonar Small
+            </ToggleGroupItem>
+            <ToggleGroupItem value="llama-3.1-sonar-large-128k-online" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+              Llama 3.1 Sonar Large
+            </ToggleGroupItem>
           </ToggleGroup>
         );
       default:
@@ -183,6 +204,28 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
             </ToggleGroup>
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-200 mb-2">
+              Forma Avatar
+            </label>
+            <ToggleGroup 
+              type="single" 
+              value={avatarShape}
+              onValueChange={(value) => value && setAvatarShape(value)}
+              className="flex flex-wrap gap-2"
+            >
+              <ToggleGroupItem value="circle" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+                Tondo
+              </ToggleGroupItem>
+              <ToggleGroupItem value="square" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+                Quadrato
+              </ToggleGroupItem>
+              <ToggleGroupItem value="hexagon" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+                Esagono
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
+
           <div className="space-y-4">
             <h3 className="text-lg font-medium text-white">Impostazioni AI</h3>
             
@@ -204,6 +247,9 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
                 </ToggleGroupItem>
                 <ToggleGroupItem value="ollama" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
                   Ollama
+                </ToggleGroupItem>
+                <ToggleGroupItem value="perplexity" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+                  Perplexity
                 </ToggleGroupItem>
               </ToggleGroup>
             </div>

@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,18 +43,20 @@ const Index = () => {
     try {
       console.log("Tipo di query identificato:", queryType);
       
-      let requestBody: QueryRequest = {
-        query: finalQuery.trim(),
-        queryType: queryType,
-        aiProvider: localStorage.getItem('ai_provider') || 'gemini',
-        aiModel: localStorage.getItem('ai_model') || 'gemini-pro'
-      };
-
-      if (queryType === 'test') {
+      let requestBody: QueryRequest;
+      
+      if (finalQuery.startsWith("/test-model")) {
         requestBody = {
           query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce.",
-          queryType: queryType,
+          queryType: 'test',  // ora questo è un tipo valido grazie alla modifica in types.ts
           isTest: true,
+          aiProvider: localStorage.getItem('ai_provider') || 'gemini',
+          aiModel: localStorage.getItem('ai_model') || 'gemini-pro'
+        };
+      } else {
+        requestBody = {
+          query: finalQuery.trim(),
+          queryType: queryType,
           aiProvider: localStorage.getItem('ai_provider') || 'gemini',
           aiModel: localStorage.getItem('ai_model') || 'gemini-pro'
         };

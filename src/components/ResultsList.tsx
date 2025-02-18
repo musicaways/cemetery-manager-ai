@@ -10,15 +10,16 @@ interface ResultsListProps {
 export const ResultsList = ({ data, type }: ResultsListProps) => {
   if (!data || data.length === 0) {
     return (
-      <div className="text-center p-4 text-gray-500">
-        Nessun risultato trovato
+      <div className="text-center p-8 text-gray-400 bg-gray-800/50 rounded-lg border border-gray-700">
+        <p className="text-lg">Nessun risultato trovato</p>
+        <p className="text-sm mt-2">Prova a modificare i termini della ricerca</p>
       </div>
     );
   }
 
   return (
-    <ScrollArea className="h-[500px] pr-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <ScrollArea className="h-[600px] pr-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {data.map((item) => {
           switch (type) {
             case 'cemetery':

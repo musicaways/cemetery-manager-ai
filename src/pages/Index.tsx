@@ -54,22 +54,24 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      <header className="border-b border-gray-700">
+    <div className="min-h-screen bg-[#121212] text-gray-100">
+      <header className="border-b border-gray-800 bg-gray-900/50 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Assistente Cimiteriale AI</h1>
+            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-violet-400 bg-clip-text text-transparent">
+              Assistente Cimiteriale AI
+            </h1>
             <div className="flex items-center space-x-4">
-              <button className="p-2 hover:bg-gray-700 rounded-full">
+              <button className="p-2 hover:bg-gray-800 rounded-full transition-colors">
                 <User className="w-5 h-5" />
               </button>
               <button 
-                className="p-2 hover:bg-gray-700 rounded-full"
+                className="p-2 hover:bg-gray-800 rounded-full transition-colors"
                 onClick={() => setIsSettingsOpen(true)}
               >
                 <Settings className="w-5 h-5" />
               </button>
-              <button className="p-2 hover:bg-gray-700 rounded-full">
+              <button className="p-2 hover:bg-gray-800 rounded-full transition-colors">
                 <Info className="w-5 h-5" />
               </button>
             </div>
@@ -80,23 +82,27 @@ const Index = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-8">
           <form onSubmit={handleSubmit} className="relative">
-            <div className="flex items-center space-x-2 p-4 bg-gray-800 rounded-lg border border-gray-700 focus-within:border-blue-500 transition-colors">
+            <div className="flex items-center space-x-2 p-4 bg-gray-800/50 rounded-lg border border-gray-700 focus-within:border-blue-500 backdrop-blur-sm transition-all duration-300">
               <Search className="w-5 h-5 text-gray-400" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Chiedimi quello che vuoi sapere sul cimitero..."
-                className="flex-1 bg-transparent outline-none placeholder-gray-400"
+                className="flex-1 bg-transparent outline-none placeholder-gray-400 text-gray-100"
                 disabled={isProcessing}
               />
-              <Database className="w-5 h-5 text-gray-400" />
+              {isProcessing ? (
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent" />
+              ) : (
+                <Database className="w-5 h-5 text-gray-400" />
+              )}
             </div>
           </form>
 
           {!response && !isProcessing && (
             <div className="space-y-6">
-              <h2 className="text-xl font-semibold mb-4">Domande Suggerite</h2>
+              <h2 className="text-xl font-semibold mb-4 text-gray-100">Domande Suggerite</h2>
               <SuggestedQuestions onSelect={setQuery} />
             </div>
           )}
@@ -104,14 +110,14 @@ const Index = () => {
           {response && (
             <div className="space-y-6">
               {response.text && !response.text.includes('```sql') && (
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <p className="text-gray-300">{response.text}</p>
+                <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 backdrop-blur-sm">
+                  <p className="text-gray-300 leading-relaxed">{response.text}</p>
                 </div>
               )}
               
               {response.data && (
-                <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-                  <h3 className="text-xl font-semibold mb-4">Risultati</h3>
+                <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 backdrop-blur-sm">
+                  <h3 className="text-xl font-semibold mb-6 text-gray-100">Risultati</h3>
                   <ResultsList 
                     data={response.data} 
                     type={determineResultType(query)}

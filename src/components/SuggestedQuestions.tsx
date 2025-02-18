@@ -10,7 +10,7 @@ export const SuggestedQuestions = ({ onSelect }: SuggestedQuestionsProps) => {
   const suggestions = [
     {
       text: "Mostrami tutti i cimiteri",
-      description: "Visualizza l'elenco completo dei cimiteri"
+      description: "Visualizza l'elenco completo dei cimiteri e le loro informazioni"
     },
     {
       text: "Trova i defunti nel Blocco Muri di Cinta",
@@ -18,11 +18,11 @@ export const SuggestedQuestions = ({ onSelect }: SuggestedQuestionsProps) => {
     },
     {
       text: "Quanti loculi sono disponibili?",
-      description: "Verifica la disponibilità dei loculi"
+      description: "Verifica la disponibilità dei loculi nei vari settori"
     },
     {
       text: "Mostrami le statistiche generali",
-      description: "Visualizza un riepilogo dei dati principali"
+      description: "Visualizza un riepilogo dei dati principali del sistema"
     }
   ];
 
@@ -32,14 +32,14 @@ export const SuggestedQuestions = ({ onSelect }: SuggestedQuestionsProps) => {
         <Button
           key={index}
           variant="outline"
-          className="h-auto p-4 flex flex-col items-start space-y-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          className="h-auto p-6 flex flex-col items-start space-y-2 bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 hover:border-blue-500/50 transition-all duration-300"
           onClick={() => onSelect(suggestion.text)}
         >
-          <div className="flex items-center space-x-2">
-            <MessageSquare className="w-4 h-4" />
-            <span className="font-medium">{suggestion.text}</span>
+          <div className="flex items-center space-x-3">
+            <MessageSquare className="w-5 h-5 text-blue-400" />
+            <span className="font-medium text-gray-100">{suggestion.text}</span>
           </div>
-          <p className="text-sm text-gray-500 text-left">{suggestion.description}</p>
+          <p className="text-sm text-gray-400 text-left">{suggestion.description}</p>
         </Button>
       ))}
     </div>

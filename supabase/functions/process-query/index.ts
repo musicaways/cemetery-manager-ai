@@ -9,42 +9,58 @@ const corsHeaders = {
 };
 
 const processWithGroq = async (query: string) => {
-  const response = await fetch('https://api.groq.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${Deno.env.get('GROQ_API_KEY')}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      messages: [
-        {
-          role: 'system',
-          content: `You are an AI assistant managing a cemetery database. You have access to the following tables:
-            - Cimitero (Id, Codice, Descrizione)
-            - Settore (Id, Codice, Descrizione, IdCimitero)
-            - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
-            - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
-            - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
-            
-            Convert user queries into appropriate SQL queries and explain what you're doing.`
-        },
-        {
-          role: 'user',
-          content: query
-        }
-      ],
-      model: "mixtral-8x7b-32768",
-    }),
-  });
+  try {
+    console.log("Starting Groq API call with query:", query);
+    
+    const response = await fetch('https://api.groq.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('GROQ_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: [
+          {
+            role: 'system',
+            content: `You are an AI assistant managing a cemetery database. You have access to the following tables:
+              - Cimitero (Id, Codice, Descrizione)
+              - Settore (Id, Codice, Descrizione, IdCimitero)
+              - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
+              - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
+              - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
+              
+              Convert user queries into appropriate SQL queries and explain what you're doing.`
+          },
+          {
+            role: 'user',
+            content: query
+          }
+        ],
+        model: "mixtral-8x7b-32768",
+        temperature: 0.7,
+        max_tokens: 1000
+      }),
+    });
 
-  const data = await response.json();
-  console.log("Groq response:", data);
-  
-  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    throw new Error('Invalid response from Groq API');
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Groq API error response:", errorText);
+      throw new Error(`Groq API returned status ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Groq API raw response:", JSON.stringify(data, null, 2));
+
+    if (!data.choices?.[0]?.message?.content) {
+      console.error("Invalid Groq API response structure:", data);
+      throw new Error('Invalid response structure from Groq API');
+    }
+
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error("Error in processWithGroq:", error);
+    throw new Error(`Groq API error: ${error.message}`);
   }
-  
-  return data.choices[0].message.content;
 };
 
 const processWithGemini = async (query: string) => {
@@ -128,6 +144,10 @@ serve(async (req) => {
     const { query } = await req.json();
     console.log("Received query:", query);
     
+    if (!query || typeof query !== 'string') {
+      throw new Error('Invalid or missing query parameter');
+    }
+
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -160,6 +180,8 @@ serve(async (req) => {
     if (!aiResponse) {
       throw new Error('No response received from AI provider');
     }
+
+    console.log("AI Response received:", aiResponse);
 
     // Extract SQL query if present and execute
     const sqlMatch = aiResponse.match(/```sql\n([\s\S]*?)\n```/);

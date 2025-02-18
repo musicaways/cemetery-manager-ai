@@ -29,7 +29,10 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
         .single();
 
       if (error) {
-        console.error('Error loading API keys:', error);
+        if (error.code !== 'PGRST116') { // Ignore "no rows returned" error
+          console.error('Error loading API keys:', error);
+        }
+        setIsLoading(false);
         return;
       }
 
@@ -38,9 +41,9 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
         setGeminiKey(data.gemini_key || '');
         setPerplexityKey(data.perplexity_key || '');
       }
+      setIsLoading(false);
     } catch (error) {
       console.error('Error:', error);
-    } finally {
       setIsLoading(false);
     }
   };

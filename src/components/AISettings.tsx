@@ -41,15 +41,15 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
           </TabsList>
 
           <TabsContent value="theme">
-            <ThemeTab />
+            <ThemeTab onSave={onClose} />
           </TabsContent>
 
           <TabsContent value="ai">
-            <AITab />
+            <AITab onSave={onClose} />
           </TabsContent>
 
           <TabsContent value="keys">
-            <APIKeysTab />
+            <APIKeysTab onSave={onClose} />
           </TabsContent>
         </Tabs>
       </div>

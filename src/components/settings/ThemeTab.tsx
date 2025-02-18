@@ -1,11 +1,14 @@
-
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/lib/themeContext";
 import { toast } from "sonner";
 import { useState } from "react";
 
-export const ThemeTab = () => {
+interface ThemeTabProps {
+  onSave: () => void;
+}
+
+export const ThemeTab = ({ onSave }: ThemeTabProps) => {
   const { chatStyle, setChatStyle, avatarShape, setAvatarShape } = useTheme();
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -33,6 +36,7 @@ export const ThemeTab = () => {
     localStorage.setItem('theme_avatar_shape', avatarShape);
     setHasChanges(false);
     toast.success('Impostazioni tema salvate con successo');
+    onSave();
   };
 
   const getThemeColor = (theme: string) => {

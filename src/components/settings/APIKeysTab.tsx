@@ -1,11 +1,14 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Key, ExternalLink } from "lucide-react";
 
-export const APIKeysTab = () => {
+interface APIKeysTabProps {
+  onSave: () => void;
+}
+
+export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
   const [groqKey, setGroqKey] = useState(localStorage.getItem('GROQ_API_KEY') || '');
   const [geminiKey, setGeminiKey] = useState(localStorage.getItem('GEMINI_API_KEY') || '');
   const [perplexityKey, setPerplexityKey] = useState(localStorage.getItem('PERPLEXITY_API_KEY') || '');
@@ -22,6 +25,7 @@ export const APIKeysTab = () => {
     localStorage.setItem('PERPLEXITY_API_KEY', perplexityKey);
     setHasChanges(false);
     toast.success('Chiavi API salvate con successo');
+    onSave();
   };
 
   return (

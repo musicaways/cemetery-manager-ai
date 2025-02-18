@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
@@ -32,7 +31,11 @@ const MODEL_DESCRIPTIONS = {
   }
 };
 
-export const AITab = () => {
+interface AITabProps {
+  onSave: () => void;
+}
+
+export const AITab = ({ onSave }: AITabProps) => {
   const [provider, setProvider] = useState("groq");
   const [model, setModel] = useState("mixtral-8x7b-32768");
   const [language, setLanguage] = useState("it");
@@ -87,6 +90,7 @@ export const AITab = () => {
     localStorage.setItem('ai_temperature', temperature.toString());
     setHasChanges(false);
     toast.success('Impostazioni AI salvate con successo');
+    onSave();
   };
 
   const renderModelOptions = () => {

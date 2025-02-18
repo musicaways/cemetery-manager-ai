@@ -1,32 +1,106 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Key, ExternalLink } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface APIKeysTabProps {
   onSave: () => void;
 }
 
 export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
-  const [groqKey, setGroqKey] = useState(localStorage.getItem('GROQ_API_KEY') || '');
-  const [geminiKey, setGeminiKey] = useState(localStorage.getItem('GEMINI_API_KEY') || '');
-  const [perplexityKey, setPerplexityKey] = useState(localStorage.getItem('PERPLEXITY_API_KEY') || '');
+  const [groqKey, setGroqKey] = useState('');
+  const [geminiKey, setGeminiKey] = useState('');
+  const [perplexityKey, setPerplexityKey] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    loadAPIKeys();
+  }, []);
+
+  const loadAPIKeys = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('api_keys')
+        .select('*')
+        .single();
+
+      if (error) {
+        console.error('Error loading API keys:', error);
+        return;
+      }
+
+      if (data) {
+        setGroqKey(data.groq_key || '');
+        setGeminiKey(data.gemini_key || '');
+        setPerplexityKey(data.perplexity_key || '');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleChange = (key: string, value: string, setter: (value: string) => void) => {
     setter(value);
     setHasChanges(true);
   };
 
-  const saveKeys = () => {
-    localStorage.setItem('GROQ_API_KEY', groqKey);
-    localStorage.setItem('GEMINI_API_KEY', geminiKey);
-    localStorage.setItem('PERPLEXITY_API_KEY', perplexityKey);
-    setHasChanges(false);
-    toast.success('Chiavi API salvate con successo');
-    onSave();
+  const saveKeys = async () => {
+    try {
+      const { data: existingKeys } = await supabase
+        .from('api_keys')
+        .select('id')
+        .single();
+
+      if (existingKeys) {
+        // Update existing keys
+        const { error } = await supabase
+          .from('api_keys')
+          .update({
+            groq_key: groqKey,
+            gemini_key: geminiKey,
+            perplexity_key: perplexityKey,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', existingKeys.id);
+
+        if (error) throw error;
+      } else {
+        // Insert new keys
+        const { error } = await supabase
+          .from('api_keys')
+          .insert([
+            {
+              groq_key: groqKey,
+              gemini_key: geminiKey,
+              perplexity_key: perplexityKey
+            }
+          ]);
+
+        if (error) throw error;
+      }
+
+      setHasChanges(false);
+      toast.success('Chiavi API salvate con successo');
+      onSave();
+    } catch (error) {
+      console.error('Error saving API keys:', error);
+      toast.error('Errore durante il salvataggio delle chiavi API');
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-color)]"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">

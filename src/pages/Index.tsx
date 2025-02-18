@@ -1,5 +1,6 @@
+
 import { useState, useRef, useEffect } from "react";
-import { Skull } from "lucide-react";
+import { ArrowLeft, Settings, Info, Plus, Skull } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { AIResponse } from "@/utils/types";

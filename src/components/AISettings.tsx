@@ -3,6 +3,7 @@ import { Settings, X, Sun, Moon, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTheme } from '@/lib/themeContext';
 
 interface SettingsProps {
   isOpen: boolean;
@@ -10,9 +11,8 @@ interface SettingsProps {
 }
 
 export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
+  const { chatStyle, setChatStyle, avatarShape, setAvatarShape } = useTheme();
   const [theme, setTheme] = useState("purple");
-  const [chatStyle, setChatStyle] = useState("modern");
-  const [avatarShape, setAvatarShape] = useState("circle");
   const [temperature, setTemperature] = useState(0.7);
   const [provider, setProvider] = useState("groq");
   const [model, setModel] = useState("mixtral-8x7b-32768");
@@ -48,6 +48,18 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
   const handleModelChange = (newModel: string) => {
     setModel(newModel);
     toast.success(`Modello cambiato in ${newModel}`);
+  };
+
+  const handleChatStyleChange = (newStyle: string) => {
+    if (!newStyle) return;
+    setChatStyle(newStyle);
+    toast.success(`Stile chat cambiato in ${newStyle}`);
+  };
+
+  const handleAvatarShapeChange = (newShape: string) => {
+    if (!newShape) return;
+    setAvatarShape(newShape);
+    toast.success(`Forma avatar cambiata in ${newShape}`);
   };
 
   const getThemeColor = (theme: string) => {
@@ -189,7 +201,7 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
             <ToggleGroup 
               type="single" 
               value={chatStyle}
-              onValueChange={(value) => value && setChatStyle(value)}
+              onValueChange={handleChatStyleChange}
               className="flex flex-wrap gap-2"
             >
               <ToggleGroupItem value="modern" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
@@ -211,7 +223,7 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
             <ToggleGroup 
               type="single" 
               value={avatarShape}
-              onValueChange={(value) => value && setAvatarShape(value)}
+              onValueChange={handleAvatarShapeChange}
               className="flex flex-wrap gap-2"
             >
               <ToggleGroupItem value="circle" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">

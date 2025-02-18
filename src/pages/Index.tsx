@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { ArrowLeft, Settings, Info, Plus, Skull } from "lucide-react";
 import { toast } from "sonner";
@@ -63,8 +62,6 @@ const Index = () => {
         
         if (data.error) {
           toast.error(data.error);
-        } else {
-          toast.success("Ricerca completata");
         }
       }
       
@@ -79,12 +76,37 @@ const Index = () => {
     }
   };
 
-  const determineResultType = (query: string) => {
-    const lowerQuery = query.toLowerCase();
-    if (lowerQuery.includes('cimiter')) return 'cemetery';
-    if (lowerQuery.includes('blocc')) return 'block';
-    if (lowerQuery.includes('defunt')) return 'deceased';
-    return 'cemetery';
+  const testAIModel = async () => {
+    const testQuery = "/test-model";
+    if (query === testQuery) {
+      setIsProcessing(true);
+      try {
+        const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+          body: { 
+            query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce.",
+            isTest: true
+          }
+        });
+
+        if (error) throw error;
+        
+        if (data) {
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: data.text || ''
+          }]);
+        }
+      } catch (error) {
+        console.error("Errore test modello:", error);
+        toast.error("Errore durante il test del modello");
+      } finally {
+        setIsProcessing(false);
+        setQuery("");
+        setTimeout(scrollToBottom, 100);
+      }
+    } else {
+      handleSubmit(undefined, query);
+    }
   };
 
   useEffect(() => {
@@ -156,6 +178,7 @@ const Index = () => {
                     <Skull className="w-6 h-6 text-white" />
                   </div>
                   <h2 className="text-2xl font-semibold">Come posso aiutarti?</h2>
+                  <p className="text-sm text-gray-400">Usa /test-model per verificare il modello AI in uso</p>
                 </div>
                 <SuggestedQuestions onSelect={(q) => handleSubmit(undefined, q)} />
               </div>
@@ -227,19 +250,22 @@ const Index = () => {
           </Button>
           
           <div className="flex-1">
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              testAIModel();
+            }}>
               <div className="flex items-center space-x-2 p-2 bg-[#2A2F3C]/50 rounded-lg border border-[#3A3F4C]/50">
                 <TextareaAutosize
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Chiedimi quello che vuoi sapere..."
+                  placeholder="Chiedimi quello che vuoi sapere... (usa /test-model per verificare il modello)"
                   className="flex-1 bg-transparent outline-none placeholder-[#8E9196] text-gray-100 resize-none min-h-[36px] max-h-[120px] py-1"
                   disabled={isProcessing}
                   maxRows={4}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
-                      handleSubmit();
+                      testAIModel();
                     }
                   }}
                 />

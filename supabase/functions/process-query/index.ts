@@ -1,7 +1,7 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { pipeline } from 'https://esm.sh/@huggingface/transformers';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,22 +27,45 @@ serve(async (req) => {
       );
     }
 
-    // Se è una ricerca web, utilizziamo HuggingFace Transformers
+    // Se è una ricerca web, utilizziamo HuggingFace Inference API
     if (queryType === 'web') {
       try {
-        // Inizializza il modello di generazione testo
-        const generator = await pipeline(
-          'text-generation',
-          'onnx-community/gpt2-large-it',
-          { device: 'cpu' }
+        const hfKey = Deno.env.get('HUGGINGFACE_API_KEY');
+        if (!hfKey) {
+          throw new Error('API key di HuggingFace mancante');
+        }
+
+        const response = await fetch(
+          'https://api-inference.huggingface.co/models/onnx-community/gpt2-large-it',
+          {
+            headers: { 
+              'Authorization': `Bearer ${hfKey}`,
+              'Content-Type': 'application/json',
+            },
+            method: 'POST',
+            body: JSON.stringify({
+              inputs: query,
+              parameters: {
+                max_length: 100,
+                num_return_sequences: 1,
+                temperature: 0.7,
+                return_full_text: false
+              }
+            }),
+          }
         );
 
-        // Genera la risposta
-        const result = await generator(query, {
-          max_length: 100,
-          num_return_sequences: 1,
-          temperature: 0.7,
-        });
+        if (!response.ok) {
+          console.error('Errore nella risposta di HuggingFace:', await response.text());
+          throw new Error(`Errore nella chiamata a HuggingFace: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        console.log('Risposta completa da HuggingFace:', result);
+
+        if (!Array.isArray(result) || !result[0]?.generated_text) {
+          throw new Error('Risposta di HuggingFace non valida');
+        }
 
         const aiResponse = result[0].generated_text;
 

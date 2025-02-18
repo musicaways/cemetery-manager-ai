@@ -33,26 +33,37 @@ export const MODEL_DESCRIPTIONS = {
       speed: "Velocità di risposta alta"
     }
   },
-  "llama2": {
-    name: "Llama 2",
-    description: "Versione locale del modello Meta, bilancia bene prestazioni e velocità.",
-    strengths: "Ottimo per: uso generale, risposte veloci, basso consumo di risorse",
+  "gpt2-large": {
+    name: "GPT-2 Large",
+    description: "Modello linguistico di base con buone capacità generali",
+    strengths: "Ottimo per: generazione di testo, completamento frasi",
     details: {
-      parameters: "7B parametri",
-      context: "4K token di contesto",
-      languages: "Multilingua (base)",
+      parameters: "774M parametri",
+      context: "1024 token di contesto",
+      languages: "Principalmente inglese",
       speed: "Velocità di risposta molto alta"
     }
   },
-  "llama-3.1-sonar-small-128k-online": {
-    name: "Llama 3.1 Sonar Small",
-    description: "Modello ottimizzato per risposte precise e ragionamento strutturato.",
-    strengths: "Ottimo per: risposte concise, fact-checking, analisi logica",
+  "facebook/opt-1.3b": {
+    name: "OPT 1.3B",
+    description: "Modello open source di Meta con buon bilanciamento tra dimensioni e prestazioni",
+    strengths: "Ottimo per: chat generale, analisi di testo",
     details: {
-      parameters: "8B parametri",
-      context: "128K token di contesto",
-      languages: "Multilingua avanzato",
+      parameters: "1.3B parametri",
+      context: "2048 token di contesto",
+      languages: "Principalmente inglese",
       speed: "Velocità di risposta alta"
+    }
+  },
+  "bigscience/bloom-560m": {
+    name: "BLOOM 560M",
+    description: "Modello multilingue leggero e versatile",
+    strengths: "Ottimo per: processamento multilingue, tasks generali",
+    details: {
+      parameters: "560M parametri",
+      context: "2048 token di contesto",
+      languages: "Multilingua (46+ lingue)",
+      speed: "Velocità di risposta molto alta"
     }
   }
 };
@@ -68,14 +79,9 @@ export const PROVIDER_INFO = {
     description: "Servizio AI di Google Cloud",
     strengths: "Integrazione multimodale, comprensione contestuale avanzata"
   },
-  "ollama": {
-    name: "Ollama",
-    description: "Esecuzione locale di modelli AI",
-    strengths: "Privacy dei dati, nessuna latenza di rete, personalizzazione"
-  },
-  "perplexity": {
-    name: "Perplexity",
-    description: "Provider focalizzato sulla ricerca e analisi",
-    strengths: "Ricerca strutturata, citazioni precise, comprensione profonda"
+  "huggingface": {
+    name: "HuggingFace",
+    description: "Piattaforma open source per modelli AI",
+    strengths: "Ampia varietà di modelli, facilità di utilizzo"
   }
 };

@@ -2,6 +2,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { HfInference } from 'https://esm.sh/@huggingface/inference@2.3.2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,6 +22,23 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
+
+    // Se la modalità web è attiva, aggiungiamo il contesto di ricerca
+    let enhancedQuery = query;
+    if (queryType === 'web' && !isTest) {
+      try {
+        const searchResponse = await fetch(`https://api.serpstack.com/search?access_key=${Deno.env.get('SERPSTACK_API_KEY')}&query=${encodeURIComponent(query)}`);
+        const searchData = await searchResponse.json();
+        if (searchData.organic_results) {
+          const topResults = searchData.organic_results.slice(0, 3);
+          const context = topResults.map((result: any) => result.snippet).join('\n');
+          enhancedQuery = `Basandoti su queste informazioni dal web:\n${context}\n\nRispondi a questa domanda: ${query}`;
+        }
+      } catch (error) {
+        console.error('Errore nella ricerca web:', error);
+        // Procediamo con la query originale se la ricerca web fallisce
+      }
+    }
 
     const { data: apiKeys, error: apiKeysError } = await supabase
       .from('api_keys')
@@ -51,7 +69,7 @@ serve(async (req) => {
           model: aiModel,
           messages: [
             { role: 'system', content: 'Sei un assistente AI. Rispondi in italiano.' },
-            { role: 'user', content: isTest ? 'Chi sei?' : query }
+            { role: 'user', content: isTest ? 'Chi sei?' : enhancedQuery }
           ],
           temperature: 0.7,
           max_tokens: 1000,
@@ -72,7 +90,7 @@ serve(async (req) => {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: isTest ? 'Chi sei?' : query
+                text: isTest ? 'Chi sei?' : enhancedQuery
               }]
             }],
             generationConfig: {
@@ -82,22 +100,30 @@ serve(async (req) => {
           }),
         }
       );
-    } else if (aiProvider === 'ollama') {
-      try {
-        response = await fetch('http://localhost:11434/api/generate', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: aiModel,
-            prompt: isTest ? 'Chi sei?' : query,
-            stream: false,
-          }),
-        });
-      } catch (error) {
-        throw new Error('Errore nella connessione a Ollama. Assicurati che Ollama sia in esecuzione su localhost:11434');
+    } else if (aiProvider === 'huggingface') {
+      if (!apiKeys.huggingface_key) {
+        throw new Error('Chiave API HuggingFace non configurata');
       }
+
+      const hf = new HfInference(apiKeys.huggingface_key);
+      const result = await hf.textGeneration({
+        model: aiModel,
+        inputs: isTest ? 'Chi sei?' : enhancedQuery,
+        parameters: {
+          max_new_tokens: 1000,
+          temperature: 0.7,
+          top_p: 0.95,
+          return_full_text: false,
+        }
+      });
+
+      return new Response(
+        JSON.stringify({ 
+          text: result.generated_text,
+          data: null 
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     } else {
       throw new Error(`Provider AI non supportato: ${aiProvider}`);
     }
@@ -116,8 +142,6 @@ serve(async (req) => {
       aiResponse = data.choices?.[0]?.message?.content;
     } else if (aiProvider === 'gemini') {
       aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    } else if (aiProvider === 'ollama') {
-      aiResponse = data.response;
     }
 
     if (!aiResponse) {

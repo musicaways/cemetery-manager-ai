@@ -48,7 +48,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'mixtral-8x7b-32768',
+          model: aiModel,
           messages: [
             { role: 'system', content: 'Sei un assistente AI. Rispondi in italiano.' },
             { role: 'user', content: isTest ? 'Chi sei?' : query }
@@ -82,6 +82,22 @@ serve(async (req) => {
           }),
         }
       );
+    } else if (aiProvider === 'ollama') {
+      try {
+        response = await fetch('http://localhost:11434/api/generate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: aiModel,
+            prompt: isTest ? 'Chi sei?' : query,
+            stream: false,
+          }),
+        });
+      } catch (error) {
+        throw new Error('Errore nella connessione a Ollama. Assicurati che Ollama sia in esecuzione su localhost:11434');
+      }
     } else {
       throw new Error(`Provider AI non supportato: ${aiProvider}`);
     }
@@ -100,6 +116,8 @@ serve(async (req) => {
       aiResponse = data.choices?.[0]?.message?.content;
     } else if (aiProvider === 'gemini') {
       aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    } else if (aiProvider === 'ollama') {
+      aiResponse = data.response;
     }
 
     if (!aiResponse) {

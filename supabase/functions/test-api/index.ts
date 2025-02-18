@@ -62,6 +62,23 @@ serve(async (req) => {
         break;
       }
 
+      case 'ollama': {
+        try {
+          const response = await fetch('http://localhost:11434/api/list', {
+            method: 'GET',
+          });
+
+          if (!response.ok) {
+            throw new Error('Errore nella connessione a Ollama');
+          }
+          
+          // Se arriviamo qui, Ollama è in esecuzione
+          break;
+        } catch (error) {
+          throw new Error('Impossibile connettersi a Ollama. Assicurati che sia in esecuzione su localhost:11434');
+        }
+      }
+
       default:
         throw new Error(`Provider ${provider} non supportato`);
     }

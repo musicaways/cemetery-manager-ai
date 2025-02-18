@@ -1,4 +1,3 @@
-
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import { useAISettings } from './ai/useAISettings';
@@ -40,6 +39,9 @@ export const AITab = ({ onSave }: AITabProps) => {
           </ToggleGroupItem>
           <ToggleGroupItem value="gemini" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
             Gemini
+          </ToggleGroupItem>
+          <ToggleGroupItem value="ollama" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+            Ollama
           </ToggleGroupItem>
         </ToggleGroup>
       </div>

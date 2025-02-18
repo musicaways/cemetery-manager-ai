@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Search, Database, User, Settings, Info, Plus, Mic, ArrowLeft } from "lucide-react";
+import { Skull } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { AIResponse } from "@/utils/types";
@@ -25,6 +25,8 @@ const Index = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMediaUploadOpen, setIsMediaUploadOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  let scrollTimeout: NodeJS.Timeout;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -85,24 +87,26 @@ const Index = () => {
   };
 
   useEffect(() => {
-    const scrollArea = document.querySelector('.scroll-area-viewport');
-    if (scrollArea) {
-      const observer = new MutationObserver(() => {
-        const isScrollable = scrollArea.scrollHeight > scrollArea.clientHeight;
-        scrollArea.style.scrollbarWidth = isScrollable ? 'thin' : 'none';
-      });
-      
-      observer.observe(scrollArea, { 
-        childList: true, 
-        subtree: true 
-      });
+    const scrollArea = scrollAreaRef.current?.querySelector('.scroll-area-viewport');
+    if (!scrollArea) return;
 
-      return () => observer.disconnect();
-    }
+    const handleScroll = () => {
+      scrollArea.classList.add('scrolling');
+      clearTimeout(scrollTimeout);
+      scrollTimeout = setTimeout(() => {
+        scrollArea.classList.remove('scrolling');
+      }, 1000);
+    };
+
+    scrollArea.addEventListener('scroll', handleScroll);
+    return () => {
+      scrollArea.removeEventListener('scroll', handleScroll);
+      clearTimeout(scrollTimeout);
+    };
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#1A1F2C] text-gray-100 overflow-hidden">
+    <div className="min-h-screen bg-[var(--chat-bg)] text-gray-100 overflow-hidden">
       <header className="border-b border-[#2A2F3C]/40 bg-[#1A1F2C]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4">
           <div className="flex items-center h-12">
@@ -139,13 +143,16 @@ const Index = () => {
       </header>
 
       <main className="container mx-auto px-4 py-4 mb-20">
-        <ScrollArea className="h-[calc(100vh-8.5rem)] rounded-lg scroll-area-viewport" style={{ scrollbarWidth: 'none' }}>
+        <ScrollArea 
+          ref={scrollAreaRef}
+          className="h-[calc(100vh-8.5rem)] rounded-lg"
+        >
           <div className="max-w-4xl mx-auto space-y-4">
             {messages.length === 0 && !isProcessing && (
               <div className="space-y-6 animate-fade-in">
                 <div className="text-center space-y-2">
                   <div className="w-12 h-12 mx-auto bg-gradient-to-br from-[#9b87f5] to-[#6E59A5] rounded-xl flex items-center justify-center">
-                    <Database className="w-6 h-6 text-white" />
+                    <Skull className="w-6 h-6 text-white" />
                   </div>
                   <h2 className="text-2xl font-semibold">Come posso aiutarti?</h2>
                 </div>
@@ -157,15 +164,15 @@ const Index = () => {
               <div key={index} className={`animate-fade-in flex ${message.type === 'query' ? 'justify-end' : 'justify-start'}`}>
                 <div className={`${message.type === 'query' ? 'max-w-[85%] ml-auto' : 'max-w-[85%]'} w-full`}>
                   {message.type === 'query' && (
-                    <div className="bg-[#9b87f5]/20 rounded-2xl rounded-tr-sm p-3 border border-[#9b87f5]/30 backdrop-blur-sm">
-                      <p className="text-[#D6BCFA]">{message.content}</p>
+                    <div className="bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-3 border border-[var(--primary-color)]/30 backdrop-blur-sm">
+                      <p className="text-gray-100">{message.content}</p>
                     </div>
                   )}
                   {message.type === 'response' && (
                     <div className="space-y-3">
                       <div className="flex items-start space-x-3">
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9b87f5] to-[#6E59A5] flex items-center justify-center flex-shrink-0">
-                          <Database className="w-4 h-4 text-white" />
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-hover)] flex items-center justify-center flex-shrink-0">
+                          <Skull className="w-4 h-4 text-white" />
                         </div>
                         {message.content && !message.content.includes('```sql') && (
                           <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg flex-1">
@@ -191,7 +198,7 @@ const Index = () => {
             {isProcessing && (
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9b87f5] to-[#6E59A5] flex items-center justify-center">
-                  <Database className="w-4 h-4 text-white" />
+                  <Skull className="w-4 h-4 text-white" />
                 </div>
                 <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm">
                   <div className="flex items-center space-x-2">

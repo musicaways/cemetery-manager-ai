@@ -29,7 +29,7 @@ const Index = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const processQueryWithOllama = async (finalQuery: string) => {
+  const processQueryWithOllama = async (finalQuery: string, isTest = false) => {
     try {
       const aiModel = localStorage.getItem('ai_model') || 'llama2';
       
@@ -40,12 +40,14 @@ const Index = () => {
         },
         body: JSON.stringify({
           model: aiModel,
-          prompt: finalQuery,
+          prompt: isTest ? 'Chi sei?' : finalQuery,
           stream: false,
         }),
       });
 
       if (!response.ok) {
+        const error = await response.text();
+        console.error("Errore risposta Ollama:", error);
         throw new Error('Errore nella risposta di Ollama');
       }
 
@@ -68,25 +70,20 @@ const Index = () => {
     try {
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
+      const isTest = finalQuery.startsWith("/test-model");
       
       let response;
       
       if (aiProvider === 'ollama') {
-        response = await processQueryWithOllama(finalQuery);
+        response = await processQueryWithOllama(finalQuery, isTest);
       } else {
         let requestBody: QueryRequest = {
           query: finalQuery.trim(),
           queryType: 'web',
           aiProvider,
-          aiModel
+          aiModel,
+          isTest
         };
-
-        if (finalQuery.startsWith("/test-model")) {
-          requestBody = {
-            ...requestBody,
-            isTest: true
-          };
-        }
 
         console.log("Invio richiesta:", requestBody);
         

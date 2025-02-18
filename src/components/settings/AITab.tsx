@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 const MODEL_DESCRIPTIONS = {
   "mixtral-8x7b-32768": {
@@ -89,7 +90,37 @@ export const AITab = ({ onSave }: AITabProps) => {
     localStorage.setItem('ai_language', language);
     localStorage.setItem('ai_temperature', temperature.toString());
     setHasChanges(false);
-    toast.success('Impostazioni AI salvate con successo');
+    toast.success('Impostazioni AI salvate con successo', {
+      description: `Provider: ${provider.toUpperCase()}, Modello: ${MODEL_DESCRIPTIONS[model]?.name}`,
+    });
+    
+    const testModel = async () => {
+      try {
+        const response = await supabase.functions.invoke('process-query', {
+          body: { 
+            query: "Chi sei? Rispondi brevemente.",
+            provider,
+            model
+          }
+        });
+        
+        if (response.error) {
+          throw response.error;
+        }
+        
+        toast.info('Test del modello completato', {
+          description: `Risposta ricevuta dal modello ${MODEL_DESCRIPTIONS[model]?.name}`
+        });
+        
+      } catch (error) {
+        console.error('Errore nel test del modello:', error);
+        toast.error('Errore nel test del modello', {
+          description: 'Non è stato possibile verificare il corretto funzionamento del modello selezionato.'
+        });
+      }
+    };
+    
+    testModel();
     onSave();
   };
 

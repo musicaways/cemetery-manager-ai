@@ -9,4 +9,6 @@ export interface QueryRequest {
   query: string;
   queryType: 'test' | 'database' | 'web';
   isTest?: boolean;
+  aiProvider?: string;
+  aiModel?: string;
 }

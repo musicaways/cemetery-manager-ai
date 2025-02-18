@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,14 +65,18 @@ const Index = () => {
       
       let requestBody: QueryRequest = {
         query: finalQuery.trim(),
-        queryType: queryType
+        queryType: queryType,
+        aiProvider: localStorage.getItem('ai_provider') || 'gemini',
+        aiModel: localStorage.getItem('ai_model') || 'gemini-pro'
       };
 
       if (queryType === 'test') {
         requestBody = {
           query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce.",
           queryType: queryType,
-          isTest: true
+          isTest: true,
+          aiProvider: localStorage.getItem('ai_provider') || 'gemini',
+          aiModel: localStorage.getItem('ai_model') || 'gemini-pro'
         };
       }
 

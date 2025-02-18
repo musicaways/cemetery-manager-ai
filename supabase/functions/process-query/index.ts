@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
@@ -14,8 +13,18 @@ serve(async (req) => {
   }
 
   try {
-    const { query, queryType, isTest } = await req.json();
-    console.log("Query ricevuta:", { query, queryType, isTest });
+    const { query, queryType, isTest, aiProvider, aiModel } = await req.json();
+    console.log("Query ricevuta:", { query, queryType, isTest, aiProvider, aiModel });
+
+    if (isTest) {
+      return new Response(
+        JSON.stringify({
+          text: `Ciao! Sono il tuo assistente AI alimentato da ${aiProvider.toUpperCase()} e utilizzo il modello ${aiModel}. Come posso aiutarti oggi?`,
+          data: null
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -31,20 +40,6 @@ serve(async (req) => {
       .from('api_keys')
       .select('*')
       .single();
-
-    if (isTest) {
-      // Usa il provider e il modello dalle impostazioni
-      const modelInfo = localStorage.getItem('ai_model') || 'gemini-pro';
-      const providerInfo = localStorage.getItem('ai_provider') || 'gemini';
-      
-      return new Response(
-        JSON.stringify({
-          text: `Ciao! Sono il tuo assistente AI alimentato da ${providerInfo.toUpperCase()} e utilizzo il modello ${modelInfo}. Come posso aiutarti oggi?`,
-          data: null
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
 
     if (queryType === 'database') {
       let result = null;

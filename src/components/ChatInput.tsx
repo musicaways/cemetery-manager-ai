@@ -30,13 +30,18 @@ export const ChatInput = ({
 
   const handleCommandSelect = (command: string) => {
     onQueryChange(command);
-    // Creiamo un evento sintetico del form corretto
-    const syntheticEvent = {
-      preventDefault: () => {},
-      target: document.createElement('form')
-    } as React.FormEvent<HTMLFormElement>;
+    // Simuliamo un submit del form
+    const form = document.createElement('form');
+    const submitEvent = new Event('submit', {
+      bubbles: true,
+      cancelable: true,
+    });
     
-    onSubmit(syntheticEvent);
+    // Preveniamo il submit reale del form
+    submitEvent.preventDefault = () => {};
+    
+    // Innescheremo l'evento
+    onSubmit(submitEvent as unknown as React.FormEvent);
   };
 
   return (

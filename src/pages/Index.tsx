@@ -1,14 +1,15 @@
-
 import { useState } from "react";
 import { Search, Database, User, Settings, Info } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { AIResponse } from "@/utils/types";
+import { AISettings } from "@/components/AISettings";
 
 const Index = () => {
   const [query, setQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [response, setResponse] = useState<AIResponse | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +44,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      {/* Header */}
       <header className="border-b border-gray-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -52,7 +52,10 @@ const Index = () => {
               <button className="p-2 hover:bg-gray-700 rounded-full">
                 <User className="w-5 h-5" />
               </button>
-              <button className="p-2 hover:bg-gray-700 rounded-full">
+              <button 
+                className="p-2 hover:bg-gray-700 rounded-full"
+                onClick={() => setIsSettingsOpen(true)}
+              >
                 <Settings className="w-5 h-5" />
               </button>
               <button className="p-2 hover:bg-gray-700 rounded-full">
@@ -63,10 +66,8 @@ const Index = () => {
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-3xl mx-auto space-y-8">
-          {/* Command Input */}
           <form onSubmit={handleSubmit} className="relative">
             <div className="flex items-center space-x-2 p-4 bg-gray-800 rounded-lg border border-gray-700 focus-within:border-blue-500 transition-colors">
               <Search className="w-5 h-5 text-gray-400" />
@@ -82,7 +83,6 @@ const Index = () => {
             </div>
           </form>
 
-          {/* AI Response */}
           {response && (
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
               <h2 className="text-xl font-semibold mb-4">AI Assistant Response</h2>
@@ -100,7 +100,6 @@ const Index = () => {
             </div>
           )}
 
-          {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               className="p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-blue-500 transition-colors"
@@ -118,7 +117,6 @@ const Index = () => {
             </button>
           </div>
 
-          {/* Features Preview */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
             <h2 className="text-xl font-semibold mb-4">Example Questions</h2>
             <ul className="space-y-3 text-gray-300">
@@ -138,6 +136,11 @@ const Index = () => {
           </div>
         </div>
       </main>
+
+      <AISettings 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
     </div>
   );
 };

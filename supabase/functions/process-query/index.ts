@@ -8,6 +8,85 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const processWithGroq = async (query: string) => {
+  const response = await fetch('https://api.groq.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${Deno.env.get('GROQ_API_KEY')}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      messages: [
+        {
+          role: 'system',
+          content: `You are an AI assistant managing a cemetery database. You have access to the following tables:
+            - Cimitero (Id, Codice, Descrizione)
+            - Settore (Id, Codice, Descrizione, IdCimitero)
+            - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
+            - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
+            - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
+            
+            Convert user queries into appropriate SQL queries and explain what you're doing.`
+        },
+        {
+          role: 'user',
+          content: query
+        }
+      ],
+      model: "mixtral-8x7b-32768",
+    }),
+  });
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+};
+
+const processWithGemini = async (query: string) => {
+  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-goog-api-key': Deno.env.get('GEMINI_API_KEY')!,
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{
+          text: query
+        }]
+      }]
+    })
+  });
+
+  const data = await response.json();
+  return data.candidates[0].content.parts[0].text;
+};
+
+const processWithDeepseek = async (query: string) => {
+  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: "deepseek-chat",
+      messages: [
+        {
+          role: "system",
+          content: "You are a cemetery database assistant."
+        },
+        {
+          role: "user",
+          content: query
+        }
+      ]
+    })
+  });
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -21,45 +100,25 @@ serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Process the query with OpenAI
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are an AI assistant managing a cemetery database. You have access to the following tables:
-              - Cimitero (Id, Codice, Descrizione)
-              - Settore (Id, Codice, Descrizione, IdCimitero)
-              - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
-              - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
-              - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
-              
-              Convert user queries into appropriate SQL queries and explain what you're doing.`
-          },
-          {
-            role: 'user',
-            content: query
-          }
-        ],
-        temperature: 0.3,
-        max_tokens: 500,
-      }),
-    });
+    let aiResponse;
+    const provider = Deno.env.get('AI_PROVIDER') || 'groq';
 
-    if (!openAIResponse.ok) {
-      throw new Error('Failed to process query with AI');
+    // Process with selected AI provider
+    switch (provider) {
+      case 'groq':
+        aiResponse = await processWithGroq(query);
+        break;
+      case 'gemini':
+        aiResponse = await processWithGemini(query);
+        break;
+      case 'deepseek':
+        aiResponse = await processWithDeepseek(query);
+        break;
+      default:
+        aiResponse = await processWithGroq(query);
     }
 
-    const aiResult = await openAIResponse.json();
-    const aiResponse = aiResult.choices[0].message.content;
-
-    // Extract SQL query from AI response if present
+    // Extract SQL query if present and execute
     const sqlMatch = aiResponse.match(/```sql\n([\s\S]*?)\n```/);
     let data = null;
     

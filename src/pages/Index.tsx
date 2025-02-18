@@ -29,36 +29,6 @@ const Index = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const processQueryWithOllama = async (finalQuery: string, isTest = false) => {
-    try {
-      const aiModel = localStorage.getItem('ai_model') || 'llama2';
-      
-      const response = await fetch('http://localhost:11434/api/generate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: aiModel,
-          prompt: isTest ? 'Chi sei?' : finalQuery,
-          stream: false,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        console.error("Errore risposta Ollama:", error);
-        throw new Error('Errore nella risposta di Ollama');
-      }
-
-      const data = await response.json();
-      return { text: data.response, data: null };
-    } catch (error) {
-      console.error("Errore Ollama:", error);
-      throw new Error('Errore nella connessione a Ollama. Assicurati che sia in esecuzione su localhost:11434');
-    }
-  };
-
   const handleSubmit = async (e?: React.FormEvent, submittedQuery?: string) => {
     e?.preventDefault();
     const finalQuery = submittedQuery || query;
@@ -71,45 +41,37 @@ const Index = () => {
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       const isTest = finalQuery.startsWith("/test-model");
+
+      const requestBody: QueryRequest = {
+        query: finalQuery.trim(),
+        queryType: 'web',
+        aiProvider,
+        aiModel,
+        isTest
+      };
+
+      console.log("Invio richiesta:", requestBody);
       
-      let response;
-      
-      if (aiProvider === 'ollama') {
-        response = await processQueryWithOllama(finalQuery, isTest);
-      } else {
-        let requestBody: QueryRequest = {
-          query: finalQuery.trim(),
-          queryType: 'web',
-          aiProvider,
-          aiModel,
-          isTest
-        };
+      const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+        body: requestBody
+      });
 
-        console.log("Invio richiesta:", requestBody);
-        
-        const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
-          body: requestBody
-        });
+      console.log("Risposta ricevuta:", { data, error });
 
-        console.log("Risposta ricevuta:", { data, error });
-
-        if (error) {
-          console.error("Errore Supabase:", error);
-          throw error;
-        }
-        
-        response = data;
+      if (error) {
+        console.error("Errore Supabase:", error);
+        throw error;
       }
       
-      if (response) {
+      if (data) {
         setMessages(prev => [...prev, { 
           type: 'response', 
-          content: response.text || '',
-          data: response.data
+          content: data.text || '',
+          data: data.data
         }]);
         
-        if (response.error) {
-          toast.error(response.error);
+        if (data.error) {
+          toast.error(data.error, { duration: 4000 });
         }
       }
       
@@ -117,7 +79,9 @@ const Index = () => {
       
     } catch (error) {
       console.error("Errore dettagliato:", error);
-      toast.error("Errore durante l'elaborazione della richiesta. " + (error as Error).message);
+      toast.error("Errore durante l'elaborazione della richiesta. " + (error as Error).message, {
+        duration: 4000
+      });
     } finally {
       setIsProcessing(false);
       setTimeout(scrollToBottom, 100);

@@ -8,6 +8,7 @@ export const useAPIKeys = (onSave: () => void) => {
   const [geminiKey, setGeminiKey] = useState('');
   const [perplexityKey, setPerplexityKey] = useState('');
   const [huggingfaceKey, setHuggingfaceKey] = useState('');
+  const [serpstackKey, setSerpstackKey] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isTesting, setIsTesting] = useState<string | null>(null);
@@ -34,6 +35,7 @@ export const useAPIKeys = (onSave: () => void) => {
         setGeminiKey(data.gemini_key || '');
         setPerplexityKey(data.perplexity_key || '');
         setHuggingfaceKey(data.huggingface_key || '');
+        setSerpstackKey(data.serpstack_key || '');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -101,6 +103,7 @@ export const useAPIKeys = (onSave: () => void) => {
             gemini_key: geminiKey,
             perplexity_key: perplexityKey,
             huggingface_key: huggingfaceKey,
+            serpstack_key: serpstackKey,
             updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
@@ -113,7 +116,8 @@ export const useAPIKeys = (onSave: () => void) => {
             groq_key: groqKey,
             gemini_key: geminiKey,
             perplexity_key: perplexityKey,
-            huggingface_key: huggingfaceKey
+            huggingface_key: huggingfaceKey,
+            serpstack_key: serpstackKey
           }]);
 
         if (error) throw error;
@@ -133,6 +137,7 @@ export const useAPIKeys = (onSave: () => void) => {
     geminiKey,
     perplexityKey,
     huggingfaceKey,
+    serpstackKey,
     hasChanges,
     isLoading,
     isTesting,
@@ -140,6 +145,7 @@ export const useAPIKeys = (onSave: () => void) => {
     setGeminiKey,
     setPerplexityKey,
     setHuggingfaceKey,
+    setSerpstackKey,
     handleChange,
     testAPI,
     saveKeys

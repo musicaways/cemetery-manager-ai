@@ -14,6 +14,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
     geminiKey,
     perplexityKey,
     huggingfaceKey,
+    serpstackKey,
     hasChanges,
     isLoading,
     isTesting,
@@ -23,7 +24,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
     setGroqKey,
     setGeminiKey,
     setPerplexityKey,
-    setHuggingfaceKey
+    setHuggingfaceKey,
+    setSerpstackKey
   } = useAPIKeys(onSave);
 
   if (isLoading) {
@@ -78,6 +80,17 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
         provider="HuggingFace"
         onTest={testAPI}
         isTesting={isTesting === "HuggingFace"}
+      />
+
+      <APIKeyField
+        label="SerpStack API Key"
+        value={serpstackKey}
+        onChange={(e) => handleChange('serpstack', e.target.value, setSerpstackKey)}
+        linkUrl="https://serpstack.com/dashboard"
+        linkText="Ottieni la tua SerpStack API Key"
+        provider="SerpStack"
+        onTest={testAPI}
+        isTesting={isTesting === "SerpStack"}
       />
 
       <Button 

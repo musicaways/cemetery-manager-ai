@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,23 +29,57 @@ const Index = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const identifyQueryType = (query: string): 'test' | 'database' | 'web' => {
+    // Verifica se è un comando di test
+    if (query.toLowerCase() === '/test-model') {
+      return 'test';
+    }
+
+    // Verifica se è una ricerca nel database
+    const databaseKeywords = ['mostrami', 'cerca', 'trova', 'lista', 'cimitero', 'defunto', 'loculi'];
+    if (databaseKeywords.some(keyword => query.toLowerCase().includes(keyword))) {
+      return 'database';
+    }
+
+    // Se contiene parole chiave per ricerca web
+    const webKeywords = ['internet', 'web', 'meteo', 'tempo', 'news', 'notizie'];
+    if (webKeywords.some(keyword => query.toLowerCase().includes(keyword))) {
+      return 'web';
+    }
+
+    // Default a database se non viene riconosciuto specificamente
+    return 'database';
+  };
+
   const handleSubmit = async (e?: React.FormEvent, submittedQuery?: string) => {
     e?.preventDefault();
     const finalQuery = submittedQuery || query;
     if (!finalQuery.trim()) return;
     
-    if (finalQuery === "/test-model") {
-      testAIModel();
-      return;
-    }
+    const queryType = identifyQueryType(finalQuery);
     
     setIsProcessing(true);
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
-    
+
     try {
-      console.log("Invio richiesta a Supabase:", finalQuery);
+      console.log("Tipo di query identificato:", queryType);
+      
+      let requestBody = {
+        query: finalQuery.trim(),
+        queryType: queryType
+      };
+
+      if (queryType === 'test') {
+        requestBody = {
+          ...requestBody,
+          isTest: true,
+          query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce."
+        };
+      }
+
+      console.log("Invio richiesta a Supabase:", requestBody);
       const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
-        body: { query: finalQuery.trim() }
+        body: requestBody
       });
 
       console.log("Risposta da Supabase:", { data, error });
@@ -73,36 +108,6 @@ const Index = () => {
       toast.error("Errore durante l'elaborazione della richiesta");
     } finally {
       setIsProcessing(false);
-      setTimeout(scrollToBottom, 100);
-    }
-  };
-
-  const testAIModel = async () => {
-    setIsProcessing(true);
-    setMessages(prev => [...prev, { type: 'query', content: "/test-model" }]);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
-        body: { 
-          query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce.",
-          isTest: true
-        }
-      });
-
-      if (error) throw error;
-      
-      if (data) {
-        setMessages(prev => [...prev, { 
-          type: 'response', 
-          content: data.text || ''
-        }]);
-      }
-    } catch (error) {
-      console.error("Errore test modello:", error);
-      toast.error("Errore durante il test del modello");
-    } finally {
-      setIsProcessing(false);
-      setQuery("");
       setTimeout(scrollToBottom, 100);
     }
   };
@@ -144,10 +149,7 @@ const Index = () => {
         query={query}
         isProcessing={isProcessing}
         onQueryChange={setQuery}
-        onSubmit={(e) => {
-          e.preventDefault();
-          testAIModel();
-        }}
+        onSubmit={handleSubmit}
         onMediaUploadClick={() => setIsMediaUploadOpen(true)}
         onVoiceRecord={(text) => handleSubmit(undefined, text)}
       />

@@ -34,29 +34,32 @@ const Index = () => {
     const finalQuery = submittedQuery || query;
     if (!finalQuery.trim()) return;
     
-    const isWebSearch = finalQuery.toLowerCase().includes('cerca su internet:');
-    const queryType = isWebSearch ? 'web' : 'database';
-    
     setIsProcessing(true);
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
 
     try {
-      console.log("Tipo di query identificato:", queryType);
-      
       let requestBody: QueryRequest;
       
       if (finalQuery.startsWith("/test-model")) {
         requestBody = {
           query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce.",
-          queryType: 'test',  // ora questo è un tipo valido grazie alla modifica in types.ts
+          queryType: 'test',
           isTest: true,
           aiProvider: localStorage.getItem('ai_provider') || 'gemini',
           aiModel: localStorage.getItem('ai_model') || 'gemini-pro'
         };
       } else {
+        // Se la query contiene parole chiave relative ai cimiteri, forza la modalità database
+        const cemeteryKeywords = ['cimitero', 'defunto', 'loculo', 'blocco', 'settore'];
+        const containsCemeteryKeywords = cemeteryKeywords.some(keyword => 
+          finalQuery.toLowerCase().includes(keyword)
+        );
+        
+        const queryType = containsCemeteryKeywords ? 'database' : 'web';
+        
         requestBody = {
           query: finalQuery.trim(),
-          queryType: queryType,
+          queryType,
           aiProvider: localStorage.getItem('ai_provider') || 'gemini',
           aiModel: localStorage.getItem('ai_model') || 'gemini-pro'
         };

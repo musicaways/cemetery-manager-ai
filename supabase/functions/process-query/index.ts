@@ -8,36 +8,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const extractSearchParams = (query: string) => {
-  const queryLower = query.toLowerCase();
-  
-  // Controllo se è una ricerca web
-  if (queryLower.includes('cerca su internet:')) {
-    return { type: 'web', term: query.split('cerca su internet:')[1].trim() };
-  }
-
-  // Estrai il nome del cimitero
-  const cimiteroMatch = queryLower.match(/cimitero\s+([^,\.]+)/i);
-  const cimitero = cimiteroMatch ? cimiteroMatch[1].trim() : null;
-
-  // Estrai il nome del defunto
-  const defuntoMatch = queryLower.match(/defunto\s+([^,\.]+)/i);
-  const defunto = defuntoMatch ? defuntoMatch[1].trim() : null;
-
-  // Determina il tipo di ricerca
-  let type = 'unknown';
-  if (queryLower.includes('blocch')) type = 'blocchi';
-  else if (queryLower.includes('defunt')) type = 'defunti';
-  else if (queryLower.includes('locul')) type = 'loculi';
-  else if (queryLower.includes('cimiter')) type = 'cimiteri';
-
-  return {
-    type,
-    cimitero: cimitero?.replace(/\b(di|del|della|dello|dei|degli|delle)\b/g, '').trim(),
-    defunto: defunto?.replace(/\b(di|del|della|dello|dei|degli|delle)\b/g, '').trim()
-  };
-};
-
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -57,11 +27,15 @@ serve(async (req) => {
       );
     }
 
-    // Se è una ricerca web o la modalità web è attiva, ignora il database
+    // Se è una ricerca web, comportati come un'IA generale
     if (queryType === 'web') {
+      let risposta = "Mi dispiace, ma al momento non riesco a fornire una risposta accurata. ";
+      risposta += "Sto lavorando in modalità simulazione. In una versione futura, ";
+      risposta += "sarò in grado di rispondere a qualsiasi domanda utilizzando le mie capacità di IA.";
+
       return new Response(
         JSON.stringify({
-          text: `Come assistente AI, cercherò di rispondere alla tua domanda: ${query.replace('cerca su internet:', '')}`,
+          text: risposta,
           data: null,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -69,9 +43,6 @@ serve(async (req) => {
     }
 
     // Altrimenti, procedi con la ricerca nel database
-    const searchParams = extractSearchParams(query);
-    console.log("Parametri estratti:", searchParams);
-
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
@@ -80,86 +51,85 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
+    
+    // Estrai le parole chiave dal testo della query
+    const queryLower = query.toLowerCase();
+    const isCimiteroQuery = queryLower.includes('cimitero');
+    const isDefuntoQuery = queryLower.includes('defunto');
+    const isBloccoQuery = queryLower.includes('blocco');
+    const isLoculoQuery = queryLower.includes('loculo');
+
     let result = null;
     let searchText = '';
 
-    switch (searchParams.type) {
-      case 'blocchi':
-        if (searchParams.cimitero) {
-          const { data: cimiteroData } = await supabase
-            .from('Cimitero')
-            .select('Id, Descrizione')
-            .ilike('Descrizione', `%${searchParams.cimitero}%`)
-            .limit(1);
+    if (isCimiteroQuery) {
+      const { data: cimiteriData } = await supabase
+        .from('Cimitero')
+        .select('*')
+        .order('Descrizione');
+      
+      result = cimiteriData;
+      searchText = `Ho trovato ${result?.length || 0} cimiteri`;
+    } 
+    else if (isDefuntoQuery) {
+      const nomeMatch = queryLower.match(/defunto\s+([^,\.]+)/i);
+      const nome = nomeMatch ? nomeMatch[1].trim() : '';
 
-          if (cimiteroData?.length > 0) {
-            const { data: blocchiData } = await supabase
-              .from('Blocco')
-              .select(`
-                Id, Codice, Descrizione, NumeroLoculi,
-                Settore!inner (
-                  Id, Codice, Descrizione,
-                  Cimitero!inner (Id, Descrizione)
-                )
-              `)
-              .eq('Settore.Cimitero.Id', cimiteroData[0].Id);
-
-            result = blocchiData;
-            searchText = `Ho trovato ${result?.length || 0} blocchi nel cimitero "${cimiteroData[0].Descrizione}"`;
-          } else {
-            searchText = `Non ho trovato il cimitero "${searchParams.cimitero}"`;
-          }
-        }
-        break;
-
-      case 'defunti':
-        const defuntoQuery = supabase
-          .from('Defunto')
-          .select(`
+      const { data: defuntiData } = await supabase
+        .from('Defunto')
+        .select(`
+          *, 
+          Loculo (
             *, 
-            Loculo (
-              *, 
-              Blocco (
+            Blocco (
+              *,
+              Settore (
                 *,
-                Settore (
-                  *,
-                  Cimitero (*)
-                )
+                Cimitero (*)
               )
             )
-          `);
+          )
+        `)
+        .ilike('Nominativo', `%${nome}%`)
+        .limit(20);
 
-        if (searchParams.defunto) {
-          defuntoQuery.ilike('Nominativo', `%${searchParams.defunto}%`);
-        }
-        
-        if (searchParams.cimitero) {
-          defuntoQuery.ilike('Loculo.Blocco.Settore.Cimitero.Descrizione', `%${searchParams.cimitero}%`);
-        }
+      result = defuntiData;
+      searchText = `Ho trovato ${result?.length || 0} defunti con nome "${nome}"`;
+    }
+    else if (isBloccoQuery || isLoculoQuery) {
+      const cimiteroMatch = queryLower.match(/cimitero\s+([^,\.]+)/i);
+      const cimitero = cimiteroMatch ? cimiteroMatch[1].trim() : '';
 
-        const { data: defuntiData } = await defuntoQuery.limit(20);
-        result = defuntiData;
-        searchText = `Ho trovato ${result?.length || 0} defunti`;
-        if (searchParams.defunto) searchText += ` con nome "${searchParams.defunto}"`;
-        if (searchParams.cimitero) searchText += ` nel cimitero "${searchParams.cimitero}"`;
-        break;
-
-      case 'cimiteri':
-        const { data: cimiteriData } = await supabase
+      if (cimitero) {
+        const { data: cimiteroData } = await supabase
           .from('Cimitero')
-          .select('*')
-          .order('Descrizione');
-        
-        result = cimiteriData;
-        searchText = `Ho trovato ${result?.length || 0} cimiteri`;
-        break;
+          .select('Id, Descrizione')
+          .ilike('Descrizione', `%${cimitero}%`)
+          .limit(1);
 
-      default:
-        if (queryType === 'database') {
-          searchText = "Non ho capito cosa vuoi cercare nel database. Prova a specificare se vuoi informazioni su cimiteri, blocchi, loculi o defunti.";
+        if (cimiteroData?.length > 0) {
+          const { data: blocchiData } = await supabase
+            .from('Blocco')
+            .select(`
+              Id, Codice, Descrizione, NumeroLoculi,
+              Settore!inner (
+                Id, Codice, Descrizione,
+                Cimitero!inner (Id, Descrizione)
+              )
+            `)
+            .eq('Settore.Cimitero.Id', cimiteroData[0].Id);
+
+          result = blocchiData;
+          searchText = `Ho trovato ${result?.length || 0} blocchi nel cimitero "${cimiteroData[0].Descrizione}"`;
         } else {
-          searchText = "Non ho capito la tua richiesta. Puoi riformularla in modo più chiaro?";
+          searchText = `Non ho trovato il cimitero "${cimitero}"`;
         }
+      } else {
+        searchText = "Per cercare blocchi o loculi, specifica anche il nome del cimitero";
+      }
+    }
+    else {
+      searchText = "Non ho capito cosa vuoi cercare. Prova a specificare se vuoi informazioni su cimiteri, blocchi, loculi o defunti.";
     }
 
     return new Response(

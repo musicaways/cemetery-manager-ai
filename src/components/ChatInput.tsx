@@ -46,18 +46,13 @@ export const ChatInput = ({
     setWebSearchEnabled(!webSearchEnabled);
     toast.success(
       !webSearchEnabled 
-        ? "Ricerca su Internet attivata" 
-        : "Ricerca su Internet disattivata"
+        ? "Modalità Internet attivata - Ora risponderò a qualsiasi domanda" 
+        : "Modalità Database attivata - Ora cercherò informazioni sui cimiteri"
     );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     if (!query.trim()) return;
-    
-    if (webSearchEnabled) {
-      onQueryChange(`cerca su internet: ${query}`);
-    }
-    
     onSubmit(e);
   };
 
@@ -82,7 +77,7 @@ export const ChatInput = ({
               : "text-[#8E9196] hover:text-[#9b87f5]"
           }`}
           onClick={toggleWebSearch}
-          title={webSearchEnabled ? "Disattiva ricerca su Internet" : "Attiva ricerca su Internet"}
+          title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
         >
           <Globe className="h-4 w-4" />
         </Button>
@@ -114,8 +109,8 @@ export const ChatInput = ({
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
                 placeholder={webSearchEnabled 
-                  ? "Cerca su Internet..." 
-                  : "Chiedimi quello che vuoi sapere..."
+                  ? "Fammi qualsiasi domanda..." 
+                  : "Cerca informazioni su cimiteri, blocchi, loculi o defunti..."
                 }
                 className="flex-1 bg-transparent outline-none placeholder-[#8E9196] text-gray-100 resize-none min-h-[36px] max-h-[120px] py-1"
                 disabled={isProcessing}

@@ -2,7 +2,7 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import type { AIResponse } from "@/utils/types";
+import type { AIResponse, QueryRequest } from "@/utils/types";
 import { AISettings } from "@/components/AISettings";
 import { MediaUpload } from "@/components/MediaUpload";
 import { Header } from "@/components/Header";
@@ -64,16 +64,16 @@ const Index = () => {
     try {
       console.log("Tipo di query identificato:", queryType);
       
-      let requestBody = {
+      let requestBody: QueryRequest = {
         query: finalQuery.trim(),
         queryType: queryType
       };
 
       if (queryType === 'test') {
         requestBody = {
-          ...requestBody,
-          isTest: true,
-          query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce."
+          query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce.",
+          queryType: queryType,
+          isTest: true
         };
       }
 

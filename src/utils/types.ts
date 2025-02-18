@@ -4,3 +4,9 @@ export interface AIResponse {
   data?: any;
   error?: string;
 }
+
+export interface QueryRequest {
+  query: string;
+  queryType: 'test' | 'database' | 'web';
+  isTest?: boolean;
+}

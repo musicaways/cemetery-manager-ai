@@ -3,29 +3,38 @@ import { useState } from "react";
 import { Search, Database, User, Settings, Info } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { AIResponse } from "@/utils/types";
 
 const Index = () => {
   const [query, setQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [response, setResponse] = useState<AIResponse | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!query.trim()) return;
+    
     setIsProcessing(true);
+    setResponse(null);
     
     try {
-      // Simple example query to demonstrate database connection
-      const { data, error } = await supabase
-        .from('Cimitero')
-        .select('*')
-        .limit(5);
+      const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+        body: { query: query.trim() }
+      });
 
       if (error) throw error;
       
-      toast.success(`Found ${data.length} records`);
-      console.log("Query results:", data);
+      if (data) {
+        setResponse(data);
+        if (data.error) {
+          toast.error(data.error);
+        } else {
+          toast.success("Query processed successfully");
+        }
+      }
       
     } catch (error) {
-      toast.error("Error executing query");
+      toast.error("Error processing query");
       console.error("Error:", error);
     } finally {
       setIsProcessing(false);
@@ -73,39 +82,57 @@ const Index = () => {
             </div>
           </form>
 
+          {/* AI Response */}
+          {response && (
+            <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
+              <h2 className="text-xl font-semibold mb-4">AI Assistant Response</h2>
+              <div className="prose prose-invert">
+                <p className="text-gray-300 whitespace-pre-wrap">{response.text}</p>
+              </div>
+              {response.data && (
+                <div className="mt-4">
+                  <h3 className="text-lg font-semibold mb-2">Data Results</h3>
+                  <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
+                    {JSON.stringify(response.data, null, 2)}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Quick Actions */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               className="p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-blue-500 transition-colors"
-              onClick={() => toast.info("This feature is coming soon!")}
+              onClick={() => setQuery("Show me all cemeteries")}
             >
-              <h3 className="text-lg font-semibold mb-2">View All Records</h3>
-              <p className="text-gray-400">Browse and search through all cemetery records</p>
+              <h3 className="text-lg font-semibold mb-2">View All Cemeteries</h3>
+              <p className="text-gray-400">Browse through all cemetery locations</p>
             </button>
             <button
               className="p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-blue-500 transition-colors"
-              onClick={() => toast.info("This feature is coming soon!")}
+              onClick={() => setQuery("How many total deceased are registered?")}
             >
-              <h3 className="text-lg font-semibold mb-2">Add New Record</h3>
-              <p className="text-gray-400">Create a new entry in the database</p>
+              <h3 className="text-lg font-semibold mb-2">Total Statistics</h3>
+              <p className="text-gray-400">View overall cemetery statistics</p>
             </button>
           </div>
 
           {/* Features Preview */}
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h2 className="text-xl font-semibold mb-4">Available Features</h2>
+            <h2 className="text-xl font-semibold mb-4">Example Questions</h2>
             <ul className="space-y-3 text-gray-300">
               <li className="flex items-center space-x-2">
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                <span>Natural language queries for cemetery data</span>
+                <span>"Show me all deceased persons in Blocco A"</span>
               </li>
               <li className="flex items-center space-x-2">
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                <span>Smart search across all database tables</span>
+                <span>"How many free loculi are in Settore 1?"</span>
               </li>
               <li className="flex items-center space-x-2">
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                <span>Real-time data updates and notifications</span>
+                <span>"Find all records for deceased named 'Rossi'"</span>
               </li>
             </ul>
           </div>

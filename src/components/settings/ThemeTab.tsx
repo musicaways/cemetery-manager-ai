@@ -1,4 +1,6 @@
+
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Button } from "@/components/ui/button";
 import { useTheme } from "@/lib/themeContext";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -90,7 +92,6 @@ export const ThemeTab = () => {
           onValueChange={(value) => {
             if (value) {
               handleChatStyleChange(value);
-              toast.success(`Stile chat cambiato in ${value}`);
             }
           }}
           className="flex flex-wrap gap-2"
@@ -117,7 +118,6 @@ export const ThemeTab = () => {
           onValueChange={(value) => {
             if (value) {
               handleAvatarShapeChange(value);
-              toast.success(`Forma avatar cambiata in ${value}`);
             }
           }}
           className="flex flex-wrap gap-2"

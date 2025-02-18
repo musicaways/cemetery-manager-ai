@@ -8,6 +8,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Funzione migliorata per estrarre il nome del cimitero
+const extractCemeteryName = (query: string): string | null => {
+  const queryLower = query.toLowerCase();
+  const words = queryLower.split(' ');
+  const cimiteroIndex = words.findIndex(w => w === 'cimitero');
+  
+  if (cimiteroIndex >= 0 && cimiteroIndex < words.length - 1) {
+    // Prendi tutte le parole dopo "cimitero" fino alla prossima preposizione o fine frase
+    const prepositions = ['di', 'del', 'dello', 'della', 'dei', 'degli', 'delle'];
+    let name = [];
+    for (let i = cimiteroIndex + 1; i < words.length; i++) {
+      if (prepositions.includes(words[i])) continue;
+      if ([',', 'e', 'con', 'nel', 'in'].includes(words[i])) break;
+      name.push(words[i]);
+    }
+    return name.length > 0 ? name.join(' ') : null;
+  }
+  return null;
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
@@ -40,22 +60,11 @@ serve(async (req) => {
       let result = null;
       let searchText = '';
       const queryLower = query.toLowerCase();
+      const cemeteryName = extractCemeteryName(query);
+      console.log("Nome cimitero estratto:", cemeteryName);
 
-      // Estrazione del nome del cimitero dalla query
-      const extractCemeteryName = (query: string) => {
-        const words = query.toLowerCase().split(' ');
-        const cimiteroIndex = words.findIndex(w => w === 'cimitero');
-        if (cimiteroIndex >= 0 && words[cimiteroIndex + 1]) {
-          return words[cimiteroIndex + 1];
-        }
-        return null;
-      };
-
-      // Ricerca blocchi di un cimitero specifico
-      if (queryLower.includes('blocchi') && queryLower.includes('cimitero')) {
-        const cemeteryName = extractCemeteryName(query);
-        console.log("Nome cimitero estratto:", cemeteryName);
-
+      // Ricerca blocchi di un cimitero specifico con tutte le informazioni correlate
+      if (queryLower.includes('blocchi') || queryLower.includes('blocco')) {
         if (cemeteryName) {
           const { data, error } = await supabase
             .from('Blocco')
@@ -64,13 +73,17 @@ serve(async (req) => {
               Settore!inner (
                 *,
                 Cimitero!inner (*)
+              ),
+              Loculo (
+                *,
+                Defunto (*)
               )
             `)
             .ilike('Settore.Cimitero.Descrizione', `%${cemeteryName}%`);
 
           if (error) throw error;
           result = data;
-          searchText = `Ecco i blocchi del cimitero che contiene "${cemeteryName}" nel nome:`;
+          searchText = `Ecco i blocchi del cimitero "${cemeteryName}" con relative informazioni:`;
         }
       }
       // Ricerca cimiteri
@@ -192,11 +205,10 @@ serve(async (req) => {
       } else {
         return new Response(
           JSON.stringify({
-            text: "Mi dispiace, non ho trovato risultati. Puoi provare a:\n" +
-                 "- Cercare blocchi di un cimitero specifico (es: 'mostrami i blocchi del cimitero centrale')\n" +
-                 "- Cercare defunti in un cimitero (es: 'cerca defunti nel cimitero nuovo')\n" +
-                 "- Cercare loculi per numero in un cimitero specifico\n" +
-                 "- Visualizzare tutti i settori di un cimitero",
+            text: "Mi dispiace, non ho trovato risultati per il cimitero specificato. Assicurati di:\n" +
+                 "- Scrivere correttamente il nome del cimitero\n" +
+                 "- Usare un formato come 'mostrami i blocchi del cimitero villa fastigi'\n" +
+                 "- Verificare che il cimitero esista nel database",
             data: null
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

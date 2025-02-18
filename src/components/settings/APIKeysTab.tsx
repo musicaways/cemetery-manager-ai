@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Key, ExternalLink } from "lucide-react";
+import { Key, ExternalLink, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface APIKeysTabProps {
@@ -17,6 +17,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
   const [huggingfaceKey, setHuggingfaceKey] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isTesting, setIsTesting] = useState<string | null>(null);
 
   useEffect(() => {
     loadAPIKeys();
@@ -53,6 +54,50 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
     setHasChanges(true);
   };
 
+  const testAPI = async (provider: string, apiKey: string) => {
+    if (!apiKey) {
+      toast.error(`Inserisci prima una chiave API per ${provider}`);
+      return;
+    }
+
+    setIsTesting(provider);
+    
+    try {
+      const response = await fetch(`${window.location.origin}/api/process-query`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: "Ciao! Questo è un test.",
+          queryType: "chat",
+          isTest: true,
+          aiProvider: provider.toLowerCase(),
+          aiModel: provider === "Groq" ? "mixtral-8x7b-32768" : 
+                  provider === "Gemini" ? "gemini-pro" :
+                  provider === "Perplexity" ? "mixtral-8x7b" : "mistral-7b"
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Errore durante il test dell'API di ${provider}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      toast.success(`Test dell'API di ${provider} completato con successo!`);
+    } catch (error) {
+      console.error(`Errore nel test dell'API di ${provider}:`, error);
+      toast.error(`Errore nel test dell'API di ${provider}. Verifica che la chiave sia corretta.`);
+    } finally {
+      setIsTesting(null);
+    }
+  };
+
   const saveKeys = async () => {
     try {
       const { data, error: fetchError } = await supabase
@@ -65,7 +110,6 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
       }
 
       if (data) {
-        // Update existing keys
         const { error } = await supabase
           .from('api_keys')
           .update({
@@ -79,17 +123,14 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
 
         if (error) throw error;
       } else {
-        // Insert new keys
         const { error } = await supabase
           .from('api_keys')
-          .insert([
-            {
-              groq_key: groqKey,
-              gemini_key: geminiKey,
-              perplexity_key: perplexityKey,
-              huggingface_key: huggingfaceKey
-            }
-          ]);
+          .insert([{
+            groq_key: groqKey,
+            gemini_key: geminiKey,
+            perplexity_key: perplexityKey,
+            huggingface_key: huggingfaceKey
+          }]);
 
         if (error) throw error;
       }
@@ -111,95 +152,89 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
     );
   }
 
+  const renderAPIField = (
+    label: string,
+    value: string,
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void,
+    linkUrl: string,
+    linkText: string,
+    provider: string
+  ) => (
+    <div className="space-y-2">
+      <label className="block text-sm font-medium text-gray-200">
+        {label}
+      </label>
+      <div className="flex gap-2">
+        <Input
+          type="password"
+          value={value}
+          onChange={onChange}
+          placeholder={`Inserisci la tua ${label}`}
+          className="bg-[#1A1F2C] border-white/10 flex-1"
+        />
+        <Button
+          onClick={() => testAPI(provider, value)}
+          disabled={!value || isTesting === provider}
+          variant="secondary"
+          className="whitespace-nowrap"
+        >
+          {isTesting === provider ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          ) : (
+            <Check className="w-4 h-4" />
+          )}
+          Test
+        </Button>
+      </div>
+      <a 
+        href={linkUrl} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="inline-flex items-center text-sm text-blue-400 hover:text-blue-300 mt-1"
+      >
+        <ExternalLink className="w-3 h-3 mr-1" />
+        {linkText}
+      </a>
+    </div>
+  );
+
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-200">
-          Groq API Key
-        </label>
-        <Input
-          type="password"
-          value={groqKey}
-          onChange={(e) => handleChange('groq', e.target.value, setGroqKey)}
-          placeholder="Inserisci la tua Groq API Key"
-          className="bg-[#1A1F2C] border-white/10"
-        />
-        <a 
-          href="https://console.groq.com/keys" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="inline-flex items-center text-sm text-blue-400 hover:text-blue-300 mt-1"
-        >
-          <ExternalLink className="w-3 h-3 mr-1" />
-          Ottieni la tua Groq API Key
-        </a>
-      </div>
+      {renderAPIField(
+        "Groq API Key",
+        groqKey,
+        (e) => handleChange('groq', e.target.value, setGroqKey),
+        "https://console.groq.com/keys",
+        "Ottieni la tua Groq API Key",
+        "Groq"
+      )}
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-200">
-          Gemini API Key
-        </label>
-        <Input
-          type="password"
-          value={geminiKey}
-          onChange={(e) => handleChange('gemini', e.target.value, setGeminiKey)}
-          placeholder="Inserisci la tua Gemini API Key"
-          className="bg-[#1A1F2C] border-white/10"
-        />
-        <a 
-          href="https://makersuite.google.com/app/apikey" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="inline-flex items-center text-sm text-blue-400 hover:text-blue-300 mt-1"
-        >
-          <ExternalLink className="w-3 h-3 mr-1" />
-          Ottieni la tua Gemini API Key
-        </a>
-      </div>
+      {renderAPIField(
+        "Gemini API Key",
+        geminiKey,
+        (e) => handleChange('gemini', e.target.value, setGeminiKey),
+        "https://makersuite.google.com/app/apikey",
+        "Ottieni la tua Gemini API Key",
+        "Gemini"
+      )}
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-200">
-          Perplexity API Key
-        </label>
-        <Input
-          type="password"
-          value={perplexityKey}
-          onChange={(e) => handleChange('perplexity', e.target.value, setPerplexityKey)}
-          placeholder="Inserisci la tua Perplexity API Key"
-          className="bg-[#1A1F2C] border-white/10"
-        />
-        <a 
-          href="https://docs.perplexity.ai/docs/get-started" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="inline-flex items-center text-sm text-blue-400 hover:text-blue-300 mt-1"
-        >
-          <ExternalLink className="w-3 h-3 mr-1" />
-          Ottieni la tua Perplexity API Key
-        </a>
-      </div>
+      {renderAPIField(
+        "Perplexity API Key",
+        perplexityKey,
+        (e) => handleChange('perplexity', e.target.value, setPerplexityKey),
+        "https://docs.perplexity.ai/docs/get-started",
+        "Ottieni la tua Perplexity API Key",
+        "Perplexity"
+      )}
 
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-200">
-          HuggingFace API Key
-        </label>
-        <Input
-          type="password"
-          value={huggingfaceKey}
-          onChange={(e) => handleChange('huggingface', e.target.value, setHuggingfaceKey)}
-          placeholder="Inserisci la tua HuggingFace API Key"
-          className="bg-[#1A1F2C] border-white/10"
-        />
-        <a 
-          href="https://huggingface.co/settings/tokens" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="inline-flex items-center text-sm text-blue-400 hover:text-blue-300 mt-1"
-        >
-          <ExternalLink className="w-3 h-3 mr-1" />
-          Ottieni la tua HuggingFace API Key
-        </a>
-      </div>
+      {renderAPIField(
+        "HuggingFace API Key",
+        huggingfaceKey,
+        (e) => handleChange('huggingface', e.target.value, setHuggingfaceKey),
+        "https://huggingface.co/settings/tokens",
+        "Ottieni la tua HuggingFace API Key",
+        "HuggingFace"
+      )}
 
       <Button 
         onClick={saveKeys} 

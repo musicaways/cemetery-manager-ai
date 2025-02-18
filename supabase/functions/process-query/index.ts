@@ -1,7 +1,7 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
+import { pipeline } from 'https://esm.sh/@huggingface/transformers';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,50 +27,24 @@ serve(async (req) => {
       );
     }
 
-    // Se è una ricerca web, utilizziamo Groq invece di Gemini
+    // Se è una ricerca web, utilizziamo HuggingFace Transformers
     if (queryType === 'web') {
       try {
-        const groqKey = Deno.env.get('GROQ_API_KEY');
-        if (!groqKey) {
-          throw new Error('API key di Groq mancante');
-        }
+        // Inizializza il modello di generazione testo
+        const generator = await pipeline(
+          'text-generation',
+          'onnx-community/gpt2-large-it',
+          { device: 'cpu' }
+        );
 
-        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${groqKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            model: 'mixtral-8x7b-32768',
-            messages: [
-              {
-                role: 'system',
-                content: 'Sei un assistente AI italiano disponibile ad aiutare con qualsiasi domanda.'
-              },
-              {
-                role: 'user',
-                content: query
-              }
-            ],
-            temperature: 0.7,
-            max_tokens: 1000,
-          }),
+        // Genera la risposta
+        const result = await generator(query, {
+          max_length: 100,
+          num_return_sequences: 1,
+          temperature: 0.7,
         });
 
-        if (!response.ok) {
-          console.error('Errore nella risposta di Groq:', await response.text());
-          throw new Error(`Errore nella chiamata a Groq: ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('Risposta completa da Groq:', data);
-
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-          throw new Error('Risposta di Groq non valida');
-        }
-
-        const aiResponse = data.choices[0].message.content;
+        const aiResponse = result[0].generated_text;
 
         return new Response(
           JSON.stringify({
@@ -80,7 +54,7 @@ serve(async (req) => {
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       } catch (error) {
-        console.error("Errore durante la chiamata a Groq:", error);
+        console.error("Errore durante la generazione del testo:", error);
         return new Response(
           JSON.stringify({
             text: "Mi dispiace, ma al momento non riesco a rispondere alla tua domanda. Riprova più tardi o disattiva la modalità Internet per cercare informazioni nel database.",

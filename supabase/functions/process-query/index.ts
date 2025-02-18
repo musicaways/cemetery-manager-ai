@@ -41,33 +41,47 @@ const processWithGroq = async (query: string) => {
 
     console.log("Avvio chiamata Groq API con query:", query);
     
-    // URL corretto per l'API Groq
-    const response = await fetch('https://chat.groq.com/v1/completions', {
+    // URL corretto per l'API Groq v1
+    const response = await fetch('https://api.groq.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
       body: JSON.stringify({
+        model: "mixtral-8x7b-32768",
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: query }
         ],
-        model: "mixtral-8x7b-32768",
         temperature: 0.7,
         max_tokens: 2000,
+        top_p: 1,
         stream: false
       }),
     });
 
+    // Log dettagliato della risposta
+    console.log("Status risposta Groq:", response.status);
+    console.log("Headers risposta Groq:", Object.fromEntries(response.headers.entries()));
+
+    const responseText = await response.text();
+    console.log("Testo risposta Groq:", responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Errore risposta Groq API:", errorText);
-      throw new Error(`Groq API ha restituito status ${response.status}: ${errorText}`);
+      throw new Error(`Groq API ha restituito status ${response.status}: ${responseText}`);
     }
 
-    const data = await response.json();
-    console.log("Risposta raw Groq API:", JSON.stringify(data, null, 2));
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error("Errore nel parsing della risposta JSON:", e);
+      throw new Error("Risposta non valida da Groq API");
+    }
+
+    console.log("Risposta Groq API parsata:", JSON.stringify(data, null, 2));
 
     if (!data.choices?.[0]?.message?.content) {
       console.error("Struttura risposta Groq API non valida:", data);

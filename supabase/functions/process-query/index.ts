@@ -8,9 +8,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const systemPrompt = `Sei un assistente AI che gestisce un database cimiteriale. Hai accesso alle seguenti tabelle:
+  - Cimitero (Id, Codice, Descrizione)
+  - Settore (Id, Codice, Descrizione, IdCimitero)
+  - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
+  - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
+  - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
+
+Converti le domande dell'utente in query SQL appropriate e spiega cosa stai facendo in italiano.
+Rispondi sempre in italiano.`;
+
 const processWithGroq = async (query: string) => {
   try {
-    console.log("Starting Groq API call with query:", query);
+    console.log("Avvio chiamata Groq API con query:", query);
     
     const response = await fetch('https://api.groq.com/v1/chat/completions', {
       method: 'POST',
@@ -20,119 +30,126 @@ const processWithGroq = async (query: string) => {
       },
       body: JSON.stringify({
         messages: [
-          {
-            role: 'system',
-            content: `You are an AI assistant managing a cemetery database. You have access to the following tables:
-              - Cimitero (Id, Codice, Descrizione)
-              - Settore (Id, Codice, Descrizione, IdCimitero)
-              - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
-              - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
-              - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
-              
-              Convert user queries into appropriate SQL queries and explain what you're doing.`
-          },
-          {
-            role: 'user',
-            content: query
-          }
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: query }
         ],
         model: "mixtral-8x7b-32768",
         temperature: 0.7,
-        max_tokens: 1000
+        max_tokens: 2000,
+        stream: false
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("Groq API error response:", errorText);
-      throw new Error(`Groq API returned status ${response.status}: ${errorText}`);
+      console.error("Errore risposta Groq API:", errorText);
+      throw new Error(`Groq API ha restituito status ${response.status}: ${errorText}`);
     }
 
     const data = await response.json();
-    console.log("Groq API raw response:", JSON.stringify(data, null, 2));
+    console.log("Risposta raw Groq API:", JSON.stringify(data, null, 2));
 
     if (!data.choices?.[0]?.message?.content) {
-      console.error("Invalid Groq API response structure:", data);
-      throw new Error('Invalid response structure from Groq API');
+      console.error("Struttura risposta Groq API non valida:", data);
+      throw new Error('Struttura risposta Groq API non valida');
     }
 
     return data.choices[0].message.content;
   } catch (error) {
-    console.error("Error in processWithGroq:", error);
-    throw new Error(`Groq API error: ${error.message}`);
+    console.error("Errore in processWithGroq:", error);
+    throw new Error(`Errore Groq API: ${error.message}`);
   }
 };
 
 const processWithGemini = async (query: string) => {
-  const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-goog-api-key': Deno.env.get('GEMINI_API_KEY')!,
-    },
-    body: JSON.stringify({
-      contents: [{
-        parts: [{
-          text: `You are an AI assistant managing a cemetery database. You have access to the following tables:
-            - Cimitero (Id, Codice, Descrizione)
-            - Settore (Id, Codice, Descrizione, IdCimitero)
-            - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
-            - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
-            - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
-            
-            Convert this query into appropriate SQL and explain what you're doing: ${query}`
-        }]
-      }]
-    })
-  });
+  try {
+    console.log("Avvio chiamata Gemini API con query:", query);
 
-  const data = await response.json();
-  console.log("Gemini response:", data);
-  
-  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
-    throw new Error('Invalid response from Gemini API');
+    const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': Deno.env.get('GEMINI_API_KEY')!,
+      },
+      body: JSON.stringify({
+        contents: [{
+          parts: [{
+            text: systemPrompt + "\n\nQuery utente: " + query
+          }]
+        }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 2000,
+        },
+        safetySettings: [{
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_NONE"
+        }]
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Errore risposta Gemini API:", errorText);
+      throw new Error(`Gemini API ha restituito status ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Risposta raw Gemini API:", JSON.stringify(data, null, 2));
+
+    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
+      console.error("Struttura risposta Gemini API non valida:", data);
+      throw new Error('Struttura risposta Gemini API non valida');
+    }
+
+    return data.candidates[0].content.parts[0].text;
+  } catch (error) {
+    console.error("Errore in processWithGemini:", error);
+    throw new Error(`Errore Gemini API: ${error.message}`);
   }
-  
-  return data.candidates[0].content.parts[0].text;
 };
 
 const processWithDeepseek = async (query: string) => {
-  const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      messages: [
-        {
-          role: "system",
-          content: `You are an AI assistant managing a cemetery database. You have access to the following tables:
-            - Cimitero (Id, Codice, Descrizione)
-            - Settore (Id, Codice, Descrizione, IdCimitero)
-            - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
-            - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
-            - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
-            
-            Convert user queries into appropriate SQL queries and explain what you're doing.`
-        },
-        {
-          role: "user",
-          content: query
-        }
-      ]
-    })
-  });
+  try {
+    console.log("Avvio chiamata DeepSeek API con query:", query);
 
-  const data = await response.json();
-  console.log("DeepSeek response:", data);
-  
-  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-    throw new Error('Invalid response from DeepSeek API');
+    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: "deepseek-chat",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: query }
+        ],
+        temperature: 0.7,
+        max_tokens: 2000,
+        stream: false
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Errore risposta DeepSeek API:", errorText);
+      throw new Error(`DeepSeek API ha restituito status ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log("Risposta raw DeepSeek API:", JSON.stringify(data, null, 2));
+
+    if (!data.choices?.[0]?.message?.content) {
+      console.error("Struttura risposta DeepSeek API non valida:", data);
+      throw new Error('Struttura risposta DeepSeek API non valida');
+    }
+
+    return data.choices[0].message.content;
+  } catch (error) {
+    console.error("Errore in processWithDeepSeek:", error);
+    throw new Error(`Errore DeepSeek API: ${error.message}`);
   }
-  
-  return data.choices[0].message.content;
 };
 
 serve(async (req) => {
@@ -142,22 +159,20 @@ serve(async (req) => {
 
   try {
     const { query } = await req.json();
-    console.log("Received query:", query);
+    console.log("Query ricevuta:", query);
     
     if (!query || typeof query !== 'string') {
-      throw new Error('Invalid or missing query parameter');
+      throw new Error('Query non valida o mancante');
     }
 
-    // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let aiResponse;
     const provider = Deno.env.get('AI_PROVIDER') || 'groq';
-    console.log("Using AI provider:", provider);
+    console.log("Provider AI in uso:", provider);
 
-    // Process with selected AI provider
     try {
       switch (provider) {
         case 'groq':
@@ -173,43 +188,52 @@ serve(async (req) => {
           aiResponse = await processWithGroq(query);
       }
     } catch (error) {
-      console.error("Error processing with AI provider:", error);
-      throw new Error(`Failed to process query with ${provider}: ${error.message}`);
+      console.error("Errore durante l'elaborazione con il provider AI:", error);
+      throw new Error(`Errore nell'elaborazione della query con ${provider}: ${error.message}`);
     }
 
     if (!aiResponse) {
-      throw new Error('No response received from AI provider');
+      throw new Error('Nessuna risposta ricevuta dal provider AI');
     }
 
-    console.log("AI Response received:", aiResponse);
+    console.log("Risposta AI ricevuta:", aiResponse);
 
-    // Extract SQL query if present and execute
+    // Estrai e esegui query SQL se presente
     const sqlMatch = aiResponse.match(/```sql\n([\s\S]*?)\n```/);
     let data = null;
     
     if (sqlMatch) {
-      const sqlQuery = sqlMatch[1];
-      console.log("Extracted SQL query:", sqlQuery);
+      const sqlQuery = sqlMatch[1].trim();
+      console.log("Query SQL estratta:", sqlQuery);
       
-      const { data: queryResult, error: queryError } = await supabase.rpc(
-        'get_complete_schema'
-      );
-      
-      if (queryError) {
-        console.error("Error executing SQL query:", queryError);
-        throw queryError;
+      try {
+        const { data: queryResult, error: queryError } = await supabase
+          .from('Cimitero')
+          .select('*');
+        
+        if (queryError) throw queryError;
+        data = queryResult;
+      } catch (error) {
+        console.error("Errore nell'esecuzione della query SQL:", error);
+        throw error;
       }
-      
-      data = queryResult;
     }
 
     return new Response(
-      JSON.stringify({ text: aiResponse, data }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        text: aiResponse, 
+        data 
+      }),
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        } 
+      }
     );
 
   } catch (error) {
-    console.error("Function error:", error);
+    console.error("Errore nella funzione:", error);
     return new Response(
       JSON.stringify({ 
         error: error.message,
@@ -217,7 +241,10 @@ serve(async (req) => {
       }),
       { 
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json' 
+        }
       }
     );
   }

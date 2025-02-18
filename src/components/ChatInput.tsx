@@ -30,6 +30,8 @@ export const ChatInput = ({
 
   const handleCommandSelect = (command: string) => {
     onQueryChange(command);
+    // Innesca immediatamente l'invio del comando
+    onSubmit(new Event('submit') as React.FormEvent);
   };
 
   return (

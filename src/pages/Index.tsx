@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -33,6 +32,11 @@ const Index = () => {
     e?.preventDefault();
     const finalQuery = submittedQuery || query;
     if (!finalQuery.trim()) return;
+    
+    if (finalQuery === "/test-model") {
+      testAIModel();
+      return;
+    }
     
     setIsProcessing(true);
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
@@ -74,35 +78,32 @@ const Index = () => {
   };
 
   const testAIModel = async () => {
-    const testQuery = "/test-model";
-    if (query === testQuery) {
-      setIsProcessing(true);
-      try {
-        const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
-          body: { 
-            query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce.",
-            isTest: true
-          }
-        });
-
-        if (error) throw error;
-        
-        if (data) {
-          setMessages(prev => [...prev, { 
-            type: 'response', 
-            content: data.text || ''
-          }]);
+    setIsProcessing(true);
+    setMessages(prev => [...prev, { type: 'query', content: "/test-model" }]);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+        body: { 
+          query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce.",
+          isTest: true
         }
-      } catch (error) {
-        console.error("Errore test modello:", error);
-        toast.error("Errore durante il test del modello");
-      } finally {
-        setIsProcessing(false);
-        setQuery("");
-        setTimeout(scrollToBottom, 100);
+      });
+
+      if (error) throw error;
+      
+      if (data) {
+        setMessages(prev => [...prev, { 
+          type: 'response', 
+          content: data.text || ''
+        }]);
       }
-    } else {
-      handleSubmit(undefined, query);
+    } catch (error) {
+      console.error("Errore test modello:", error);
+      toast.error("Errore durante il test del modello");
+    } finally {
+      setIsProcessing(false);
+      setQuery("");
+      setTimeout(scrollToBottom, 100);
     }
   };
 

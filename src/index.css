@@ -5,26 +5,11 @@
 
 @layer base {
   :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
+    --primary-color: #9b87f5;
+    --primary-hover: #7E69AB;
     --chat-bg: #1A1F2C;
     --message-bg: #2A2F3C;
     --border-color: #3A3F4C;
-  }
-
-  [data-theme="blue"] {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
-  }
-
-  [data-theme="green"] {
-    --primary-color: #059669;
-    --primary-hover: #047857;
-  }
-
-  [data-theme="red"] {
-    --primary-color: #dc2626;
-    --primary-hover: #b91c1c;
   }
 
   * {

@@ -40,44 +40,6 @@ export const ModelSelector = ({ provider, model, onModelChange }: ModelSelectorP
             </ToggleGroupItem>
           </ToggleGroup>
         );
-      case "ollama":
-        return (
-          <ToggleGroup 
-            type="single" 
-            value={model}
-            onValueChange={(value) => value && onModelChange(value)}
-            className="flex flex-wrap gap-2"
-          >
-            <ToggleGroupItem value="llama2" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Llama 2
-            </ToggleGroupItem>
-            <ToggleGroupItem value="mistral" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Mistral
-            </ToggleGroupItem>
-            <ToggleGroupItem value="codellama" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              CodeLlama
-            </ToggleGroupItem>
-            <ToggleGroupItem value="neural-chat" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Neural Chat
-            </ToggleGroupItem>
-          </ToggleGroup>
-        );
-      case "perplexity":
-        return (
-          <ToggleGroup 
-            type="single" 
-            value={model}
-            onValueChange={(value) => value && onModelChange(value)}
-            className="flex flex-wrap gap-2"
-          >
-            <ToggleGroupItem value="llama-3.1-sonar-small-128k-online" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Llama 3.1 Sonar Small
-            </ToggleGroupItem>
-            <ToggleGroupItem value="llama-3.1-sonar-large-128k-online" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Llama 3.1 Sonar Large
-            </ToggleGroupItem>
-          </ToggleGroup>
-        );
       default:
         return null;
     }

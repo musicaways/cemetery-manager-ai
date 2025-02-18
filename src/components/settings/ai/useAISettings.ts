@@ -1,11 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { MODEL_DESCRIPTIONS, PROVIDER_INFO } from './ModelDescriptions';
 
 export const useAISettings = (onSave: () => void) => {
-  const [provider, setProvider] = useState(() => localStorage.getItem('ai_provider') || "groq");
+  const [provider, setProvider] = useState(() => {
+    const savedProvider = localStorage.getItem('ai_provider');
+    return savedProvider === 'ollama' ? 'groq' : (savedProvider || 'groq');
+  });
   const [model, setModel] = useState(() => localStorage.getItem('ai_model') || "mixtral-8x7b-32768");
   const [language, setLanguage] = useState(() => localStorage.getItem('ai_language') || "it");
   const [temperature, setTemperature] = useState(() => parseFloat(localStorage.getItem('ai_temperature') || "0.7"));
@@ -15,7 +17,7 @@ export const useAISettings = (onSave: () => void) => {
 
   // Assicuriamoci che le impostazioni di default siano sempre salvate
   useEffect(() => {
-    if (!localStorage.getItem('ai_provider')) {
+    if (!localStorage.getItem('ai_provider') || localStorage.getItem('ai_provider') === 'ollama') {
       localStorage.setItem('ai_provider', 'groq');
     }
     if (!localStorage.getItem('ai_model')) {
@@ -49,12 +51,8 @@ export const useAISettings = (onSave: () => void) => {
       case "gemini":
         newModel = "gemini-pro";
         break;
-      case "ollama":
-        newModel = "llama2";
-        break;
-      case "perplexity":
-        newModel = "llama-3.1-sonar-small-128k-online";
-        break;
+      default:
+        newModel = "mixtral-8x7b-32768";
     }
     
     setModel(newModel);

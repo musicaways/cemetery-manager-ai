@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { MODEL_DESCRIPTIONS } from './ModelDescriptions';
+import { MODEL_DESCRIPTIONS, PROVIDER_INFO } from './ModelDescriptions';
 
 export const useAISettings = (onSave: () => void) => {
   const [provider, setProvider] = useState(() => localStorage.getItem('ai_provider') || "groq");
@@ -31,6 +30,11 @@ export const useAISettings = (onSave: () => void) => {
     setHasChanges(true);
     let newModel = '';
     
+    const providerInfo = PROVIDER_INFO[newProvider];
+    toast.info(`${providerInfo.name}`, {
+      description: `${providerInfo.description}\n\nPunti di forza: ${providerInfo.strengths}`
+    });
+    
     switch(newProvider) {
       case "groq":
         newModel = "mixtral-8x7b-32768";
@@ -47,10 +51,16 @@ export const useAISettings = (onSave: () => void) => {
     }
     
     setModel(newModel);
-    if (MODEL_DESCRIPTIONS[newModel]) {
-      setSelectedModelInfo(newModel);
-      toast.info(MODEL_DESCRIPTIONS[newModel].name, {
-        description: MODEL_DESCRIPTIONS[newModel].description + "\n\n" + MODEL_DESCRIPTIONS[newModel].strengths
+    showModelInfo(newModel);
+  };
+
+  const showModelInfo = (modelId: string) => {
+    const modelInfo = MODEL_DESCRIPTIONS[modelId];
+    if (modelInfo) {
+      const { name, description, strengths, details } = modelInfo;
+      toast.info(name, {
+        description: `${description}\n\n${strengths}\n\nDettagli:\n• ${details.parameters}\n• ${details.context}\n• ${details.languages}\n• ${details.speed}`,
+        duration: 5000
       });
     }
   };
@@ -59,12 +69,7 @@ export const useAISettings = (onSave: () => void) => {
     if (!newModel) return;
     setModel(newModel);
     setHasChanges(true);
-    if (MODEL_DESCRIPTIONS[newModel]) {
-      setSelectedModelInfo(newModel);
-      toast.info(MODEL_DESCRIPTIONS[newModel].name, {
-        description: MODEL_DESCRIPTIONS[newModel].description + "\n\n" + MODEL_DESCRIPTIONS[newModel].strengths
-      });
-    }
+    showModelInfo(newModel);
   };
 
   const testModel = async () => {

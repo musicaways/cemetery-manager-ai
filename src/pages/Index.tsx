@@ -119,7 +119,7 @@ const Index = () => {
 
       <main className="container mx-auto px-4 py-6 mb-32">
         <ScrollArea className="h-[calc(100vh-13rem)] rounded-lg">
-          <div className="max-w-3xl mx-auto space-y-6">
+          <div className="max-w-4xl mx-auto space-y-6">
             {messages.length === 0 && !isProcessing && (
               <div className="space-y-6 animate-fade-in">
                 <div className="text-center space-y-2">
@@ -134,7 +134,7 @@ const Index = () => {
 
             {messages.map((message, index) => (
               <div key={index} className={`animate-fade-in flex ${message.type === 'query' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[80%] ${message.type === 'query' ? 'ml-8' : 'mr-8'}`}>
+                <div className={`${message.type === 'query' ? 'max-w-[60%] ml-8' : 'max-w-[85%] mr-8'}`}>
                   {message.type === 'query' && (
                     <div className="bg-blue-500/20 rounded-2xl rounded-tr-sm p-4 border border-blue-500/30 backdrop-blur-sm">
                       <p className="text-blue-100">{message.content}</p>
@@ -147,7 +147,7 @@ const Index = () => {
                           <Database className="w-4 h-4 text-white" />
                         </div>
                         {message.content && !message.content.includes('```sql') && (
-                          <div className="bg-gray-800/30 rounded-2xl rounded-tl-sm p-4 border border-gray-700/50 backdrop-blur-sm shadow-lg">
+                          <div className="bg-gray-800/30 rounded-2xl rounded-tl-sm p-4 border border-gray-700/50 backdrop-blur-sm shadow-lg flex-1">
                             <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{message.content}</p>
                           </div>
                         )}

@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Plus, Command, Globe, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -9,27 +10,28 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
 
 interface ChatInputProps {
   query: string;
   isProcessing: boolean;
+  webSearchEnabled: boolean;
   onQueryChange: (value: string) => void;
   onSubmit: (e: React.FormEvent) => void;
   onMediaUploadClick: () => void;
   onVoiceRecord: (text: string) => void;
+  onWebSearchToggle: () => void;
 }
 
 export const ChatInput = ({
   query,
   isProcessing,
+  webSearchEnabled,
   onQueryChange,
   onSubmit,
   onMediaUploadClick,
-  onVoiceRecord
+  onVoiceRecord,
+  onWebSearchToggle
 }: ChatInputProps) => {
-  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
-
   const handleCommandSelect = (command: string) => {
     onQueryChange(command);
     const submitEvent = new Event('submit', {
@@ -65,14 +67,7 @@ export const ChatInput = ({
               ? "text-[#9b87f5]" 
               : "text-[#8E9196] hover:text-[#9b87f5]"
           }`}
-          onClick={() => {
-            setWebSearchEnabled(!webSearchEnabled);
-            toast.success(
-              !webSearchEnabled 
-                ? "Modalità Internet attivata" 
-                : "Modalità Database attivata"
-            );
-          }}
+          onClick={onWebSearchToggle}
           title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
         >
           <Globe className="h-4 w-4" />

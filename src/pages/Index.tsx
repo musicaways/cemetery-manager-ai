@@ -21,12 +21,35 @@ const Index = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMediaUploadOpen, setIsMediaUploadOpen] = useState(false);
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   let scrollTimeout: NodeJS.Timeout;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const processTestQuery = async (aiProvider: string, aiModel: string) => {
+    try {
+      const requestBody: QueryRequest = {
+        query: "Chi sei?",
+        queryType: 'test',
+        aiProvider,
+        aiModel,
+        isTest: true
+      };
+
+      const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+        body: requestBody
+      });
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error("Errore nel test:", error);
+      throw error;
+    }
   };
 
   const handleSubmit = async (e?: React.FormEvent, submittedQuery?: string) => {
@@ -40,38 +63,41 @@ const Index = () => {
     try {
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
-      const isTest = finalQuery.startsWith("/test-model");
-
-      const requestBody: QueryRequest = {
-        query: finalQuery.trim(),
-        queryType: 'web',
-        aiProvider,
-        aiModel,
-        isTest
-      };
-
-      console.log("Invio richiesta:", requestBody);
       
-      const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
-        body: requestBody
-      });
+      let response;
+      
+      if (finalQuery.startsWith("/test-model")) {
+        response = await processTestQuery(aiProvider, aiModel);
+      } else {
+        const requestBody: QueryRequest = {
+          query: finalQuery.trim(),
+          queryType: webSearchEnabled ? 'web' : 'database',
+          aiProvider,
+          aiModel,
+          isTest: false
+        };
 
-      console.log("Risposta ricevuta:", { data, error });
+        console.log("Invio richiesta:", requestBody);
+        
+        const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+          body: requestBody
+        });
 
-      if (error) {
-        console.error("Errore Supabase:", error);
-        throw error;
+        console.log("Risposta ricevuta:", { data, error });
+
+        if (error) throw error;
+        response = data;
       }
       
-      if (data) {
+      if (response) {
         setMessages(prev => [...prev, { 
           type: 'response', 
-          content: data.text || '',
-          data: data.data
+          content: response.text || '',
+          data: response.data
         }]);
         
-        if (data.error) {
-          toast.error(data.error, { duration: 4000 });
+        if (response.error) {
+          toast.error(response.error, { duration: 2000 });
         }
       }
       
@@ -80,7 +106,7 @@ const Index = () => {
     } catch (error) {
       console.error("Errore dettagliato:", error);
       toast.error("Errore durante l'elaborazione della richiesta. " + (error as Error).message, {
-        duration: 4000
+        duration: 2000
       });
     } finally {
       setIsProcessing(false);
@@ -128,6 +154,16 @@ const Index = () => {
         onSubmit={handleSubmit}
         onMediaUploadClick={() => setIsMediaUploadOpen(true)}
         onVoiceRecord={(text) => handleSubmit(undefined, text)}
+        webSearchEnabled={webSearchEnabled}
+        onWebSearchToggle={() => {
+          setWebSearchEnabled(!webSearchEnabled);
+          toast.success(
+            !webSearchEnabled 
+              ? "Modalità Internet attivata" 
+              : "Modalità Database attivata",
+            { duration: 2000 }
+          );
+        }}
       />
 
       <MediaUpload 

@@ -1,238 +1,27 @@
-import { useState, useEffect } from "react";
+
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-
-const MODEL_DESCRIPTIONS = {
-  "mixtral-8x7b-32768": {
-    name: "Mixtral 8x7B",
-    description: "Un modello molto potente e versatile, eccellente per compiti complessi come analisi, programmazione e ragionamento strutturato.",
-    strengths: "Ottimo per: coding, matematica, analisi dettagliate"
-  },
-  "llama2-70b-4096": {
-    name: "LLaMA2 70B",
-    description: "Modello di grandi dimensioni con eccellenti capacità di comprensione e generazione del linguaggio naturale.",
-    strengths: "Ottimo per: scrittura creativa, spiegazioni dettagliate, traduzioni"
-  },
-  "gemini-pro": {
-    name: "Gemini Pro",
-    description: "Modello avanzato di Google con capacità multimodali e comprensione contestuale avanzata.",
-    strengths: "Ottimo per: analisi visiva, risposte precise, comprensione del contesto"
-  },
-  "llama2": {
-    name: "Llama 2",
-    description: "Versione locale del modello Meta, bilancia bene prestazioni e velocità.",
-    strengths: "Ottimo per: uso generale, risposte veloci, basso consumo di risorse"
-  },
-  "llama-3.1-sonar-small-128k-online": {
-    name: "Llama 3.1 Sonar Small",
-    description: "Modello ottimizzato per risposte precise e ragionamento strutturato.",
-    strengths: "Ottimo per: risposte concise, fact-checking, analisi logica"
-  }
-};
+import { useAISettings } from './ai/useAISettings';
+import { ModelSelector } from './ai/ModelSelector';
 
 interface AITabProps {
   onSave: () => void;
 }
 
 export const AITab = ({ onSave }: AITabProps) => {
-  const [provider, setProvider] = useState(() => localStorage.getItem('ai_provider') || "groq");
-  const [model, setModel] = useState(() => localStorage.getItem('ai_model') || "mixtral-8x7b-32768");
-  const [language, setLanguage] = useState(() => localStorage.getItem('ai_language') || "it");
-  const [temperature, setTemperature] = useState(() => parseFloat(localStorage.getItem('ai_temperature') || "0.7"));
-  const [selectedModelInfo, setSelectedModelInfo] = useState('');
-  const [hasChanges, setHasChanges] = useState(false);
-  const [isTestingModel, setIsTestingModel] = useState(false);
-
-  useEffect(() => {
-    const savedProvider = localStorage.getItem('ai_provider');
-    const savedModel = localStorage.getItem('ai_model');
-    const savedLanguage = localStorage.getItem('ai_language');
-    const savedTemperature = localStorage.getItem('ai_temperature');
-
-    if (savedProvider) setProvider(savedProvider);
-    if (savedModel) setModel(savedModel);
-    if (savedLanguage) setLanguage(savedLanguage);
-    if (savedTemperature) setTemperature(parseFloat(savedTemperature));
-  }, []);
-
-  const handleProviderChange = (newProvider: string) => {
-    if (!newProvider) return;
-    setProvider(newProvider);
-    setHasChanges(true);
-    let newModel = '';
-    
-    switch(newProvider) {
-      case "groq":
-        newModel = "mixtral-8x7b-32768";
-        break;
-      case "gemini":
-        newModel = "gemini-pro";
-        break;
-      case "ollama":
-        newModel = "llama2";
-        break;
-      case "perplexity":
-        newModel = "llama-3.1-sonar-small-128k-online";
-        break;
-    }
-    
-    setModel(newModel);
-    if (MODEL_DESCRIPTIONS[newModel]) {
-      setSelectedModelInfo(newModel);
-      toast.info(MODEL_DESCRIPTIONS[newModel].name, {
-        description: MODEL_DESCRIPTIONS[newModel].description + "\n\n" + MODEL_DESCRIPTIONS[newModel].strengths
-      });
-    }
-  };
-
-  const handleModelChange = (newModel: string) => {
-    if (!newModel) return;
-    setModel(newModel);
-    setHasChanges(true);
-    if (MODEL_DESCRIPTIONS[newModel]) {
-      setSelectedModelInfo(newModel);
-      toast.info(MODEL_DESCRIPTIONS[newModel].name, {
-        description: MODEL_DESCRIPTIONS[newModel].description + "\n\n" + MODEL_DESCRIPTIONS[newModel].strengths
-      });
-    }
-  };
-
-  const testModel = async () => {
-    setIsTestingModel(true);
-    try {
-      const testPrompt = language === 'it' 
-        ? "Chi sei? Rispondi brevemente in italiano."
-        : "Who are you? Answer briefly in English.";
-
-      const response = await supabase.functions.invoke('process-query', {
-        body: { 
-          query: testPrompt,
-          provider,
-          model
-        }
-      });
-      
-      if (response.error) {
-        throw response.error;
-      }
-
-      toast.success('Test del modello completato', {
-        description: `${MODEL_DESCRIPTIONS[model]?.name} ha risposto correttamente.`
-      });
-      
-      return true;
-    } catch (error) {
-      console.error('Errore nel test del modello:', error);
-      toast.error('Errore nel test del modello', {
-        description: 'Il modello selezionato non ha risposto correttamente. Prova a selezionare un altro modello.'
-      });
-      return false;
-    } finally {
-      setIsTestingModel(false);
-    }
-  };
-
-  const saveSettings = async () => {
-    const toastLoading = toast.loading('Verifica del modello in corso...');
-    
-    const testPassed = await testModel();
-    
-    if (testPassed) {
-      localStorage.setItem('ai_provider', provider);
-      localStorage.setItem('ai_model', model);
-      localStorage.setItem('ai_language', language);
-      localStorage.setItem('ai_temperature', temperature.toString());
-      setHasChanges(false);
-      
-      toast.dismiss(toastLoading);
-      toast.success('Impostazioni AI salvate con successo', {
-        description: `Provider: ${provider.toUpperCase()}, Modello: ${MODEL_DESCRIPTIONS[model]?.name}`
-      });
-      
-      onSave();
-    } else {
-      toast.dismiss(toastLoading);
-      toast.error('Impossibile salvare le impostazioni', {
-        description: 'Il test del modello non è andato a buon fine. Verifica la tua selezione.'
-      });
-    }
-  };
-
-  const renderModelOptions = () => {
-    switch (provider) {
-      case "groq":
-        return (
-          <ToggleGroup 
-            type="single" 
-            value={model}
-            onValueChange={(value) => value && setModel(value)}
-            className="flex flex-wrap gap-2"
-          >
-            <ToggleGroupItem value="mixtral-8x7b-32768" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Mixtral 8x7B
-            </ToggleGroupItem>
-            <ToggleGroupItem value="llama2-70b-4096" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              LLaMA2 70B
-            </ToggleGroupItem>
-          </ToggleGroup>
-        );
-      case "gemini":
-        return (
-          <ToggleGroup 
-            type="single" 
-            value={model}
-            onValueChange={(value) => value && setModel(value)}
-            className="flex flex-wrap gap-2"
-          >
-            <ToggleGroupItem value="gemini-pro" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Gemini Pro
-            </ToggleGroupItem>
-          </ToggleGroup>
-        );
-      case "ollama":
-        return (
-          <ToggleGroup 
-            type="single" 
-            value={model}
-            onValueChange={(value) => value && setModel(value)}
-            className="flex flex-wrap gap-2"
-          >
-            <ToggleGroupItem value="llama2" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Llama 2
-            </ToggleGroupItem>
-            <ToggleGroupItem value="mistral" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Mistral
-            </ToggleGroupItem>
-            <ToggleGroupItem value="codellama" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              CodeLlama
-            </ToggleGroupItem>
-            <ToggleGroupItem value="neural-chat" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Neural Chat
-            </ToggleGroupItem>
-          </ToggleGroup>
-        );
-      case "perplexity":
-        return (
-          <ToggleGroup 
-            type="single" 
-            value={model}
-            onValueChange={(value) => value && setModel(value)}
-            className="flex flex-wrap gap-2"
-          >
-            <ToggleGroupItem value="llama-3.1-sonar-small-128k-online" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Llama 3.1 Sonar Small
-            </ToggleGroupItem>
-            <ToggleGroupItem value="llama-3.1-sonar-large-128k-online" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-              Llama 3.1 Sonar Large
-            </ToggleGroupItem>
-          </ToggleGroup>
-        );
-      default:
-        return null;
-    }
-  };
+  const {
+    provider,
+    model,
+    language,
+    temperature,
+    hasChanges,
+    isTestingModel,
+    handleProviderChange,
+    handleModelChange,
+    setLanguage,
+    setTemperature,
+    saveSettings
+  } = useAISettings(onSave);
 
   return (
     <div className="space-y-6">
@@ -265,7 +54,11 @@ export const AITab = ({ onSave }: AITabProps) => {
         <label className="block text-sm font-medium text-gray-200 mb-2">
           Modello
         </label>
-        {renderModelOptions()}
+        <ModelSelector 
+          provider={provider} 
+          model={model} 
+          onModelChange={handleModelChange}
+        />
       </div>
 
       <div>

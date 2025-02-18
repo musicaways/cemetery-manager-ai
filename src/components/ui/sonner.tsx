@@ -13,7 +13,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       className="toaster group"
       toastOptions={{
         classNames: {
-          toast: "group toast group-[.toaster]:bg-[#2A2F3C] group-[.toaster]:text-foreground group-[.toaster]:border-[#3A3F4C] group-[.toaster]:shadow-2xl group-[.toaster]:shadow-black/20 group-[.toaster]:z-[100] group-[.toaster]:min-h-[80px] group-[.toaster]:max-w-[420px]",
+          toast: "group toast group-[.toaster]:bg-[#2A2F3C] group-[.toaster]:text-foreground group-[.toaster]:border-[#3A3F4C] group-[.toaster]:shadow-2xl group-[.toaster]:shadow-black/20 group-[.toaster]:z-[100] group-[.toaster]:min-h-[80px] group-[.toaster]:max-w-[90vw] group-[.toaster]:w-[800px] mx-auto",
           title: "group-[.toast]:text-white group-[.toast]:font-semibold group-[.toast]:text-base",
           description: "group-[.toast]:text-gray-200 group-[.toast]:text-sm group-[.toast]:leading-relaxed group-[.toast]:mt-1",
           actionButton: "group-[.toast]:bg-[var(--primary-color)] group-[.toast]:text-primary-foreground",
@@ -23,7 +23,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           info: "!bg-blue-600/90 !text-white !border-blue-500",
         },
       }}
-      position="bottom-right"
+      position="top-center"
       expand={true}
       richColors
       closeButton

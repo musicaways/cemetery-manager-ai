@@ -17,6 +17,7 @@ export type Database = {
           huggingface_key: string | null
           id: string
           perplexity_key: string | null
+          serpstack_key: string | null
           updated_at: string | null
         }
         Insert: {
@@ -26,6 +27,7 @@ export type Database = {
           huggingface_key?: string | null
           id?: string
           perplexity_key?: string | null
+          serpstack_key?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -35,6 +37,7 @@ export type Database = {
           huggingface_key?: string | null
           id?: string
           perplexity_key?: string | null
+          serpstack_key?: string | null
           updated_at?: string | null
         }
         Relationships: []

@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Settings, X, Palette, Robot, Key } from "lucide-react";
+import { Settings, X, Palette, Bot, Key } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeTab } from "./settings/ThemeTab";
 import { AITab } from "./settings/AITab";
@@ -31,7 +31,7 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
               Tema
             </TabsTrigger>
             <TabsTrigger value="ai" className="data-[state=active]:bg-[var(--primary-color)]">
-              <Robot className="w-4 h-4 mr-2" />
+              <Bot className="w-4 h-4 mr-2" />
               AI
             </TabsTrigger>
             <TabsTrigger value="keys" className="data-[state=active]:bg-[var(--primary-color)]">

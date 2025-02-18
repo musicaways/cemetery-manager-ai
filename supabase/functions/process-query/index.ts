@@ -16,16 +16,35 @@ const systemPrompt = `Sei un assistente AI che gestisce un database cimiteriale.
   - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
 
 Converti le domande dell'utente in query SQL appropriate e spiega cosa stai facendo in italiano.
+La tua risposta dovrebbe seguire questo formato:
+1. Spiegazione in italiano di cosa farai
+2. Query SQL racchiusa tra \`\`\`sql e \`\`\`
+3. Spiegazione dei risultati attesi
+
+Esempio:
+"Vado a cercare tutti i cimiteri nel database.
+
+\`\`\`sql
+SELECT * FROM Cimitero;
+\`\`\`
+
+Questa query mostrerà l'elenco completo dei cimiteri con i loro codici e descrizioni."
+
 Rispondi sempre in italiano.`;
 
 const processWithGroq = async (query: string) => {
   try {
+    const apiKey = Deno.env.get('GROQ_API_KEY');
+    if (!apiKey) {
+      throw new Error('Groq API key non configurata');
+    }
+
     console.log("Avvio chiamata Groq API con query:", query);
     
     const response = await fetch('https://api.groq.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('GROQ_API_KEY')}`,
+        'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -61,94 +80,56 @@ const processWithGroq = async (query: string) => {
   }
 };
 
-const processWithGemini = async (query: string) => {
+const executeQuery = async (sqlQuery: string, supabase: any) => {
   try {
-    console.log("Avvio chiamata Gemini API con query:", query);
-
-    const response = await fetch('https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': Deno.env.get('GEMINI_API_KEY')!,
-      },
-      body: JSON.stringify({
-        contents: [{
-          parts: [{
-            text: systemPrompt + "\n\nQuery utente: " + query
-          }]
-        }],
-        generationConfig: {
-          temperature: 0.7,
-          maxOutputTokens: 2000,
-        },
-        safetySettings: [{
-          category: "HARM_CATEGORY_HARASSMENT",
-          threshold: "BLOCK_NONE"
-        }]
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Errore risposta Gemini API:", errorText);
-      throw new Error(`Gemini API ha restituito status ${response.status}: ${errorText}`);
+    console.log("Esecuzione query SQL:", sqlQuery);
+    
+    // Rimuovi eventuali punti e virgola finali
+    sqlQuery = sqlQuery.trim().replace(/;$/, '');
+    
+    // Analizza la query per determinare la tabella principale
+    const lowerQuery = sqlQuery.toLowerCase();
+    let mainTable = '';
+    
+    if (lowerQuery.includes('from cimitero')) mainTable = 'Cimitero';
+    else if (lowerQuery.includes('from settore')) mainTable = 'Settore';
+    else if (lowerQuery.includes('from blocco')) mainTable = 'Blocco';
+    else if (lowerQuery.includes('from loculo')) mainTable = 'Loculo';
+    else if (lowerQuery.includes('from defunto')) mainTable = 'Defunto';
+    
+    if (!mainTable) {
+      throw new Error('Tabella non riconosciuta nella query');
     }
 
-    const data = await response.json();
-    console.log("Risposta raw Gemini API:", JSON.stringify(data, null, 2));
-
-    if (!data.candidates?.[0]?.content?.parts?.[0]?.text) {
-      console.error("Struttura risposta Gemini API non valida:", data);
-      throw new Error('Struttura risposta Gemini API non valida');
+    // Costruisci la query Supabase
+    let query = supabase.from(mainTable).select('*');
+    
+    // Se la query originale ha una clausola WHERE, aggiungila
+    const whereMatch = lowerQuery.match(/where\s+(.*?)(?:\s+(?:order|group|limit|$))/i);
+    if (whereMatch) {
+      query = query.or(whereMatch[1].replace(/'/g, ''));
+    }
+    
+    // Se la query ha un ORDER BY, aggiungilo
+    const orderMatch = lowerQuery.match(/order\s+by\s+(.*?)(?:\s+(?:limit|$))/i);
+    if (orderMatch) {
+      query = query.order(orderMatch[1]);
+    }
+    
+    // Se la query ha un LIMIT, aggiungilo
+    const limitMatch = lowerQuery.match(/limit\s+(\d+)/i);
+    if (limitMatch) {
+      query = query.limit(parseInt(limitMatch[1]));
     }
 
-    return data.candidates[0].content.parts[0].text;
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    return data;
+
   } catch (error) {
-    console.error("Errore in processWithGemini:", error);
-    throw new Error(`Errore Gemini API: ${error.message}`);
-  }
-};
-
-const processWithDeepseek = async (query: string) => {
-  try {
-    console.log("Avvio chiamata DeepSeek API con query:", query);
-
-    const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${Deno.env.get('DEEPSEEK_API_KEY')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: "deepseek-chat",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: query }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-        stream: false
-      })
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Errore risposta DeepSeek API:", errorText);
-      throw new Error(`DeepSeek API ha restituito status ${response.status}: ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log("Risposta raw DeepSeek API:", JSON.stringify(data, null, 2));
-
-    if (!data.choices?.[0]?.message?.content) {
-      console.error("Struttura risposta DeepSeek API non valida:", data);
-      throw new Error('Struttura risposta DeepSeek API non valida');
-    }
-
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.error("Errore in processWithDeepSeek:", error);
-    throw new Error(`Errore DeepSeek API: ${error.message}`);
+    console.error("Errore nell'esecuzione della query:", error);
+    throw error;
   }
 };
 
@@ -170,30 +151,15 @@ serve(async (req) => {
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let aiResponse;
-    const provider = Deno.env.get('AI_PROVIDER') || 'groq';
-    console.log("Provider AI in uso:", provider);
-
     try {
-      switch (provider) {
-        case 'groq':
-          aiResponse = await processWithGroq(query);
-          break;
-        case 'gemini':
-          aiResponse = await processWithGemini(query);
-          break;
-        case 'deepseek':
-          aiResponse = await processWithDeepseek(query);
-          break;
-        default:
-          aiResponse = await processWithGroq(query);
-      }
+      aiResponse = await processWithGroq(query);
     } catch (error) {
-      console.error("Errore durante l'elaborazione con il provider AI:", error);
-      throw new Error(`Errore nell'elaborazione della query con ${provider}: ${error.message}`);
+      console.error("Errore durante l'elaborazione con Groq:", error);
+      throw new Error(`Errore nell'elaborazione della query: ${error.message}`);
     }
 
     if (!aiResponse) {
-      throw new Error('Nessuna risposta ricevuta dal provider AI');
+      throw new Error('Nessuna risposta ricevuta da Groq');
     }
 
     console.log("Risposta AI ricevuta:", aiResponse);
@@ -207,12 +173,7 @@ serve(async (req) => {
       console.log("Query SQL estratta:", sqlQuery);
       
       try {
-        const { data: queryResult, error: queryError } = await supabase
-          .from('Cimitero')
-          .select('*');
-        
-        if (queryError) throw queryError;
-        data = queryResult;
+        data = await executeQuery(sqlQuery, supabase);
       } catch (error) {
         console.error("Errore nell'esecuzione della query SQL:", error);
         throw error;

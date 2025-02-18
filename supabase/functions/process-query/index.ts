@@ -36,38 +36,42 @@ const processWithGroq = async (query: string) => {
   try {
     const apiKey = Deno.env.get('GROQ_API_KEY');
     if (!apiKey) {
-      throw new Error('Groq API key non configurata');
+      console.error('GROQ_API_KEY non trovata nelle variabili di ambiente');
+      throw new Error('Chiave API Groq non configurata');
     }
 
-    console.log("Avvio chiamata Groq API con query:", query);
-    
-    // URL corretto per l'API Groq v1
-    const response = await fetch('https://api.groq.com/v1/chat/completions', {
+    console.log("Inizio chiamata Groq con query:", query);
+    console.log("API Key presente:", !!apiKey);
+
+    const requestBody = {
+      model: "mixtral-8x7b-32768",
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: query }
+      ],
+      temperature: 0.7,
+      max_tokens: 2000,
+      top_p: 1,
+      stream: false
+    };
+
+    console.log("Request body:", JSON.stringify(requestBody, null, 2));
+
+    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
-      body: JSON.stringify({
-        model: "mixtral-8x7b-32768",
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: query }
-        ],
-        temperature: 0.7,
-        max_tokens: 2000,
-        top_p: 1,
-        stream: false
-      }),
+      body: JSON.stringify(requestBody),
     });
 
-    // Log dettagliato della risposta
-    console.log("Status risposta Groq:", response.status);
-    console.log("Headers risposta Groq:", Object.fromEntries(response.headers.entries()));
+    console.log("Risposta Groq - Status:", response.status);
+    console.log("Risposta Groq - Headers:", Object.fromEntries(response.headers.entries()));
 
     const responseText = await response.text();
-    console.log("Testo risposta Groq:", responseText);
+    console.log("Risposta Groq - Body:", responseText);
 
     if (!response.ok) {
       throw new Error(`Groq API ha restituito status ${response.status}: ${responseText}`);
@@ -76,12 +80,11 @@ const processWithGroq = async (query: string) => {
     let data;
     try {
       data = JSON.parse(responseText);
+      console.log("Risposta Groq parsata:", JSON.stringify(data, null, 2));
     } catch (e) {
       console.error("Errore nel parsing della risposta JSON:", e);
       throw new Error("Risposta non valida da Groq API");
     }
-
-    console.log("Risposta Groq API parsata:", JSON.stringify(data, null, 2));
 
     if (!data.choices?.[0]?.message?.content) {
       console.error("Struttura risposta Groq API non valida:", data);
@@ -90,7 +93,7 @@ const processWithGroq = async (query: string) => {
 
     return data.choices[0].message.content;
   } catch (error) {
-    console.error("Errore in processWithGroq:", error);
+    console.error("Errore dettagliato in processWithGroq:", error);
     throw new Error(`Errore Groq API: ${error.message}`);
   }
 };
@@ -99,10 +102,8 @@ const executeQuery = async (sqlQuery: string, supabase: any) => {
   try {
     console.log("Esecuzione query SQL:", sqlQuery);
     
-    // Rimuovi eventuali punti e virgola finali
     sqlQuery = sqlQuery.trim().replace(/;$/, '');
     
-    // Analizza la query per determinare la tabella principale
     const lowerQuery = sqlQuery.toLowerCase();
     let mainTable = '';
     
@@ -116,34 +117,36 @@ const executeQuery = async (sqlQuery: string, supabase: any) => {
       throw new Error('Tabella non riconosciuta nella query');
     }
 
-    // Costruisci la query Supabase
     let query = supabase.from(mainTable).select('*');
     
-    // Se la query originale ha una clausola WHERE, aggiungila
     const whereMatch = lowerQuery.match(/where\s+(.*?)(?:\s+(?:order|group|limit|$))/i);
     if (whereMatch) {
       query = query.or(whereMatch[1].replace(/'/g, ''));
     }
     
-    // Se la query ha un ORDER BY, aggiungilo
     const orderMatch = lowerQuery.match(/order\s+by\s+(.*?)(?:\s+(?:limit|$))/i);
     if (orderMatch) {
       query = query.order(orderMatch[1]);
     }
     
-    // Se la query ha un LIMIT, aggiungilo
     const limitMatch = lowerQuery.match(/limit\s+(\d+)/i);
     if (limitMatch) {
       query = query.limit(parseInt(limitMatch[1]));
     }
 
+    console.log("Query Supabase costruita:", query);
     const { data, error } = await query;
     
-    if (error) throw error;
+    if (error) {
+      console.error("Errore Supabase:", error);
+      throw error;
+    }
+
+    console.log("Risultati query:", data);
     return data;
 
   } catch (error) {
-    console.error("Errore nell'esecuzione della query:", error);
+    console.error("Errore dettagliato in executeQuery:", error);
     throw error;
   }
 };
@@ -155,19 +158,26 @@ serve(async (req) => {
 
   try {
     const { query } = await req.json();
-    console.log("Query ricevuta:", query);
+    console.log("Query ricevuta dalla richiesta:", query);
     
     if (!query || typeof query !== 'string') {
       throw new Error('Query non valida o mancante');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Credenziali Supabase mancanti');
+      throw new Error('Configurazione Supabase non valida');
+    }
+
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     let aiResponse;
     try {
       aiResponse = await processWithGroq(query);
+      console.log("Risposta AI ottenuta:", aiResponse);
     } catch (error) {
       console.error("Errore durante l'elaborazione con Groq:", error);
       throw new Error(`Errore nell'elaborazione della query: ${error.message}`);
@@ -177,9 +187,6 @@ serve(async (req) => {
       throw new Error('Nessuna risposta ricevuta da Groq');
     }
 
-    console.log("Risposta AI ricevuta:", aiResponse);
-
-    // Estrai e esegui query SQL se presente
     const sqlMatch = aiResponse.match(/```sql\n([\s\S]*?)\n```/);
     let data = null;
     
@@ -209,7 +216,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error("Errore nella funzione:", error);
+    console.error("Errore generale nella funzione:", error);
     return new Response(
       JSON.stringify({ 
         error: error.message,

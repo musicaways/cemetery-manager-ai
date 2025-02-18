@@ -42,7 +42,6 @@ serve(async (req) => {
           }
         } catch (error) {
           console.error('Errore nella ricerca web:', error);
-          // Procediamo con la query originale se la ricerca web fallisce
         }
       }
     }
@@ -112,14 +111,15 @@ serve(async (req) => {
         throw new Error('Chiave API HuggingFace non configurata');
       }
 
-      // Verifica che il modello sia supportato
+      // Lista aggiornata di modelli gratuiti
       const supportedModels = [
-        'mistralai/Mistral-7B-Instruct-v0.2',
-        'meta-llama/Llama-2-70b-chat-hf'
+        'gpt2-large',
+        'facebook/opt-1.3b',
+        'bigscience/bloom-560m'
       ];
 
       if (!supportedModels.includes(aiModel)) {
-        throw new Error(`Il modello ${aiModel} non è supportato. Usa uno dei seguenti modelli: ${supportedModels.join(', ')}`);
+        throw new Error(`Il modello ${aiModel} non è supportato. Usa uno dei seguenti modelli gratuiti: ${supportedModels.join(', ')}`);
       }
 
       const hf = new HfInference(apiKeys.huggingface_key);

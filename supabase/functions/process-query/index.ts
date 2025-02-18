@@ -26,17 +26,24 @@ serve(async (req) => {
     // Se la modalità web è attiva, aggiungiamo il contesto di ricerca
     let enhancedQuery = query;
     if (queryType === 'web' && !isTest) {
-      try {
-        const searchResponse = await fetch(`https://api.serpstack.com/search?access_key=${Deno.env.get('SERPSTACK_API_KEY')}&query=${encodeURIComponent(query)}`);
-        const searchData = await searchResponse.json();
-        if (searchData.organic_results) {
-          const topResults = searchData.organic_results.slice(0, 3);
-          const context = topResults.map((result: any) => result.snippet).join('\n');
-          enhancedQuery = `Basandoti su queste informazioni dal web:\n${context}\n\nRispondi a questa domanda: ${query}`;
+      const { data: apiKeys } = await supabase
+        .from('api_keys')
+        .select('serpstack_key')
+        .maybeSingle();
+
+      if (apiKeys?.serpstack_key) {
+        try {
+          const searchResponse = await fetch(`https://api.serpstack.com/search?access_key=${apiKeys.serpstack_key}&query=${encodeURIComponent(query)}`);
+          const searchData = await searchResponse.json();
+          if (searchData.organic_results) {
+            const topResults = searchData.organic_results.slice(0, 3);
+            const context = topResults.map((result: any) => result.snippet).join('\n');
+            enhancedQuery = `Basandoti su queste informazioni dal web:\n${context}\n\nRispondi a questa domanda: ${query}`;
+          }
+        } catch (error) {
+          console.error('Errore nella ricerca web:', error);
+          // Procediamo con la query originale se la ricerca web fallisce
         }
-      } catch (error) {
-        console.error('Errore nella ricerca web:', error);
-        // Procediamo con la query originale se la ricerca web fallisce
       }
     }
 
@@ -103,6 +110,16 @@ serve(async (req) => {
     } else if (aiProvider === 'huggingface') {
       if (!apiKeys.huggingface_key) {
         throw new Error('Chiave API HuggingFace non configurata');
+      }
+
+      // Verifica che il modello sia supportato
+      const supportedModels = [
+        'mistralai/Mistral-7B-Instruct-v0.2',
+        'meta-llama/Llama-2-70b-chat-hf'
+      ];
+
+      if (!supportedModels.includes(aiModel)) {
+        throw new Error(`Il modello ${aiModel} non è supportato. Usa uno dei seguenti modelli: ${supportedModels.join(', ')}`);
       }
 
       const hf = new HfInference(apiKeys.huggingface_key);

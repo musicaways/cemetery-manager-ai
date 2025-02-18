@@ -41,6 +41,9 @@ const Index = () => {
         }
       }
       
+      // Pulizia del campo di input dopo l'invio
+      setQuery("");
+      
     } catch (error) {
       toast.error("Errore durante l'elaborazione della richiesta");
       console.error("Errore:", error);
@@ -58,19 +61,19 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-gray-100">
-      <header className="border-b border-gray-800 bg-[#141414] sticky top-0 z-50">
+    <div className="min-h-screen bg-[#0d0f13] text-gray-100">
+      <header className="border-b border-gray-800/40 bg-[#0d0f13]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="container mx-auto px-4 py-3">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
               size="icon"
-              className="text-orange-500"
+              className="text-blue-400 hover:text-blue-300"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex-1">
-              <h1 className="text-lg font-semibold">Assistente Cimiteriale</h1>
+              <h1 className="text-lg font-semibold text-gray-100">Assistente Cimiteriale</h1>
               <p className="text-sm text-gray-400">AI Assistant</p>
             </div>
             <div className="flex items-center space-x-2">
@@ -97,7 +100,7 @@ const Index = () => {
           {!response && !isProcessing && (
             <div className="space-y-6 animate-fade-in">
               <div className="text-center space-y-2">
-                <div className="w-12 h-12 mx-auto bg-gradient-to-br from-orange-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <div className="w-12 h-12 mx-auto bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
                   <Database className="w-6 h-6 text-white" />
                 </div>
                 <h2 className="text-2xl font-semibold">Come posso aiutarti?</h2>
@@ -109,13 +112,13 @@ const Index = () => {
           {response && !isProcessing && (
             <div className="space-y-6 animate-fade-in">
               {response.text && !response.text.includes('```sql') && (
-                <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 backdrop-blur-sm">
+                <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700/50 backdrop-blur-sm shadow-lg">
                   <p className="text-gray-300 leading-relaxed">{response.text}</p>
                 </div>
               )}
               
               {response.data && (
-                <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 backdrop-blur-sm">
+                <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700/50 backdrop-blur-sm shadow-lg">
                   <h3 className="text-xl font-semibold mb-6 text-gray-100">Risultati</h3>
                   <ResultsList 
                     data={response.data} 
@@ -128,14 +131,14 @@ const Index = () => {
 
           {isProcessing && (
             <div className="text-center py-8">
-              <div className="animate-spin w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
               <p className="text-gray-400">Elaborazione in corso...</p>
             </div>
           )}
         </div>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 bg-[#141414] border-t border-gray-800 p-4">
+      <footer className="fixed bottom-0 left-0 right-0 bg-[#0d0f13]/80 border-t border-gray-800/40 backdrop-blur-xl p-4">
         <div className="max-w-3xl mx-auto flex items-center space-x-2">
           <Button
             variant="ghost"
@@ -148,17 +151,17 @@ const Index = () => {
           
           <div className="flex-1">
             <form onSubmit={handleSubmit}>
-              <div className="flex items-center space-x-2 p-2 bg-gray-800 rounded-lg">
+              <div className="flex items-center space-x-2 p-2 bg-gray-800/50 rounded-lg border border-gray-700/50">
                 <input
                   type="text"
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Chiedimi quello che vuoi sapere..."
-                  className="flex-1 bg-transparent outline-none placeholder-gray-400"
+                  className="flex-1 bg-transparent outline-none placeholder-gray-400 text-gray-100"
                   disabled={isProcessing}
                 />
                 {query.trim() && (
-                  <Button type="submit" size="sm" className="bg-orange-500 hover:bg-orange-600">
+                  <Button type="submit" size="sm" className="bg-blue-500 hover:bg-blue-600 text-white">
                     Invia
                   </Button>
                 )}

@@ -16,36 +16,20 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
 
   const startRecording = async () => {
     try {
-      // Verifica il supporto per Web Speech API
-      if (!('webkitSpeechRecognition' in window)) {
+      if (!window.webkitSpeechRecognition) {
         throw new Error('Il tuo browser non supporta il riconoscimento vocale');
       }
 
-      // Inizializza il riconoscimento vocale
       const SpeechRecognition = window.webkitSpeechRecognition;
       recognition.current = new SpeechRecognition();
-      recognition.current.continuous = true;
-      recognition.current.interimResults = true;
-      recognition.current.lang = 'it-IT'; // Impostiamo l'italiano
-
-      let finalTranscript = '';
+      recognition.current.continuous = false; // Cambiato a false per evitare ripetizioni
+      recognition.current.interimResults = false; // Cambiato a false per avere solo risultati finali
+      recognition.current.lang = 'it-IT';
 
       recognition.current.onresult = (event: any) => {
-        let interimTranscript = '';
-
-        for (let i = 0; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript;
-          } else {
-            interimTranscript += transcript;
-          }
-        }
-
-        // Aggiorna il testo quando abbiamo risultati finali
-        if (finalTranscript) {
-          onRecordingComplete(finalTranscript);
-        }
+        const transcript = event.results[0][0].transcript;
+        onRecordingComplete(transcript);
+        stopRecording();
       };
 
       recognition.current.onerror = (event: any) => {
@@ -58,11 +42,9 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
         stopRecording();
       };
 
-      // Avvia il riconoscimento
       recognition.current.start();
       setIsRecording(true);
       
-      // Avvia il timer
       timerRef.current = window.setInterval(() => {
         setDuration(d => d + 1);
       }, 1000);

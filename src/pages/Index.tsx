@@ -29,6 +29,34 @@ const Index = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const processQueryWithOllama = async (finalQuery: string) => {
+    try {
+      const aiModel = localStorage.getItem('ai_model') || 'llama2';
+      
+      const response = await fetch('http://localhost:11434/api/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: aiModel,
+          prompt: finalQuery,
+          stream: false,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Errore nella risposta di Ollama');
+      }
+
+      const data = await response.json();
+      return { text: data.response, data: null };
+    } catch (error) {
+      console.error("Errore Ollama:", error);
+      throw new Error('Errore nella connessione a Ollama. Assicurati che sia in esecuzione su localhost:11434');
+    }
+  };
+
   const handleSubmit = async (e?: React.FormEvent, submittedQuery?: string) => {
     e?.preventDefault();
     const finalQuery = submittedQuery || query;
@@ -41,42 +69,50 @@ const Index = () => {
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
-      let requestBody: QueryRequest = {
-        query: finalQuery.trim(),
-        queryType: 'web',
-        aiProvider,
-        aiModel
-      };
-
-      if (finalQuery.startsWith("/test-model")) {
-        requestBody = {
-          ...requestBody,
-          isTest: true
+      let response;
+      
+      if (aiProvider === 'ollama') {
+        response = await processQueryWithOllama(finalQuery);
+      } else {
+        let requestBody: QueryRequest = {
+          query: finalQuery.trim(),
+          queryType: 'web',
+          aiProvider,
+          aiModel
         };
+
+        if (finalQuery.startsWith("/test-model")) {
+          requestBody = {
+            ...requestBody,
+            isTest: true
+          };
+        }
+
+        console.log("Invio richiesta:", requestBody);
+        
+        const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+          body: requestBody
+        });
+
+        console.log("Risposta ricevuta:", { data, error });
+
+        if (error) {
+          console.error("Errore Supabase:", error);
+          throw error;
+        }
+        
+        response = data;
       }
-
-      console.log("Invio richiesta:", requestBody);
       
-      const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
-        body: requestBody
-      });
-
-      console.log("Risposta ricevuta:", { data, error });
-
-      if (error) {
-        console.error("Errore Supabase:", error);
-        throw error;
-      }
-      
-      if (data) {
+      if (response) {
         setMessages(prev => [...prev, { 
           type: 'response', 
-          content: data.text || '',
-          data: data.data
+          content: response.text || '',
+          data: response.data
         }]);
         
-        if (data.error) {
-          toast.error(data.error);
+        if (response.error) {
+          toast.error(response.error);
         }
       }
       
@@ -84,7 +120,7 @@ const Index = () => {
       
     } catch (error) {
       console.error("Errore dettagliato:", error);
-      toast.error("Errore durante l'elaborazione della richiesta. Verifica che le chiavi API siano corrette nelle impostazioni.");
+      toast.error("Errore durante l'elaborazione della richiesta. " + (error as Error).message);
     } finally {
       setIsProcessing(false);
       setTimeout(scrollToBottom, 100);

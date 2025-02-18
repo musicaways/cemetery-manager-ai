@@ -3,6 +3,7 @@ import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Mic, X } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 interface VoiceRecorderProps {
   onRecordingComplete: (text: string) => void;

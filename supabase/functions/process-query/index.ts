@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
@@ -71,57 +70,62 @@ serve(async (req) => {
             .from('Cimitero')
             .select('Id, Descrizione')
             .ilike('Descrizione', `%${cemeteryName}%`)
-            .limit(1)
-            .single();
+            .limit(1);
 
           if (cimiteroError) throw cimiteroError;
           
-          if (cimiteroData) {
+          if (cimiteroData && cimiteroData.length > 0) {
             // Poi usiamo l'ID per trovare i blocchi correlati
-            const { data, error } = await supabase
+            const { data: blocchiData, error: blocchiError } = await supabase
               .from('Blocco')
               .select(`
-                *,
-                Settore!inner (
+                Id,
+                Codice,
+                Descrizione,
+                NumeroLoculi,
+                Settore (
                   Id,
                   Codice,
-                  Descrizione,
-                  Cimitero!inner (
-                    Id,
-                    Codice,
-                    Descrizione
-                  )
+                  Descrizione
                 )
               `)
-              .eq('Settore.Cimitero.Id', cimiteroData.Id);
+              .eq('Settore.IdCimitero', cimiteroData[0].Id);
 
-            if (error) throw error;
+            if (blocchiError) throw blocchiError;
 
-            // Se abbiamo trovato blocchi, recuperiamo i loculi e defunti correlati
-            if (data && data.length > 0) {
-              const blocchiIds = data.map(b => b.Id);
-              
-              // Recuperiamo loculi e defunti per questi blocchi
+            if (blocchiData && blocchiData.length > 0) {
+              // Recuperiamo loculi in una query separata
               const { data: loculiData, error: loculiError } = await supabase
                 .from('Loculo')
                 .select(`
-                  *,
-                  Defunto (*)
+                  Id,
+                  Numero,
+                  Fila,
+                  IdBlocco,
+                  Defunto (
+                    Id,
+                    Nominativo,
+                    DataNascita,
+                    DataDecesso
+                  )
                 `)
-                .in('IdBlocco', blocchiIds);
+                .in('IdBlocco', blocchiData.map(b => b.Id));
 
               if (loculiError) throw loculiError;
 
-              // Aggiungiamo i loculi ai rispettivi blocchi
-              result = data.map(blocco => ({
+              // Organizziamo i dati per blocco
+              result = blocchiData.map(blocco => ({
                 ...blocco,
-                Loculo: loculiData?.filter(l => l.IdBlocco === blocco.Id) || []
+                Loculi: loculiData?.filter(l => l.IdBlocco === blocco.Id) || []
               }));
+              
+              searchText = `Ecco i blocchi del cimitero "${cimiteroData[0].Descrizione}" con relative informazioni:`;
             } else {
-              result = data;
+              result = [];
+              searchText = `Non ho trovato blocchi nel cimitero "${cimiteroData[0].Descrizione}"`;
             }
-            
-            searchText = `Ecco i blocchi del cimitero "${cimiteroData.Descrizione}" con relative informazioni:`;
+          } else {
+            searchText = `Non ho trovato nessun cimitero che corrisponde a "${cemeteryName}"`;
           }
         }
       }

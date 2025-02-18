@@ -17,10 +17,29 @@ serve(async (req) => {
     const { query, queryType, isTest } = await req.json();
     console.log("Query ricevuta:", { query, queryType, isTest });
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Configurazione Supabase mancante');
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Recupera le impostazioni AI dell'utente
+    const { data: apiKeys } = await supabase
+      .from('api_keys')
+      .select('*')
+      .single();
+
     if (isTest) {
+      // Usa il provider e il modello dalle impostazioni
+      const modelInfo = localStorage.getItem('ai_model') || 'gemini-pro';
+      const providerInfo = localStorage.getItem('ai_provider') || 'gemini';
+      
       return new Response(
         JSON.stringify({
-          text: "Ciao! Sono il tuo assistente AI alimentato da Groq e utilizzo il modello mixtral-8x7b-32768. Come posso aiutarti oggi?",
+          text: `Ciao! Sono il tuo assistente AI alimentato da ${providerInfo.toUpperCase()} e utilizzo il modello ${modelInfo}. Come posso aiutarti oggi?`,
           data: null
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -28,35 +47,46 @@ serve(async (req) => {
     }
 
     if (queryType === 'database') {
-      const supabaseUrl = Deno.env.get('SUPABASE_URL');
-      const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-      if (!supabaseUrl || !supabaseKey) {
-        throw new Error('Configurazione Supabase mancante');
-      }
-
-      const supabase = createClient(supabaseUrl, supabaseKey);
       let result = null;
       let searchText = '';
 
-      // Estrai termini di ricerca rilevanti
-      const searchTerms = query.toLowerCase().match(/cerca|trova|mostra|lista|cimitero|defunto|loculo/g);
-      
-      if (query.toLowerCase().includes('cimitero')) {
-        const { data, error } = await supabase
-          .from('Cimitero')
-          .select('*');
-        
-        if (error) throw error;
-        result = data;
-        searchText = 'Ecco i cimiteri trovati:';
-      }
-      else if (query.toLowerCase().includes('defunto')) {
-        const { data, error } = await supabase
-          .from('Defunto')
-          .select(`
-            *,
-            Loculo (
+      // Query più specifiche per il database
+      if (query.toLowerCase().includes('lista') || query.toLowerCase().includes('mostra') || query.toLowerCase().includes('tutti')) {
+        if (query.toLowerCase().includes('cimiteri')) {
+          const { data, error } = await supabase
+            .from('Cimitero')
+            .select('*');
+          
+          if (error) throw error;
+          result = data;
+          searchText = 'Ecco la lista completa dei cimiteri:';
+        }
+      } else if (query.toLowerCase().includes('cerca') || query.toLowerCase().includes('trova')) {
+        if (query.toLowerCase().includes('defunto')) {
+          const { data, error } = await supabase
+            .from('Defunto')
+            .select(`
+              *,
+              Loculo (
+                *,
+                Blocco (
+                  *,
+                  Settore (
+                    *,
+                    Cimitero (*)
+                  )
+                )
+              )
+            `);
+          
+          if (error) throw error;
+          result = data;
+          searchText = 'Ecco i risultati della ricerca per defunti:';
+        }
+        else if (query.toLowerCase().includes('loculo')) {
+          const { data, error } = await supabase
+            .from('Loculo')
+            .select(`
               *,
               Blocco (
                 *,
@@ -65,30 +95,12 @@ serve(async (req) => {
                   Cimitero (*)
                 )
               )
-            )
-          `);
-        
-        if (error) throw error;
-        result = data;
-        searchText = 'Ecco i defunti trovati:';
-      }
-      else if (query.toLowerCase().includes('loculo')) {
-        const { data, error } = await supabase
-          .from('Loculo')
-          .select(`
-            *,
-            Blocco (
-              *,
-              Settore (
-                *,
-                Cimitero (*)
-              )
-            )
-          `);
-        
-        if (error) throw error;
-        result = data;
-        searchText = 'Ecco i loculi trovati:';
+            `);
+          
+          if (error) throw error;
+          result = data;
+          searchText = 'Ecco i risultati della ricerca per loculi:';
+        }
       }
 
       if (result && result.length > 0) {
@@ -102,7 +114,7 @@ serve(async (req) => {
       } else {
         return new Response(
           JSON.stringify({
-            text: "Mi dispiace, non ho trovato risultati per la tua ricerca. Prova a essere più specifico o usa termini diversi.",
+            text: "Mi dispiace, non ho trovato risultati. Prova a:\n- Usare 'lista' o 'mostra tutti' per vedere tutti i record\n- Usare 'cerca' seguito da ciò che stai cercando\n- Specificare se stai cercando un cimitero, un defunto o un loculo",
             data: null
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -111,22 +123,18 @@ serve(async (req) => {
     }
 
     if (queryType === 'web') {
-      // Implementa la ricerca web usando un servizio esterno
-      const searchResponse = "Mi dispiace, al momento la ricerca web non è ancora implementata. Prova a cercare informazioni nel database del cimitero.";
-      
       return new Response(
         JSON.stringify({ 
-          text: searchResponse,
+          text: "La ricerca su Internet non è ancora disponibile. Per ora posso aiutarti a:\n- Cercare informazioni sui cimiteri\n- Trovare defunti\n- Cercare loculi specifici",
           data: null
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Risposta di default se non viene identificato un tipo specifico
     return new Response(
       JSON.stringify({
-        text: "Scusa, non ho capito bene cosa vuoi cercare. Puoi provare a:\n- Cercare informazioni sui cimiteri\n- Cercare un defunto\n- Cercare informazioni sui loculi",
+        text: "Non ho capito bene cosa vuoi cercare. Puoi:\n- Usare 'lista' o 'mostra tutti' per vedere tutti i record\n- Usare 'cerca' seguito da ciò che stai cercando\n- Specificare se ti interessano cimiteri, defunti o loculi",
         data: null
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

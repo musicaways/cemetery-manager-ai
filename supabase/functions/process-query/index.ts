@@ -57,20 +57,20 @@ serve(async (req) => {
       );
     }
 
-    const searchParams = extractSearchParams(query);
-    console.log("Parametri estratti:", searchParams);
-
-    // Se è una ricerca web, restituisci subito
-    if (searchParams.type === 'web') {
+    // Se è una ricerca web o la modalità web è attiva, ignora il database
+    if (queryType === 'web') {
       return new Response(
         JSON.stringify({
-          text: `Cerco su internet: ${searchParams.term}`,
+          text: `Come assistente AI, cercherò di rispondere alla tua domanda: ${query.replace('cerca su internet:', '')}`,
           data: null,
-          isWebSearch: true
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Altrimenti, procedi con la ricerca nel database
+    const searchParams = extractSearchParams(query);
+    console.log("Parametri estratti:", searchParams);
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -155,7 +155,11 @@ serve(async (req) => {
         break;
 
       default:
-        searchText = "Non ho capito cosa vuoi cercare. Prova a specificare se vuoi informazioni su cimiteri, blocchi, loculi o defunti.";
+        if (queryType === 'database') {
+          searchText = "Non ho capito cosa vuoi cercare nel database. Prova a specificare se vuoi informazioni su cimiteri, blocchi, loculi o defunti.";
+        } else {
+          searchText = "Non ho capito la tua richiesta. Puoi riformularla in modo più chiaro?";
+        }
     }
 
     return new Response(

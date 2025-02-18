@@ -14,6 +14,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
   const [groqKey, setGroqKey] = useState('');
   const [geminiKey, setGeminiKey] = useState('');
   const [perplexityKey, setPerplexityKey] = useState('');
+  const [huggingfaceKey, setHuggingfaceKey] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -38,6 +39,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
         setGroqKey(data.groq_key || '');
         setGeminiKey(data.gemini_key || '');
         setPerplexityKey(data.perplexity_key || '');
+        setHuggingfaceKey(data.huggingface_key || '');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -70,6 +72,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
             groq_key: groqKey,
             gemini_key: geminiKey,
             perplexity_key: perplexityKey,
+            huggingface_key: huggingfaceKey,
             updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
@@ -83,7 +86,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
             {
               groq_key: groqKey,
               gemini_key: geminiKey,
-              perplexity_key: perplexityKey
+              perplexity_key: perplexityKey,
+              huggingface_key: huggingfaceKey
             }
           ]);
 
@@ -172,6 +176,28 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
         >
           <ExternalLink className="w-3 h-3 mr-1" />
           Ottieni la tua Perplexity API Key
+        </a>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-200">
+          HuggingFace API Key
+        </label>
+        <Input
+          type="password"
+          value={huggingfaceKey}
+          onChange={(e) => handleChange('huggingface', e.target.value, setHuggingfaceKey)}
+          placeholder="Inserisci la tua HuggingFace API Key"
+          className="bg-[#1A1F2C] border-white/10"
+        />
+        <a 
+          href="https://huggingface.co/settings/tokens" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="inline-flex items-center text-sm text-blue-400 hover:text-blue-300 mt-1"
+        >
+          <ExternalLink className="w-3 h-3 mr-1" />
+          Ottieni la tua HuggingFace API Key
         </a>
       </div>
 

@@ -68,14 +68,39 @@ Rispondi sempre in italiano in modo cordiale e professionale.`;
 
 async function performWebSearch(query: string) {
   try {
-    // Qui potresti integrare una vera API di ricerca web come Google Custom Search
-    // Per ora simuliamo una risposta
-    return `Mi dispiace, ma al momento non ho accesso diretto a internet per fare ricerche web. 
-    Posso aiutarti con informazioni presenti nel nostro database cimiteriale o rispondere a domande generali.
-    Se hai bisogno di informazioni specifiche dal web, ti consiglio di consultare direttamente un motore di ricerca.`;
+    const searchUrl = `https://api.duckduckgo.com/?q=${encodeURIComponent(query)}&format=json&no_html=1&skip_disambig=1`;
+    const response = await fetch(searchUrl);
+    
+    if (!response.ok) {
+      throw new Error('Errore nella ricerca');
+    }
+
+    const data = await response.json();
+    
+    // Formattiamo i risultati in modo leggibile
+    let searchResponse = `Ecco cosa ho trovato sulla tua ricerca:\n\n`;
+    
+    if (data.Abstract) {
+      searchResponse += `${data.Abstract}\n\n`;
+    }
+
+    if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+      searchResponse += "Argomenti correlati:\n";
+      data.RelatedTopics.slice(0, 3).forEach((topic: any) => {
+        if (topic.Text) {
+          searchResponse += `• ${topic.Text}\n`;
+        }
+      });
+    }
+
+    if (!data.Abstract && (!data.RelatedTopics || data.RelatedTopics.length === 0)) {
+      searchResponse = "Mi dispiace, non ho trovato informazioni specifiche per questa ricerca. Prova a riformulare la domanda in modo diverso.";
+    }
+
+    return searchResponse;
   } catch (error) {
     console.error("Errore nella ricerca web:", error);
-    return null;
+    return "Mi dispiace, si è verificato un errore durante la ricerca. Riprova più tardi.";
   }
 }
 
@@ -113,7 +138,10 @@ serve(async (req) => {
     }
 
     if (isSearchQuery(query)) {
+      console.log("Esecuzione ricerca web per:", query);
       const searchResults = await performWebSearch(query);
+      console.log("Risultati ricerca ottenuti:", searchResults);
+      
       return new Response(
         JSON.stringify({ 
           text: searchResults,

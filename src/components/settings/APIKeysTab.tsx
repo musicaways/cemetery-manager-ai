@@ -26,12 +26,10 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
       const { data, error } = await supabase
         .from('api_keys')
         .select('*')
-        .single();
+        .maybeSingle();
 
       if (error) {
-        if (error.code !== 'PGRST116') { // Ignore "no rows returned" error
-          console.error('Error loading API keys:', error);
-        }
+        console.error('Error loading API keys:', error);
         setIsLoading(false);
         return;
       }
@@ -41,9 +39,9 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
         setGeminiKey(data.gemini_key || '');
         setPerplexityKey(data.perplexity_key || '');
       }
-      setIsLoading(false);
     } catch (error) {
       console.error('Error:', error);
+    } finally {
       setIsLoading(false);
     }
   };
@@ -55,12 +53,16 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
 
   const saveKeys = async () => {
     try {
-      const { data: existingKeys } = await supabase
+      const { data, error: fetchError } = await supabase
         .from('api_keys')
         .select('id')
-        .single();
+        .maybeSingle();
 
-      if (existingKeys) {
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      if (data) {
         // Update existing keys
         const { error } = await supabase
           .from('api_keys')
@@ -70,7 +72,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
             perplexity_key: perplexityKey,
             updated_at: new Date().toISOString()
           })
-          .eq('id', existingKeys.id);
+          .eq('id', data.id);
 
         if (error) throw error;
       } else {

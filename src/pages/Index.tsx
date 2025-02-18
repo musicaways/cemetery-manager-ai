@@ -133,37 +133,52 @@ const Index = () => {
             )}
 
             {messages.map((message, index) => (
-              <div key={index} className="animate-fade-in">
-                {message.type === 'query' && (
-                  <div className="bg-gray-800/30 rounded-lg p-4 border border-gray-700/50 backdrop-blur-sm">
-                    <p className="text-gray-300">{message.content}</p>
-                  </div>
-                )}
-                {message.type === 'response' && (
-                  <div className="space-y-4">
-                    {message.content && !message.content.includes('```sql') && (
-                      <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700/50 backdrop-blur-sm shadow-lg">
-                        <p className="text-gray-300 leading-relaxed">{message.content}</p>
+              <div key={index} className={`animate-fade-in flex ${message.type === 'query' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`max-w-[80%] ${message.type === 'query' ? 'ml-8' : 'mr-8'}`}>
+                  {message.type === 'query' && (
+                    <div className="bg-blue-500/20 rounded-2xl rounded-tr-sm p-4 border border-blue-500/30 backdrop-blur-sm">
+                      <p className="text-blue-100">{message.content}</p>
+                    </div>
+                  )}
+                  {message.type === 'response' && (
+                    <div className="space-y-4">
+                      <div className="flex items-start space-x-3">
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center flex-shrink-0">
+                          <Database className="w-4 h-4 text-white" />
+                        </div>
+                        {message.content && !message.content.includes('```sql') && (
+                          <div className="bg-gray-800/30 rounded-2xl rounded-tl-sm p-4 border border-gray-700/50 backdrop-blur-sm shadow-lg">
+                            <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                          </div>
+                        )}
                       </div>
-                    )}
-                    {message.data && (
-                      <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700/50 backdrop-blur-sm shadow-lg">
-                        <h3 className="text-xl font-semibold mb-6 text-gray-100">Risultati</h3>
-                        <ResultsList 
-                          data={message.data}
-                          type={determineResultType(message.content)}
-                        />
-                      </div>
-                    )}
-                  </div>
-                )}
+                      {message.data && (
+                        <div className="bg-gray-800/30 rounded-lg p-6 border border-gray-700/50 backdrop-blur-sm shadow-lg ml-11">
+                          <h3 className="text-xl font-semibold mb-6 text-gray-100">Risultati</h3>
+                          <ResultsList 
+                            data={message.data}
+                            type={determineResultType(message.content)}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
 
             {isProcessing && (
-              <div className="text-center py-8">
-                <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-                <p className="text-gray-400">Elaborazione in corso...</p>
+              <div className="flex items-start space-x-3">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                  <Database className="w-4 h-4 text-white" />
+                </div>
+                <div className="bg-gray-800/30 rounded-2xl rounded-tl-sm p-4 border border-gray-700/50 backdrop-blur-sm">
+                  <div className="flex items-center space-x-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                  </div>
+                </div>
               </div>
             )}
             <div ref={messagesEndRef} />

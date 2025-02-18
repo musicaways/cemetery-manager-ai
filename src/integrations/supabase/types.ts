@@ -14,6 +14,7 @@ export type Database = {
           created_at: string | null
           gemini_key: string | null
           groq_key: string | null
+          huggingface_key: string | null
           id: string
           perplexity_key: string | null
           updated_at: string | null
@@ -22,6 +23,7 @@ export type Database = {
           created_at?: string | null
           gemini_key?: string | null
           groq_key?: string | null
+          huggingface_key?: string | null
           id?: string
           perplexity_key?: string | null
           updated_at?: string | null
@@ -30,6 +32,7 @@ export type Database = {
           created_at?: string | null
           gemini_key?: string | null
           groq_key?: string | null
+          huggingface_key?: string | null
           id?: string
           perplexity_key?: string | null
           updated_at?: string | null

@@ -20,7 +20,6 @@ interface ChatMessagesProps {
 }
 
 export const determineResultType = (content: string) => {
-  // Per ora restituisce sempre 'cemetery' come tipo di default
   return 'cemetery' as const;
 };
 
@@ -36,7 +35,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
       ref={scrollAreaRef}
       className="h-[calc(100vh-8.5rem)] rounded-lg"
     >
-      <div className="max-w-4xl mx-auto space-y-4">
+      <div className="max-w-4xl mx-auto px-4 space-y-4">
         {messages.length === 0 && !isProcessing && (
           <div className="space-y-6 animate-fade-in">
             <div className="text-center space-y-2">
@@ -52,10 +51,14 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
 
         {messages.map((message, index) => (
           <div key={index} className={`animate-fade-in flex ${message.type === 'query' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`${message.type === 'query' ? 'max-w-[85%] ml-auto' : 'max-w-[85%]'} w-full`}>
+            <div className={`${
+              message.type === 'query' 
+                ? 'max-w-[80%] ml-auto' 
+                : 'max-w-[80%]'
+            } w-full break-words`}>
               {message.type === 'query' && (
                 <div className="bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-3 border border-[var(--primary-color)]/30 backdrop-blur-sm">
-                  <p className="text-gray-100">{message.content}</p>
+                  <p className="text-gray-100 whitespace-pre-wrap">{message.content}</p>
                 </div>
               )}
               {message.type === 'response' && (
@@ -66,7 +69,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                     </div>
                     {message.content && !message.content.includes('```sql') && (
                       <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg flex-1">
-                        <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                        <p className="text-gray-200 leading-relaxed whitespace-pre-wrap break-words">{message.content}</p>
                       </div>
                     )}
                   </div>

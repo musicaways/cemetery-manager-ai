@@ -27,44 +27,50 @@ serve(async (req) => {
       );
     }
 
-    // Se è una ricerca web, comportati come un'IA generale
+    // Se è una ricerca web, utilizziamo Groq invece di Gemini
     if (queryType === 'web') {
       try {
-        const geminiKey = Deno.env.get('GEMINI_API_KEY');
-        if (!geminiKey) {
-          throw new Error('API key di Gemini mancante');
+        const groqKey = Deno.env.get('GROQ_API_KEY');
+        if (!groqKey) {
+          throw new Error('API key di Groq mancante');
         }
 
-        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
+            'Authorization': `Bearer ${groqKey}`,
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${geminiKey}`,
           },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: query }] }],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 800,
-            },
+            model: 'mixtral-8x7b-32768',
+            messages: [
+              {
+                role: 'system',
+                content: 'Sei un assistente AI italiano disponibile ad aiutare con qualsiasi domanda.'
+              },
+              {
+                role: 'user',
+                content: query
+              }
+            ],
+            temperature: 0.7,
+            max_tokens: 1000,
           }),
         });
 
         if (!response.ok) {
-          throw new Error(`Errore nella chiamata a Gemini: ${response.statusText}`);
+          console.error('Errore nella risposta di Groq:', await response.text());
+          throw new Error(`Errore nella chiamata a Groq: ${response.statusText}`);
         }
 
         const data = await response.json();
-        console.log("Risposta completa da Gemini:", data);
+        console.log('Risposta completa da Groq:', data);
 
-        if (!data.candidates || data.candidates.length === 0) {
-          throw new Error('Nessuna risposta generata da Gemini');
+        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+          throw new Error('Risposta di Groq non valida');
         }
 
-        const aiResponse = data.candidates[0].content?.parts?.[0]?.text;
-        if (!aiResponse) {
-          throw new Error('Risposta di Gemini non valida');
-        }
+        const aiResponse = data.choices[0].message.content;
 
         return new Response(
           JSON.stringify({
@@ -74,7 +80,7 @@ serve(async (req) => {
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       } catch (error) {
-        console.error("Errore durante la chiamata a Gemini:", error);
+        console.error("Errore durante la chiamata a Groq:", error);
         return new Response(
           JSON.stringify({
             text: "Mi dispiace, ma al momento non riesco a rispondere alla tua domanda. Riprova più tardi o disattiva la modalità Internet per cercare informazioni nel database.",

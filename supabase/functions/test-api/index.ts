@@ -15,122 +15,64 @@ serve(async (req) => {
     const { provider, apiKey } = await req.json();
     console.log(`Testing ${provider} API...`);
 
-    let success = false;
-    let errorMessage = '';
-
     switch (provider.toLowerCase()) {
       case 'groq': {
-        try {
-          const response = await fetch('https://api.groq.com/v1/models', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-            },
-          });
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'mixtral-8x7b-32768',
+            messages: [{ role: 'user', content: 'Test' }],
+            max_tokens: 5
+          }),
+        });
 
-          const data = await response.json();
-          
-          if (response.ok && Array.isArray(data.data)) {
-            success = true;
-          } else {
-            errorMessage = data.error?.message || 'Errore nella verifica della chiave Groq';
-          }
-        } catch (error) {
-          console.error('Groq API error:', error);
-          errorMessage = 'Errore nella connessione a Groq API';
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error?.message || 'Errore nella verifica della chiave Groq');
         }
         break;
       }
 
       case 'gemini': {
-        try {
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
-            {
-              method: 'GET',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-            }
-          );
-
-          const data = await response.json();
-          
-          if (response.ok && Array.isArray(data.models)) {
-            success = true;
-          } else {
-            errorMessage = data.error?.message || 'Errore nella verifica della chiave Gemini';
-          }
-        } catch (error) {
-          console.error('Gemini API error:', error);
-          errorMessage = 'Errore nella connessione a Gemini API';
-        }
-        break;
-      }
-
-      case 'perplexity': {
-        try {
-          const response = await fetch('https://api.perplexity.ai/chat/models', {
-            method: 'GET',
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
             headers: {
-              'Authorization': `Bearer ${apiKey}`,
               'Content-Type': 'application/json',
             },
-          });
-
-          const data = await response.json();
-          
-          if (response.ok && Array.isArray(data.models)) {
-            success = true;
-          } else {
-            errorMessage = data.error?.message || 'Errore nella verifica della chiave Perplexity';
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: "Test"
+                }]
+              }]
+            }),
           }
-        } catch (error) {
-          console.error('Perplexity API error:', error);
-          errorMessage = 'Errore nella connessione a Perplexity API';
-        }
-        break;
-      }
+        );
 
-      case 'huggingface': {
-        try {
-          const response = await fetch('https://api-inference.huggingface.co/status', {
-            method: 'GET',
-            headers: {
-              'Authorization': `Bearer ${apiKey}`,
-              'Content-Type': 'application/json',
-            },
-          });
-
-          if (response.ok) {
-            success = true;
-          } else {
-            const data = await response.json();
-            errorMessage = data.error || 'Errore nella verifica della chiave HuggingFace';
-          }
-        } catch (error) {
-          console.error('HuggingFace API error:', error);
-          errorMessage = 'Errore nella connessione a HuggingFace API';
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error?.message || 'Errore nella verifica della chiave Gemini');
         }
         break;
       }
 
       default:
-        errorMessage = `Provider ${provider} non supportato`;
+        throw new Error(`Provider ${provider} non supportato`);
     }
 
-    if (success) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          message: `Test dell'API di ${provider} completato con successo!`
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    } else {
-      throw new Error(errorMessage);
-    }
+    return new Response(
+      JSON.stringify({
+        success: true,
+        message: `Test dell'API di ${provider} completato con successo!`
+      }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
 
   } catch (error) {
     console.error('Error during API test:', error);

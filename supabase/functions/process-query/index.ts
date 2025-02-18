@@ -27,87 +27,6 @@ serve(async (req) => {
       );
     }
 
-    // Se è una ricerca web, utilizziamo HuggingFace Inference API
-    if (queryType === 'web') {
-      try {
-        // Recupera la chiave API dal database
-        const supabaseUrl = Deno.env.get('SUPABASE_URL');
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-        if (!supabaseUrl || !supabaseKey) {
-          throw new Error('Configurazione Supabase mancante');
-        }
-
-        const supabase = createClient(supabaseUrl, supabaseKey);
-        
-        const { data: apiKeys, error: apiKeysError } = await supabase
-          .from('api_keys')
-          .select('huggingface_key')
-          .maybeSingle();
-
-        if (apiKeysError || !apiKeys?.huggingface_key) {
-          throw new Error('API key di HuggingFace non trovata');
-        }
-
-        console.log("Invio richiesta a HuggingFace...");
-        
-        const response = await fetch(
-          'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1',
-          {
-            headers: { 
-              'Authorization': `Bearer ${apiKeys.huggingface_key}`,
-              'Content-Type': 'application/json',
-            },
-            method: 'POST',
-            body: JSON.stringify({
-              inputs: query,
-              parameters: {
-                max_length: 500,
-                temperature: 0.7,
-                top_p: 0.95,
-                return_full_text: false
-              }
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          console.error('Errore nella risposta di HuggingFace:', await response.text());
-          throw new Error(`Errore nella chiamata a HuggingFace: ${response.statusText}`);
-        }
-
-        const result = await response.json();
-        console.log('Risposta completa da HuggingFace:', result);
-
-        let aiResponse = '';
-        if (Array.isArray(result) && result[0]?.generated_text) {
-          aiResponse = result[0].generated_text;
-        } else if (result.generated_text) {
-          aiResponse = result.generated_text;
-        } else {
-          throw new Error('Risposta di HuggingFace non valida');
-        }
-
-        return new Response(
-          JSON.stringify({
-            text: aiResponse,
-            data: null,
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      } catch (error) {
-        console.error("Errore durante la generazione del testo:", error);
-        return new Response(
-          JSON.stringify({
-            text: "Mi dispiace, ma al momento non riesco a rispondere alla tua domanda. Verifica che la chiave API di HuggingFace sia corretta nelle impostazioni.",
-            data: null,
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
-      }
-    }
-
-    // Altrimenti, procedi con la ricerca nel database
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
@@ -117,91 +36,89 @@ serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Estrai le parole chiave dal testo della query
-    const queryLower = query.toLowerCase();
-    const isCimiteroQuery = queryLower.includes('cimitero');
-    const isDefuntoQuery = queryLower.includes('defunto');
-    const isBloccoQuery = queryLower.includes('blocco');
-    const isLoculoQuery = queryLower.includes('loculo');
+    const { data: apiKeys, error: apiKeysError } = await supabase
+      .from('api_keys')
+      .select('*')
+      .maybeSingle();
 
-    let result = null;
-    let searchText = '';
-
-    if (isCimiteroQuery) {
-      const { data: cimiteriData } = await supabase
-        .from('Cimitero')
-        .select('*')
-        .order('Descrizione');
-      
-      result = cimiteriData;
-      searchText = `Ho trovato ${result?.length || 0} cimiteri`;
-    } 
-    else if (isDefuntoQuery) {
-      const nomeMatch = queryLower.match(/defunto\s+([^,\.]+)/i);
-      const nome = nomeMatch ? nomeMatch[1].trim() : '';
-
-      const { data: defuntiData } = await supabase
-        .from('Defunto')
-        .select(`
-          *, 
-          Loculo (
-            *, 
-            Blocco (
-              *,
-              Settore (
-                *,
-                Cimitero (*)
-              )
-            )
-          )
-        `)
-        .ilike('Nominativo', `%${nome}%`)
-        .limit(20);
-
-      result = defuntiData;
-      searchText = `Ho trovato ${result?.length || 0} defunti con nome "${nome}"`;
+    if (apiKeysError || !apiKeys) {
+      throw new Error('Chiavi API non trovate');
     }
-    else if (isBloccoQuery || isLoculoQuery) {
-      const cimiteroMatch = queryLower.match(/cimitero\s+([^,\.]+)/i);
-      const cimitero = cimiteroMatch ? cimiteroMatch[1].trim() : '';
 
-      if (cimitero) {
-        const { data: cimiteroData } = await supabase
-          .from('Cimitero')
-          .select('Id, Descrizione')
-          .ilike('Descrizione', `%${cimitero}%`)
-          .limit(1);
+    let apiKey = '';
+    let endpoint = '';
+    let requestBody = {};
+    let headers = { 'Content-Type': 'application/json' };
 
-        if (cimiteroData?.length > 0) {
-          const { data: blocchiData } = await supabase
-            .from('Blocco')
-            .select(`
-              Id, Codice, Descrizione, NumeroLoculi,
-              Settore!inner (
-                Id, Codice, Descrizione,
-                Cimitero!inner (Id, Descrizione)
-              )
-            `)
-            .eq('Settore.Cimitero.Id', cimiteroData[0].Id);
+    switch (aiProvider.toLowerCase()) {
+      case 'groq':
+        apiKey = apiKeys.groq_key;
+        endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        requestBody = {
+          model: 'mixtral-8x7b-32768',
+          messages: [
+            { role: 'system', content: 'Sei un assistente AI. Cerca di essere preciso e diretto nelle tue risposte.' },
+            { role: 'user', content: query }
+          ],
+          temperature: 0.7,
+          max_tokens: 1000
+        };
+        break;
 
-          result = blocchiData;
-          searchText = `Ho trovato ${result?.length || 0} blocchi nel cimitero "${cimiteroData[0].Descrizione}"`;
-        } else {
-          searchText = `Non ho trovato il cimitero "${cimitero}"`;
-        }
-      } else {
-        searchText = "Per cercare blocchi o loculi, specifica anche il nome del cimitero";
-      }
+      case 'gemini':
+        apiKey = apiKeys.gemini_key;
+        endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
+        requestBody = {
+          contents: [{
+            parts: [{
+              text: query
+            }]
+          }],
+          generationConfig: {
+            temperature: 0.7,
+            maxOutputTokens: 1000,
+          }
+        };
+        break;
+
+      default:
+        throw new Error(`Provider ${aiProvider} non supportato`);
     }
-    else {
-      searchText = "Non ho capito cosa vuoi cercare. Prova a specificare se vuoi informazioni su cimiteri, blocchi, loculi o defunti.";
+
+    if (!apiKey) {
+      throw new Error(`Chiave API per ${aiProvider} non trovata`);
+    }
+
+    console.log(`Invio richiesta a ${aiProvider}...`);
+    const response = await fetch(endpoint, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`Errore dalla risposta di ${aiProvider}:`, errorText);
+      throw new Error(`Errore nella chiamata a ${aiProvider}: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log(`Risposta da ${aiProvider}:`, data);
+
+    let aiResponse = '';
+    if (aiProvider.toLowerCase() === 'groq') {
+      aiResponse = data.choices[0]?.message?.content || '';
+    } else if (aiProvider.toLowerCase() === 'gemini') {
+      aiResponse = data.candidates[0]?.content?.parts[0]?.text || '';
+    }
+
+    if (!aiResponse) {
+      throw new Error('Risposta non valida dall\'AI');
     }
 
     return new Response(
-      JSON.stringify({
-        text: searchText,
-        data: result || []
-      }),
+      JSON.stringify({ text: aiResponse, data: null }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -209,10 +126,10 @@ serve(async (req) => {
     console.error("Errore dettagliato:", error);
     return new Response(
       JSON.stringify({
-        error: "Si è verificato un errore durante l'elaborazione della richiesta.",
-        details: error.message
+        text: "Mi dispiace, ma al momento non riesco a rispondere alla tua domanda. Verifica che le chiavi API siano corrette nelle impostazioni.",
+        error: error.message
       }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

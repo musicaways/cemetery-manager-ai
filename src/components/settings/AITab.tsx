@@ -2,30 +2,89 @@ import { useState } from "react";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { toast } from "sonner";
 
+const MODEL_DESCRIPTIONS = {
+  "mixtral-8x7b-32768": {
+    name: "Mixtral 8x7B",
+    description: "Un modello molto potente e versatile, eccellente per compiti complessi come analisi, programmazione e ragionamento strutturato.",
+    strengths: "Ottimo per: coding, matematica, analisi dettagliate"
+  },
+  "llama2-70b-4096": {
+    name: "LLaMA2 70B",
+    description: "Modello di grandi dimensioni con eccellenti capacità di comprensione e generazione del linguaggio naturale.",
+    strengths: "Ottimo per: scrittura creativa, spiegazioni dettagliate, traduzioni"
+  },
+  "gemini-pro": {
+    name: "Gemini Pro",
+    description: "Modello avanzato di Google con capacità multimodali e comprensione contestuale avanzata.",
+    strengths: "Ottimo per: analisi visiva, risposte precise, comprensione del contesto"
+  },
+  "llama2": {
+    name: "Llama 2",
+    description: "Versione locale del modello Meta, bilancia bene prestazioni e velocità.",
+    strengths: "Ottimo per: uso generale, risposte veloci, basso consumo di risorse"
+  },
+  "llama-3.1-sonar-small-128k-online": {
+    name: "Llama 3.1 Sonar Small",
+    description: "Modello ottimizzato per risposte precise e ragionamento strutturato.",
+    strengths: "Ottimo per: risposte concise, fact-checking, analisi logica"
+  }
+};
+
 export const AITab = () => {
   const [provider, setProvider] = useState("groq");
   const [model, setModel] = useState("mixtral-8x7b-32768");
   const [language, setLanguage] = useState("it");
   const [temperature, setTemperature] = useState(0.7);
+  const [selectedModelInfo, setSelectedModelInfo] = useState<string>('');
+  const [hasChanges, setHasChanges] = useState(false);
 
   const handleProviderChange = (newProvider: string) => {
     if (!newProvider) return;
     setProvider(newProvider);
+    setHasChanges(true);
+    let newModel = '';
     switch (newProvider) {
       case "groq":
-        setModel("mixtral-8x7b-32768");
+        newModel = "mixtral-8x7b-32768";
         break;
       case "gemini":
-        setModel("gemini-pro");
+        newModel = "gemini-pro";
         break;
       case "ollama":
-        setModel("llama2");
+        newModel = "llama2";
         break;
       case "perplexity":
-        setModel("llama-3.1-sonar-small-128k-online");
+        newModel = "llama-3.1-sonar-small-128k-online";
         break;
     }
-    toast.success(`Provider AI cambiato in ${newProvider}`);
+    setModel(newModel);
+    if (MODEL_DESCRIPTIONS[newModel]) {
+      setSelectedModelInfo(newModel);
+      toast.info(MODEL_DESCRIPTIONS[newModel].name, {
+        description: MODEL_DESCRIPTIONS[newModel].description + "\n\n" + MODEL_DESCRIPTIONS[newModel].strengths
+      });
+    }
+  };
+
+  const handleModelChange = (newModel: string) => {
+    if (!newModel) return;
+    setModel(newModel);
+    setHasChanges(true);
+    if (MODEL_DESCRIPTIONS[newModel]) {
+      setSelectedModelInfo(newModel);
+      toast.info(MODEL_DESCRIPTIONS[newModel].name, {
+        description: MODEL_DESCRIPTIONS[newModel].description + "\n\n" + MODEL_DESCRIPTIONS[newModel].strengths
+      });
+    }
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem('ai_provider', provider);
+    localStorage.setItem('ai_model', model);
+    localStorage.setItem('ai_language', language);
+    localStorage.setItem('ai_temperature', temperature.toString());
+    setHasChanges(false);
+    toast.success('Impostazioni AI salvate con successo');
   };
 
   const renderModelOptions = () => {
@@ -173,6 +232,12 @@ export const AITab = () => {
           <span>Creativo</span>
         </div>
       </div>
+
+      {hasChanges && (
+        <Button onClick={saveSettings} className="w-full">
+          Salva Modifiche
+        </Button>
+      )}
     </div>
   );
 };

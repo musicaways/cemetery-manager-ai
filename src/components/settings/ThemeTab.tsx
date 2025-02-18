@@ -1,16 +1,36 @@
-
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useTheme } from "@/lib/themeContext";
 import { toast } from "sonner";
+import { useState } from "react";
 
 export const ThemeTab = () => {
   const { chatStyle, setChatStyle, avatarShape, setAvatarShape } = useTheme();
+  const [hasChanges, setHasChanges] = useState(false);
 
   const handleThemeChange = (newTheme: string) => {
     if (!newTheme) return;
     document.documentElement.style.setProperty('--primary-color', getThemeColor(newTheme));
     document.documentElement.style.setProperty('--primary-hover', getThemeHoverColor(newTheme));
-    toast.success(`Tema cambiato in ${newTheme}`);
+    setHasChanges(true);
+  };
+
+  const handleChatStyleChange = (newStyle: string) => {
+    if (!newStyle) return;
+    setChatStyle(newStyle);
+    setHasChanges(true);
+  };
+
+  const handleAvatarShapeChange = (newShape: string) => {
+    if (!newShape) return;
+    setAvatarShape(newShape);
+    setHasChanges(true);
+  };
+
+  const saveSettings = () => {
+    localStorage.setItem('theme_chat_style', chatStyle);
+    localStorage.setItem('theme_avatar_shape', avatarShape);
+    setHasChanges(false);
+    toast.success('Impostazioni tema salvate con successo');
   };
 
   const getThemeColor = (theme: string) => {
@@ -69,7 +89,7 @@ export const ThemeTab = () => {
           value={chatStyle}
           onValueChange={(value) => {
             if (value) {
-              setChatStyle(value);
+              handleChatStyleChange(value);
               toast.success(`Stile chat cambiato in ${value}`);
             }
           }}
@@ -96,7 +116,7 @@ export const ThemeTab = () => {
           value={avatarShape}
           onValueChange={(value) => {
             if (value) {
-              setAvatarShape(value);
+              handleAvatarShapeChange(value);
               toast.success(`Forma avatar cambiata in ${value}`);
             }
           }}
@@ -113,6 +133,12 @@ export const ThemeTab = () => {
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
+
+      {hasChanges && (
+        <Button onClick={saveSettings} className="w-full">
+          Salva Modifiche
+        </Button>
+      )}
     </div>
   );
 };

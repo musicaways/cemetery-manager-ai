@@ -1,0 +1,28 @@
+
+/* Stili per il tema moderno */
+.chat-modern .message {
+  @apply rounded-lg shadow-md mb-4;
+}
+
+/* Stili per il tema classico */
+.chat-classic .message {
+  @apply rounded-none border-b border-gray-200 mb-2;
+}
+
+/* Stili per il tema compatto */
+.chat-compact .message {
+  @apply rounded-sm shadow-sm mb-1 p-2;
+}
+
+/* Stili per le forme degli avatar */
+.avatar-circle {
+  border-radius: 50%;
+}
+
+.avatar-square {
+  border-radius: 0.5rem;
+}
+
+.avatar-hexagon {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}

@@ -1,5 +1,4 @@
-
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Search, Database, User, Settings, Info, Plus, Mic, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -85,20 +84,37 @@ const Index = () => {
     return 'cemetery';
   };
 
+  useEffect(() => {
+    const scrollArea = document.querySelector('.scroll-area-viewport');
+    if (scrollArea) {
+      const observer = new MutationObserver(() => {
+        const isScrollable = scrollArea.scrollHeight > scrollArea.clientHeight;
+        scrollArea.style.scrollbarWidth = isScrollable ? 'thin' : 'none';
+      });
+      
+      observer.observe(scrollArea, { 
+        childList: true, 
+        subtree: true 
+      });
+
+      return () => observer.disconnect();
+    }
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#1A1F2C] text-gray-100">
+    <div className="min-h-screen bg-[#1A1F2C] text-gray-100 overflow-hidden">
       <header className="border-b border-[#2A2F3C]/40 bg-[#1A1F2C]/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-2">
-          <div className="flex items-center space-x-4">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center h-12">
             <Button
               variant="ghost"
               size="icon"
-              className="text-[#9b87f5] hover:text-[#7E69AB]"
+              className="text-[#9b87f5] hover:text-[#7E69AB] h-8 w-8"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div className="flex-1">
-              <h1 className="text-base font-semibold text-gray-100">Assistente Cimiteriale</h1>
+            <div className="flex-1 ml-3">
+              <h1 className="text-sm font-semibold text-gray-100">Assistente Cimiteriale</h1>
               <p className="text-xs text-[#8E9196]">AI Assistant</p>
             </div>
             <div className="flex items-center space-x-1">
@@ -122,9 +138,9 @@ const Index = () => {
         </div>
       </header>
 
-      <main className="container mx-auto px-4 py-6 mb-24">
-        <ScrollArea className="h-[calc(100vh-12rem)] rounded-lg">
-          <div className="max-w-4xl mx-auto space-y-6">
+      <main className="container mx-auto px-4 py-4 mb-20">
+        <ScrollArea className="h-[calc(100vh-8.5rem)] rounded-lg scroll-area-viewport" style={{ scrollbarWidth: 'none' }}>
+          <div className="max-w-4xl mx-auto space-y-4">
             {messages.length === 0 && !isProcessing && (
               <div className="space-y-6 animate-fade-in">
                 <div className="text-center space-y-2">
@@ -139,27 +155,27 @@ const Index = () => {
 
             {messages.map((message, index) => (
               <div key={index} className={`animate-fade-in flex ${message.type === 'query' ? 'justify-end' : 'justify-start'}`}>
-                <div className={`${message.type === 'query' ? 'max-w-[60%] ml-8' : 'max-w-[85%] mr-8'}`}>
+                <div className={`${message.type === 'query' ? 'max-w-[85%] ml-auto' : 'max-w-[85%]'} w-full`}>
                   {message.type === 'query' && (
-                    <div className="bg-[#9b87f5]/20 rounded-2xl rounded-tr-sm p-4 border border-[#9b87f5]/30 backdrop-blur-sm">
+                    <div className="bg-[#9b87f5]/20 rounded-2xl rounded-tr-sm p-3 border border-[#9b87f5]/30 backdrop-blur-sm">
                       <p className="text-[#D6BCFA]">{message.content}</p>
                     </div>
                   )}
                   {message.type === 'response' && (
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       <div className="flex items-start space-x-3">
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9b87f5] to-[#6E59A5] flex items-center justify-center flex-shrink-0">
                           <Database className="w-4 h-4 text-white" />
                         </div>
                         {message.content && !message.content.includes('```sql') && (
-                          <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg flex-1">
+                          <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg flex-1">
                             <p className="text-gray-200 leading-relaxed whitespace-pre-wrap">{message.content}</p>
                           </div>
                         )}
                       </div>
                       {message.data && (
-                        <div className="bg-[#2A2F3C]/80 rounded-lg p-6 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg ml-11">
-                          <h3 className="text-xl font-semibold mb-6 text-gray-100">Risultati</h3>
+                        <div className="bg-[#2A2F3C]/80 rounded-lg p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg ml-11">
+                          <h3 className="text-lg font-semibold mb-4 text-gray-100">Risultati</h3>
                           <ResultsList 
                             data={message.data}
                             type={determineResultType(message.content)}
@@ -177,7 +193,7 @@ const Index = () => {
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9b87f5] to-[#6E59A5] flex items-center justify-center">
                   <Database className="w-4 h-4 text-white" />
                 </div>
-                <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-4 border border-[#3A3F4C]/50 backdrop-blur-sm">
+                <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm">
                   <div className="flex items-center space-x-2">
                     <div className="w-2 h-2 bg-[#9b87f5] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                     <div className="w-2 h-2 bg-[#9b87f5] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
@@ -186,20 +202,20 @@ const Index = () => {
                 </div>
               </div>
             )}
-            <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} className="h-4" />
           </div>
         </ScrollArea>
       </main>
 
-      <footer className="fixed bottom-0 left-0 right-0 bg-[#1A1F2C]/95 border-t border-[#2A2F3C]/40 backdrop-blur-xl p-4">
+      <footer className="fixed bottom-0 left-0 right-0 bg-[#1A1F2C] border-t border-[#2A2F3C]/40 backdrop-blur-xl p-3">
         <div className="max-w-3xl mx-auto flex items-center space-x-2">
           <Button
             variant="ghost"
             size="icon"
-            className="text-[#8E9196] hover:text-[#9b87f5]"
+            className="text-[#8E9196] hover:text-[#9b87f5] h-8 w-8"
             onClick={() => setIsMediaUploadOpen(true)}
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
           </Button>
           
           <div className="flex-1">
@@ -209,9 +225,9 @@ const Index = () => {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Chiedimi quello che vuoi sapere..."
-                  className="flex-1 bg-transparent outline-none placeholder-[#8E9196] text-gray-100 resize-none min-h-[40px] max-h-[200px] py-2"
+                  className="flex-1 bg-transparent outline-none placeholder-[#8E9196] text-gray-100 resize-none min-h-[36px] max-h-[120px] py-1"
                   disabled={isProcessing}
-                  maxRows={6}
+                  maxRows={4}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && !e.shiftKey) {
                       e.preventDefault();
@@ -220,7 +236,7 @@ const Index = () => {
                   }}
                 />
                 {query.trim() && (
-                  <Button type="submit" size="sm" className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white">
+                  <Button type="submit" size="sm" className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white h-8">
                     Invia
                   </Button>
                 )}

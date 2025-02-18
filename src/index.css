@@ -88,9 +88,7 @@
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
@@ -98,4 +96,29 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Nascondi la scrollbar quando non è in uso */
+.scroll-area-viewport::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+.scroll-area-viewport {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Mostra una sottile scrollbar solo durante lo scroll */
+.scroll-area-viewport:hover::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scroll-area-viewport:hover::-webkit-scrollbar-thumb {
+  background: rgba(155, 135, 245, 0.3);
+  border-radius: 4px;
+}
+
+.scroll-area-viewport:hover::-webkit-scrollbar-track {
+  background: transparent;
 }

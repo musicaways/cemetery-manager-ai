@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Plus, Command, Globe, Search } from "lucide-react";
+import { toast } from "sonner";
 import TextareaAutosize from 'react-textarea-autosize';
 import { VoiceRecorder } from "./VoiceRecorder";
 import {
@@ -9,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 
 interface ChatInputProps {
   query: string;
@@ -27,6 +29,8 @@ export const ChatInput = ({
   onMediaUploadClick,
   onVoiceRecord
 }: ChatInputProps) => {
+  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+
   const handleCommandSelect = (command: string) => {
     onQueryChange(command);
     const form = document.createElement('form');
@@ -38,16 +42,23 @@ export const ChatInput = ({
     onSubmit(submitEvent as unknown as React.FormEvent);
   };
 
-  const handleWebSearch = () => {
+  const toggleWebSearch = () => {
+    setWebSearchEnabled(!webSearchEnabled);
+    toast.success(
+      !webSearchEnabled 
+        ? "Ricerca su Internet attivata" 
+        : "Ricerca su Internet disattivata"
+    );
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
     if (!query.trim()) return;
-    onQueryChange(`cerca su internet: ${query}`);
-    const form = document.createElement('form');
-    const submitEvent = new Event('submit', {
-      bubbles: true,
-      cancelable: true,
-    });
-    submitEvent.preventDefault = () => {};
-    onSubmit(submitEvent as unknown as React.FormEvent);
+    
+    if (webSearchEnabled) {
+      onQueryChange(`cerca su internet: ${query}`);
+    }
+    
+    onSubmit(e);
   };
 
   return (
@@ -60,6 +71,20 @@ export const ChatInput = ({
           onClick={onMediaUploadClick}
         >
           <Plus className="h-4 w-4" />
+        </Button>
+
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-8 w-8 transition-colors ${
+            webSearchEnabled 
+              ? "text-[#9b87f5]" 
+              : "text-[#8E9196] hover:text-[#9b87f5]"
+          }`}
+          onClick={toggleWebSearch}
+          title={webSearchEnabled ? "Disattiva ricerca su Internet" : "Attiva ricerca su Internet"}
+        >
+          <Globe className="h-4 w-4" />
         </Button>
 
         <DropdownMenu>
@@ -83,38 +108,33 @@ export const ChatInput = ({
         </DropdownMenu>
         
         <div className="flex-1">
-          <form onSubmit={onSubmit}>
+          <form onSubmit={handleSubmit}>
             <div className="flex items-center space-x-2 p-2 bg-[#2A2F3C]/50 rounded-lg border border-[#3A3F4C]/50">
               <TextareaAutosize
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
-                placeholder="Chiedimi quello che vuoi sapere..."
+                placeholder={webSearchEnabled 
+                  ? "Cerca su Internet..." 
+                  : "Chiedimi quello che vuoi sapere..."
+                }
                 className="flex-1 bg-transparent outline-none placeholder-[#8E9196] text-gray-100 resize-none min-h-[36px] max-h-[120px] py-1"
                 disabled={isProcessing}
                 maxRows={4}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && !e.shiftKey) {
                     e.preventDefault();
-                    onSubmit(e);
+                    handleSubmit(e);
                   }
                 }}
               />
               {query.trim() && (
-                <div className="flex items-center gap-2">
-                  <Button 
-                    type="button" 
-                    size="sm" 
-                    variant="ghost"
-                    className="text-[#8E9196] hover:text-[#9b87f5] h-8"
-                    onClick={handleWebSearch}
-                    title="Cerca su Internet"
-                  >
-                    <Globe className="h-4 w-4" />
-                  </Button>
-                  <Button type="submit" size="sm" className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white h-8">
-                    <Search className="h-4 w-4" />
-                  </Button>
-                </div>
+                <Button 
+                  type="submit" 
+                  size="sm" 
+                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white h-8"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
               )}
             </div>
           </form>

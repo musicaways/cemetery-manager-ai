@@ -1,7 +1,7 @@
 
 import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
-import { Mic, X } from "lucide-react";
+import { Mic, X, MicOff } from "lucide-react";
 import { toast } from "sonner";
 
 interface VoiceRecorderProps {
@@ -11,29 +11,33 @@ interface VoiceRecorderProps {
 export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
-  const recognition = useRef<any>(null);
+  const recognition = useRef<SpeechRecognition | null>(null);
   const timerRef = useRef<number>();
 
   const startRecording = async () => {
     try {
-      if (!window.webkitSpeechRecognition) {
+      if (!('webkitSpeechRecognition' in window)) {
         throw new Error('Il tuo browser non supporta il riconoscimento vocale');
+      }
+
+      if (recognition.current) {
+        recognition.current.stop();
       }
 
       const SpeechRecognition = window.webkitSpeechRecognition;
       recognition.current = new SpeechRecognition();
-      recognition.current.continuous = false; // Cambiato a false per evitare ripetizioni
-      recognition.current.interimResults = false; // Cambiato a false per avere solo risultati finali
+      recognition.current.continuous = false;
+      recognition.current.interimResults = false;
       recognition.current.lang = 'it-IT';
 
-      recognition.current.onresult = (event: any) => {
+      recognition.current.onresult = (event: SpeechRecognitionEvent) => {
         const transcript = event.results[0][0].transcript;
         onRecordingComplete(transcript);
         stopRecording();
       };
 
-      recognition.current.onerror = (event: any) => {
-        console.error('Errore riconoscimento:', event.error);
+      recognition.current.onerror = (event: Event) => {
+        console.error('Errore riconoscimento:', event);
         toast.error('Errore durante il riconoscimento vocale');
         stopRecording();
       };
@@ -52,44 +56,49 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
     } catch (error) {
       console.error('Errore microfono:', error);
       toast.error('Errore accesso al microfono');
+      stopRecording();
     }
   };
 
   const stopRecording = () => {
-    if (recognition.current && isRecording) {
+    if (recognition.current) {
       recognition.current.stop();
-      clearInterval(timerRef.current);
-      setIsRecording(false);
-      setDuration(0);
     }
+    clearInterval(timerRef.current);
+    setIsRecording(false);
+    setDuration(0);
   };
 
   return (
     <div className="flex items-center space-x-2">
       {isRecording ? (
-        <div className="flex items-center space-x-2 bg-orange-500/20 text-orange-500 px-4 py-2 rounded-full">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-orange-500 hover:text-orange-400"
-            onClick={stopRecording}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          <div className="flex items-center space-x-2">
-            <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-            <span>{duration}s</span>
-          </div>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-10 w-10 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:text-red-400"
+          onClick={stopRecording}
+        >
+          <div className="absolute inset-0 rounded-full animate-ping bg-red-500/20" />
+          <MicOff className="h-5 w-5 relative z-10" />
+          <span className="sr-only">Interrompi registrazione</span>
+        </Button>
       ) : (
         <Button
           variant="ghost"
           size="icon"
-          className="h-10 w-10 rounded-full hover:bg-gray-800"
+          className="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 hover:text-blue-400 transition-all duration-200"
           onClick={startRecording}
         >
           <Mic className="h-5 w-5" />
+          <span className="sr-only">Avvia registrazione vocale</span>
         </Button>
+      )}
+      
+      {isRecording && (
+        <div className="flex items-center space-x-2 bg-gray-800/50 px-3 py-1 rounded-full border border-gray-700/50">
+          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-sm text-gray-400">{duration}s</span>
+        </div>
       )}
     </div>
   );

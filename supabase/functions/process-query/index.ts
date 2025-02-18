@@ -41,7 +41,8 @@ const processWithGroq = async (query: string) => {
 
     console.log("Avvio chiamata Groq API con query:", query);
     
-    const response = await fetch('https://api.groq.com/v1/chat/completions', {
+    // URL corretto per l'API Groq
+    const response = await fetch('https://chat.groq.com/v1/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${apiKey}`,

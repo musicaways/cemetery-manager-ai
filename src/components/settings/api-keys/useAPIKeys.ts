@@ -56,33 +56,24 @@ export const useAPIKeys = (onSave: () => void) => {
     setIsTesting(provider);
     
     try {
-      const response = await fetch(`${window.location.origin}/api/process-query`, {
+      const response = await fetch(`${window.location.origin}/api/test-api`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          query: "Ciao! Questo è un test.",
-          queryType: "chat",
-          isTest: true,
-          aiProvider: provider.toLowerCase(),
-          aiModel: provider === "Groq" ? "mixtral-8x7b-32768" : 
-                  provider === "Gemini" ? "gemini-pro" :
-                  provider === "Perplexity" ? "mixtral-8x7b" : "mistral-7b"
+          provider,
+          apiKey
         }),
       });
 
-      if (!response.ok) {
-        throw new Error(`Errore durante il test dell'API di ${provider}`);
-      }
-
       const data = await response.json();
       
-      if (data.error) {
+      if (!data.success) {
         throw new Error(data.error);
       }
 
-      toast.success(`Test dell'API di ${provider} completato con successo!`);
+      toast.success(data.message);
     } catch (error) {
       console.error(`Errore nel test dell'API di ${provider}:`, error);
       toast.error(`Errore nel test dell'API di ${provider}. Verifica che la chiave sia corretta.`);

@@ -29,13 +29,31 @@ serve(async (req) => {
 
     // Se è una ricerca web, comportati come un'IA generale
     if (queryType === 'web') {
-      let risposta = "Mi dispiace, ma al momento non riesco a fornire una risposta accurata. ";
-      risposta += "Sto lavorando in modalità simulazione. In una versione futura, ";
-      risposta += "sarò in grado di rispondere a qualsiasi domanda utilizzando le mie capacità di IA.";
+      const geminiKey = Deno.env.get('GEMINI_API_KEY');
+      if (!geminiKey) {
+        throw new Error('API key di Gemini mancante');
+      }
+
+      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${geminiKey}`,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: query }] }],
+          generationConfig: {
+            temperature: 0.7,
+          },
+        }),
+      });
+
+      const data = await response.json();
+      const aiResponse = data.candidates[0].content.parts[0].text;
 
       return new Response(
         JSON.stringify({
-          text: risposta,
+          text: aiResponse,
           data: null,
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

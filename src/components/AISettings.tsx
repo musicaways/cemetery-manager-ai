@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Settings, X, Sun, Moon, Palette } from "lucide-react";
 import { toast } from "sonner";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface SettingsProps {
   isOpen: boolean;
@@ -13,6 +14,7 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
   const [theme, setTheme] = useState("purple");
   const [chatStyle, setChatStyle] = useState("modern");
   const [temperature, setTemperature] = useState(0.7);
+  const [provider, setProvider] = useState("groq");
   const [model, setModel] = useState("mixtral-8x7b-32768");
   const [language, setLanguage] = useState("it");
 
@@ -24,10 +26,26 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
     toast.success(`Tema cambiato in ${newTheme}`);
   };
 
-  const handleChatStyleChange = (newStyle: string) => {
-    if (!newStyle) return;
-    setChatStyle(newStyle);
-    toast.success(`Stile chat cambiato in ${newStyle}`);
+  const handleProviderChange = (newProvider: string) => {
+    setProvider(newProvider);
+    // Reset model to default for new provider
+    switch (newProvider) {
+      case "groq":
+        setModel("mixtral-8x7b-32768");
+        break;
+      case "gemini":
+        setModel("gemini-pro");
+        break;
+      case "ollama":
+        setModel("llama2");
+        break;
+    }
+    toast.success(`Provider AI cambiato in ${newProvider}`);
+  };
+
+  const handleModelChange = (newModel: string) => {
+    setModel(newModel);
+    toast.success(`Modello cambiato in ${newModel}`);
   };
 
   const getThemeColor = (theme: string) => {
@@ -47,6 +65,61 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
       case "green": return "#047857";
       case "red": return "#b91c1c";
       default: return "#7E69AB";
+    }
+  };
+
+  const renderModelOptions = () => {
+    switch (provider) {
+      case "groq":
+        return (
+          <ToggleGroup 
+            type="single" 
+            value={model}
+            onValueChange={(value) => value && handleModelChange(value)}
+            className="flex flex-wrap gap-2"
+          >
+            <ToggleGroupItem value="mixtral-8x7b-32768" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+              Mixtral 8x7B
+            </ToggleGroupItem>
+            <ToggleGroupItem value="llama2-70b-4096" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+              LLaMA2 70B
+            </ToggleGroupItem>
+          </ToggleGroup>
+        );
+      case "gemini":
+        return (
+          <ToggleGroup 
+            type="single" 
+            value={model}
+            onValueChange={(value) => value && handleModelChange(value)}
+            className="flex flex-wrap gap-2"
+          >
+            <ToggleGroupItem value="gemini-pro" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+              Gemini Pro
+            </ToggleGroupItem>
+          </ToggleGroup>
+        );
+      case "ollama":
+        return (
+          <ToggleGroup 
+            type="single" 
+            value={model}
+            onValueChange={(value) => value && handleModelChange(value)}
+            className="flex flex-wrap gap-2"
+          >
+            <ToggleGroupItem value="llama2" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+              Llama 2
+            </ToggleGroupItem>
+            <ToggleGroupItem value="mistral" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+              Mistral
+            </ToggleGroupItem>
+            <ToggleGroupItem value="codellama" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+              CodeLlama
+            </ToggleGroupItem>
+          </ToggleGroup>
+        );
+      default:
+        return null;
     }
   };
 
@@ -95,7 +168,7 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
             <ToggleGroup 
               type="single" 
               value={chatStyle}
-              onValueChange={handleChatStyleChange}
+              onValueChange={(value) => value && setChatStyle(value)}
               className="flex flex-wrap gap-2"
             >
               <ToggleGroupItem value="modern" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
@@ -115,18 +188,31 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
             
             <div>
               <label className="block text-sm font-medium text-gray-200 mb-2">
-                Modello
+                Provider AI
               </label>
               <ToggleGroup 
                 type="single" 
-                value={model}
-                onValueChange={(value) => value && setModel(value)}
+                value={provider}
+                onValueChange={(value) => value && handleProviderChange(value)}
                 className="flex flex-wrap gap-2"
               >
-                <ToggleGroupItem value="mixtral-8x7b-32768" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-                  Mixtral 8x7B
+                <ToggleGroupItem value="groq" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+                  Groq
+                </ToggleGroupItem>
+                <ToggleGroupItem value="gemini" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+                  Gemini
+                </ToggleGroupItem>
+                <ToggleGroupItem value="ollama" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
+                  Ollama
                 </ToggleGroupItem>
               </ToggleGroup>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-200 mb-2">
+                Modello
+              </label>
+              {renderModelOptions()}
             </div>
 
             <div>

@@ -105,36 +105,63 @@ const executeQuery = async (sqlQuery: string, supabase: any) => {
     sqlQuery = sqlQuery.trim().replace(/;$/, '');
     
     const lowerQuery = sqlQuery.toLowerCase();
+    console.log("Query in lowercase:", lowerQuery);
+    
     let mainTable = '';
     
-    if (lowerQuery.includes('from cimitero')) mainTable = 'Cimitero';
-    else if (lowerQuery.includes('from settore')) mainTable = 'Settore';
-    else if (lowerQuery.includes('from blocco')) mainTable = 'Blocco';
-    else if (lowerQuery.includes('from loculo')) mainTable = 'Loculo';
-    else if (lowerQuery.includes('from defunto')) mainTable = 'Defunto';
+    // Migliorato il rilevamento della tabella con regex
+    const fromMatch = lowerQuery.match(/from\s+([a-z0-9_"]+)/i);
+    if (fromMatch) {
+      mainTable = fromMatch[1].replace(/"/g, '');
+      console.log("Tabella rilevata:", mainTable);
+    }
     
-    if (!mainTable) {
-      throw new Error('Tabella non riconosciuta nella query');
+    // Mappa delle tabelle per gestire case-sensitivity
+    const tableMap: { [key: string]: string } = {
+      'cimitero': 'Cimitero',
+      'settore': 'Settore',
+      'blocco': 'Blocco',
+      'loculo': 'Loculo',
+      'defunto': 'Defunto',
+      'tipologico': 'TipoLoculo'
+    };
+    
+    const actualTable = tableMap[mainTable.toLowerCase()];
+    
+    if (!actualTable) {
+      console.error("Tabella non riconosciuta:", mainTable);
+      console.error("Query completa:", sqlQuery);
+      throw new Error(`Tabella non riconosciuta: ${mainTable}. Query: ${sqlQuery}`);
     }
 
-    let query = supabase.from(mainTable).select('*');
+    console.log("Utilizzando tabella:", actualTable);
+    let query = supabase.from(actualTable).select('*');
     
-    const whereMatch = lowerQuery.match(/where\s+(.*?)(?:\s+(?:order|group|limit|$))/i);
+    // Migliorata l'espressione regolare per WHERE
+    const whereMatch = lowerQuery.match(/where\s+([^;]+?)(?:\s+(?:order|group|limit|$))/i);
     if (whereMatch) {
-      query = query.or(whereMatch[1].replace(/'/g, ''));
+      const whereClause = whereMatch[1].trim();
+      console.log("Clausola WHERE:", whereClause);
+      query = query.or(whereClause.replace(/'/g, ''));
     }
     
-    const orderMatch = lowerQuery.match(/order\s+by\s+(.*?)(?:\s+(?:limit|$))/i);
+    // Migliorata l'espressione regolare per ORDER BY
+    const orderMatch = lowerQuery.match(/order\s+by\s+([^;]+?)(?:\s+(?:limit|$)|$)/i);
     if (orderMatch) {
-      query = query.order(orderMatch[1]);
+      const orderClause = orderMatch[1].trim();
+      console.log("Clausola ORDER BY:", orderClause);
+      query = query.order(orderClause);
     }
     
+    // Migliorata l'espressione regolare per LIMIT
     const limitMatch = lowerQuery.match(/limit\s+(\d+)/i);
     if (limitMatch) {
-      query = query.limit(parseInt(limitMatch[1]));
+      const limit = parseInt(limitMatch[1]);
+      console.log("LIMIT:", limit);
+      query = query.limit(limit);
     }
 
-    console.log("Query Supabase costruita:", query);
+    console.log("Query Supabase finale:", query);
     const { data, error } = await query;
     
     if (error) {

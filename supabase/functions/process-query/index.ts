@@ -30,25 +30,41 @@ serve(async (req) => {
     // Se è una ricerca web, utilizziamo HuggingFace Inference API
     if (queryType === 'web') {
       try {
-        const hfKey = Deno.env.get('HUGGINGFACE_API_KEY');
-        if (!hfKey) {
-          throw new Error('API key di HuggingFace mancante');
+        // Recupera la chiave API dal database
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+
+        if (!supabaseUrl || !supabaseKey) {
+          throw new Error('Configurazione Supabase mancante');
         }
 
+        const supabase = createClient(supabaseUrl, supabaseKey);
+        
+        const { data: apiKeys, error: apiKeysError } = await supabase
+          .from('api_keys')
+          .select('huggingface_key')
+          .maybeSingle();
+
+        if (apiKeysError || !apiKeys?.huggingface_key) {
+          throw new Error('API key di HuggingFace non trovata');
+        }
+
+        console.log("Invio richiesta a HuggingFace...");
+        
         const response = await fetch(
-          'https://api-inference.huggingface.co/models/onnx-community/gpt2-large-it',
+          'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1',
           {
             headers: { 
-              'Authorization': `Bearer ${hfKey}`,
+              'Authorization': `Bearer ${apiKeys.huggingface_key}`,
               'Content-Type': 'application/json',
             },
             method: 'POST',
             body: JSON.stringify({
               inputs: query,
               parameters: {
-                max_length: 100,
-                num_return_sequences: 1,
+                max_length: 500,
                 temperature: 0.7,
+                top_p: 0.95,
                 return_full_text: false
               }
             }),
@@ -63,11 +79,14 @@ serve(async (req) => {
         const result = await response.json();
         console.log('Risposta completa da HuggingFace:', result);
 
-        if (!Array.isArray(result) || !result[0]?.generated_text) {
+        let aiResponse = '';
+        if (Array.isArray(result) && result[0]?.generated_text) {
+          aiResponse = result[0].generated_text;
+        } else if (result.generated_text) {
+          aiResponse = result.generated_text;
+        } else {
           throw new Error('Risposta di HuggingFace non valida');
         }
-
-        const aiResponse = result[0].generated_text;
 
         return new Response(
           JSON.stringify({
@@ -80,7 +99,7 @@ serve(async (req) => {
         console.error("Errore durante la generazione del testo:", error);
         return new Response(
           JSON.stringify({
-            text: "Mi dispiace, ma al momento non riesco a rispondere alla tua domanda. Riprova più tardi o disattiva la modalità Internet per cercare informazioni nel database.",
+            text: "Mi dispiace, ma al momento non riesco a rispondere alla tua domanda. Verifica che la chiave API di HuggingFace sia corretta nelle impostazioni.",
             data: null,
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

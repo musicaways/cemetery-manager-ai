@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,119 +15,122 @@ serve(async (req) => {
     const { provider, apiKey } = await req.json();
     console.log(`Testing ${provider} API...`);
 
-    let testEndpoint = '';
-    let testBody = {};
-    let testHeaders = { 'Content-Type': 'application/json' };
+    let success = false;
+    let errorMessage = '';
 
     switch (provider.toLowerCase()) {
-      case 'groq':
-        testEndpoint = 'https://api.groq.com/openai/v1/chat/completions';
-        testHeaders = {
-          ...testHeaders,
-          'Authorization': `Bearer ${apiKey}`,
-        };
-        testBody = {
-          model: 'mixtral-8x7b-32768',
-          messages: [{ role: 'user', content: 'Ciao!' }],
-          temperature: 0.7,
-          max_tokens: 50
-        };
-        break;
+      case 'groq': {
+        try {
+          const response = await fetch('https://api.groq.com/v1/models', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          });
 
-      case 'gemini':
-        const apiVersion = 'v1beta';
-        const model = 'gemini-pro';
-        testEndpoint = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${apiKey}`;
-        testBody = {
-          contents: [{
-            parts: [{
-              text: "Ciao!"
-            }]
-          }]
-        };
+          const data = await response.json();
+          
+          if (response.ok && Array.isArray(data.data)) {
+            success = true;
+          } else {
+            errorMessage = data.error?.message || 'Errore nella verifica della chiave Groq';
+          }
+        } catch (error) {
+          console.error('Groq API error:', error);
+          errorMessage = 'Errore nella connessione a Groq API';
+        }
         break;
+      }
 
-      case 'perplexity':
-        testEndpoint = 'https://api.perplexity.ai/chat/completions';
-        testHeaders = {
-          ...testHeaders,
-          'Authorization': `Bearer ${apiKey}`,
-        };
-        testBody = {
-          model: 'mixtral-8x7b',
-          messages: [{ role: 'user', content: 'Ciao!' }],
-          max_tokens: 50
-        };
-        break;
+      case 'gemini': {
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`,
+            {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+            }
+          );
 
-      case 'huggingface':
-        testEndpoint = 'https://api-inference.huggingface.co/models/mistralai/Mixtral-8x7B-Instruct-v0.1';
-        testHeaders = {
-          ...testHeaders,
-          'Authorization': `Bearer ${apiKey}`,
-        };
-        testBody = {
-          inputs: 'Ciao!',
-          parameters: {
-            max_length: 50,
-            temperature: 0.7,
-          },
-        };
+          const data = await response.json();
+          
+          if (response.ok && Array.isArray(data.models)) {
+            success = true;
+          } else {
+            errorMessage = data.error?.message || 'Errore nella verifica della chiave Gemini';
+          }
+        } catch (error) {
+          console.error('Gemini API error:', error);
+          errorMessage = 'Errore nella connessione a Gemini API';
+        }
         break;
+      }
+
+      case 'perplexity': {
+        try {
+          const response = await fetch('https://api.perplexity.ai/chat/models', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          const data = await response.json();
+          
+          if (response.ok && Array.isArray(data.models)) {
+            success = true;
+          } else {
+            errorMessage = data.error?.message || 'Errore nella verifica della chiave Perplexity';
+          }
+        } catch (error) {
+          console.error('Perplexity API error:', error);
+          errorMessage = 'Errore nella connessione a Perplexity API';
+        }
+        break;
+      }
+
+      case 'huggingface': {
+        try {
+          const response = await fetch('https://api-inference.huggingface.co/status', {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (response.ok) {
+            success = true;
+          } else {
+            const data = await response.json();
+            errorMessage = data.error || 'Errore nella verifica della chiave HuggingFace';
+          }
+        } catch (error) {
+          console.error('HuggingFace API error:', error);
+          errorMessage = 'Errore nella connessione a HuggingFace API';
+        }
+        break;
+      }
 
       default:
-        throw new Error(`Provider ${provider} non supportato`);
+        errorMessage = `Provider ${provider} non supportato`;
     }
 
-    console.log(`Making test request to ${testEndpoint}...`);
-    console.log('Request headers:', testHeaders);
-    console.log('Request body:', testBody);
-    
-    const response = await fetch(testEndpoint, {
-      method: 'POST',
-      headers: testHeaders,
-      body: JSON.stringify(testBody),
-    });
-
-    const responseText = await response.text();
-    console.log(`Raw response from ${provider}:`, responseText);
-
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      console.error('Failed to parse response as JSON:', e);
-      throw new Error(`Risposta non valida da ${provider}`);
+    if (success) {
+      return new Response(
+        JSON.stringify({
+          success: true,
+          message: `Test dell'API di ${provider} completato con successo!`
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } else {
+      throw new Error(errorMessage);
     }
-
-    if (!response.ok) {
-      console.error(`API test failed for ${provider}:`, data);
-      throw new Error(data.error?.message || `Test fallito per ${provider}: ${response.status} ${response.statusText}`);
-    }
-
-    // Verifica la struttura della risposta in base al provider
-    if (provider.toLowerCase() === 'gemini' && !data.candidates) {
-      throw new Error('Risposta non valida da Gemini API');
-    }
-    if (provider.toLowerCase() === 'groq' && !data.choices) {
-      throw new Error('Risposta non valida da Groq API');
-    }
-    if (provider.toLowerCase() === 'perplexity' && !data.choices) {
-      throw new Error('Risposta non valida da Perplexity API');
-    }
-    if (provider.toLowerCase() === 'huggingface' && !Array.isArray(data)) {
-      throw new Error('Risposta non valida da HuggingFace API');
-    }
-
-    console.log(`Test successful for ${provider}:`, data);
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: `Test dell'API di ${provider} completato con successo!` 
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
 
   } catch (error) {
     console.error('Error during API test:', error);

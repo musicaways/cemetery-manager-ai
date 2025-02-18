@@ -66,24 +66,63 @@ serve(async (req) => {
       // Ricerca blocchi di un cimitero specifico con tutte le informazioni correlate
       if (queryLower.includes('blocchi') || queryLower.includes('blocco')) {
         if (cemeteryName) {
-          const { data, error } = await supabase
-            .from('Blocco')
-            .select(`
-              *,
-              Settore!inner (
-                *,
-                Cimitero!inner (*)
-              ),
-              Loculo (
-                *,
-                Defunto (*)
-              )
-            `)
-            .ilike('Settore.Cimitero.Descrizione', `%${cemeteryName}%`);
+          // Prima troviamo l'ID del cimitero
+          const { data: cimiteroData, error: cimiteroError } = await supabase
+            .from('Cimitero')
+            .select('Id, Descrizione')
+            .ilike('Descrizione', `%${cemeteryName}%`)
+            .limit(1)
+            .single();
 
-          if (error) throw error;
-          result = data;
-          searchText = `Ecco i blocchi del cimitero "${cemeteryName}" con relative informazioni:`;
+          if (cimiteroError) throw cimiteroError;
+          
+          if (cimiteroData) {
+            // Poi usiamo l'ID per trovare i blocchi correlati
+            const { data, error } = await supabase
+              .from('Blocco')
+              .select(`
+                *,
+                Settore!inner (
+                  Id,
+                  Codice,
+                  Descrizione,
+                  Cimitero!inner (
+                    Id,
+                    Codice,
+                    Descrizione
+                  )
+                )
+              `)
+              .eq('Settore.Cimitero.Id', cimiteroData.Id);
+
+            if (error) throw error;
+
+            // Se abbiamo trovato blocchi, recuperiamo i loculi e defunti correlati
+            if (data && data.length > 0) {
+              const blocchiIds = data.map(b => b.Id);
+              
+              // Recuperiamo loculi e defunti per questi blocchi
+              const { data: loculiData, error: loculiError } = await supabase
+                .from('Loculo')
+                .select(`
+                  *,
+                  Defunto (*)
+                `)
+                .in('IdBlocco', blocchiIds);
+
+              if (loculiError) throw loculiError;
+
+              // Aggiungiamo i loculi ai rispettivi blocchi
+              result = data.map(blocco => ({
+                ...blocco,
+                Loculo: loculiData?.filter(l => l.IdBlocco === blocco.Id) || []
+              }));
+            } else {
+              result = data;
+            }
+            
+            searchText = `Ecco i blocchi del cimitero "${cimiteroData.Descrizione}" con relative informazioni:`;
+          }
         }
       }
       // Ricerca cimiteri

@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Command } from "lucide-react";
+import { Plus, Command, Globe, Search } from "lucide-react";
 import TextareaAutosize from 'react-textarea-autosize';
 import { VoiceRecorder } from "./VoiceRecorder";
 import {
@@ -27,20 +27,26 @@ export const ChatInput = ({
   onMediaUploadClick,
   onVoiceRecord
 }: ChatInputProps) => {
-
   const handleCommandSelect = (command: string) => {
     onQueryChange(command);
-    // Simuliamo un submit del form
     const form = document.createElement('form');
     const submitEvent = new Event('submit', {
       bubbles: true,
       cancelable: true,
     });
-    
-    // Preveniamo il submit reale del form
     submitEvent.preventDefault = () => {};
-    
-    // Innescheremo l'evento
+    onSubmit(submitEvent as unknown as React.FormEvent);
+  };
+
+  const handleWebSearch = () => {
+    if (!query.trim()) return;
+    onQueryChange(`cerca su internet: ${query}`);
+    const form = document.createElement('form');
+    const submitEvent = new Event('submit', {
+      bubbles: true,
+      cancelable: true,
+    });
+    submitEvent.preventDefault = () => {};
     onSubmit(submitEvent as unknown as React.FormEvent);
   };
 
@@ -73,7 +79,6 @@ export const ChatInput = ({
             >
               Test Modello AI
             </DropdownMenuItem>
-            {/* Qui possiamo aggiungere altri comandi in futuro */}
           </DropdownMenuContent>
         </DropdownMenu>
         
@@ -83,7 +88,7 @@ export const ChatInput = ({
               <TextareaAutosize
                 value={query}
                 onChange={(e) => onQueryChange(e.target.value)}
-                placeholder="Chiedimi quello che vuoi sapere... (usa /test-model per verificare il modello)"
+                placeholder="Chiedimi quello che vuoi sapere..."
                 className="flex-1 bg-transparent outline-none placeholder-[#8E9196] text-gray-100 resize-none min-h-[36px] max-h-[120px] py-1"
                 disabled={isProcessing}
                 maxRows={4}
@@ -95,9 +100,21 @@ export const ChatInput = ({
                 }}
               />
               {query.trim() && (
-                <Button type="submit" size="sm" className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white h-8">
-                  Invia
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    type="button" 
+                    size="sm" 
+                    variant="ghost"
+                    className="text-[#8E9196] hover:text-[#9b87f5] h-8"
+                    onClick={handleWebSearch}
+                    title="Cerca su Internet"
+                  >
+                    <Globe className="h-4 w-4" />
+                  </Button>
+                  <Button type="submit" size="sm" className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white h-8">
+                    <Search className="h-4 w-4" />
+                  </Button>
+                </div>
               )}
             </div>
           </form>

@@ -28,34 +28,13 @@ const Index = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const identifyQueryType = (query: string): 'test' | 'database' | 'web' => {
-    // Verifica se è un comando di test
-    if (query.toLowerCase() === '/test-model') {
-      return 'test';
-    }
-
-    // Verifica se è una ricerca nel database
-    const databaseKeywords = ['mostrami', 'cerca', 'trova', 'lista', 'cimitero', 'defunto', 'loculi'];
-    if (databaseKeywords.some(keyword => query.toLowerCase().includes(keyword))) {
-      return 'database';
-    }
-
-    // Se contiene parole chiave per ricerca web
-    const webKeywords = ['internet', 'web', 'meteo', 'tempo', 'news', 'notizie'];
-    if (webKeywords.some(keyword => query.toLowerCase().includes(keyword))) {
-      return 'web';
-    }
-
-    // Default a database se non viene riconosciuto specificamente
-    return 'database';
-  };
-
   const handleSubmit = async (e?: React.FormEvent, submittedQuery?: string) => {
     e?.preventDefault();
     const finalQuery = submittedQuery || query;
     if (!finalQuery.trim()) return;
     
-    const queryType = identifyQueryType(finalQuery);
+    const isWebSearch = finalQuery.toLowerCase().includes('cerca su internet:');
+    const queryType = isWebSearch ? 'web' : 'database';
     
     setIsProcessing(true);
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);

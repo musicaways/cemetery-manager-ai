@@ -11,7 +11,7 @@ interface VoiceRecorderProps {
 export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
-  const recognition = useRef<SpeechRecognition | null>(null);
+  const recognition = useRef<any>(null);
   const timerRef = useRef<number>();
 
   const startRecording = async () => {
@@ -22,21 +22,23 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
       }
 
       // Inizializza il riconoscimento vocale
-      recognition.current = new webkitSpeechRecognition();
+      const SpeechRecognition = window.webkitSpeechRecognition;
+      recognition.current = new SpeechRecognition();
       recognition.current.continuous = true;
       recognition.current.interimResults = true;
       recognition.current.lang = 'it-IT'; // Impostiamo l'italiano
 
       let finalTranscript = '';
 
-      recognition.current.onresult = (event) => {
+      recognition.current.onresult = (event: any) => {
         let interimTranscript = '';
 
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
+        for (let i = 0; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
           if (event.results[i].isFinal) {
-            finalTranscript += event.results[i][0].transcript;
+            finalTranscript += transcript;
           } else {
-            interimTranscript += event.results[i][0].transcript;
+            interimTranscript += transcript;
           }
         }
 
@@ -46,7 +48,7 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
         }
       };
 
-      recognition.current.onerror = (event) => {
+      recognition.current.onerror = (event: any) => {
         console.error('Errore riconoscimento:', event.error);
         toast.error('Errore durante il riconoscimento vocale');
         stopRecording();
@@ -110,37 +112,3 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
     </div>
   );
 };
-
-// Dichiarazione dei tipi per TypeScript
-declare global {
-  interface Window {
-    webkitSpeechRecognition: new () => SpeechRecognition;
-  }
-}
-
-interface SpeechRecognition extends EventTarget {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start: () => void;
-  stop: () => void;
-  onresult: (event: SpeechRecognitionEvent) => void;
-  onerror: (event: SpeechRecognitionErrorEvent) => void;
-  onend: () => void;
-}
-
-interface SpeechRecognitionEvent {
-  resultIndex: number;
-  results: {
-    [key: number]: {
-      isFinal: boolean;
-      [key: number]: {
-        transcript: string;
-      };
-    };
-  };
-}
-
-interface SpeechRecognitionErrorEvent {
-  error: string;
-}

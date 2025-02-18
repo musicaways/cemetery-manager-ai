@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Search, Database, User, Settings, Info, Plus, Mic, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
@@ -105,7 +106,7 @@ const Index = () => {
             </div>
           )}
 
-          {(response || isProcessing) && (
+          {response && !isProcessing && (
             <div className="space-y-6 animate-fade-in">
               {response.text && !response.text.includes('```sql') && (
                 <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700 backdrop-blur-sm">
@@ -122,6 +123,13 @@ const Index = () => {
                   />
                 </div>
               )}
+            </div>
+          )}
+
+          {isProcessing && (
+            <div className="text-center py-8">
+              <div className="animate-spin w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-gray-400">Elaborazione in corso...</p>
             </div>
           )}
         </div>

@@ -29,35 +29,60 @@ serve(async (req) => {
 
     // Se è una ricerca web, comportati come un'IA generale
     if (queryType === 'web') {
-      const geminiKey = Deno.env.get('GEMINI_API_KEY');
-      if (!geminiKey) {
-        throw new Error('API key di Gemini mancante');
-      }
+      try {
+        const geminiKey = Deno.env.get('GEMINI_API_KEY');
+        if (!geminiKey) {
+          throw new Error('API key di Gemini mancante');
+        }
 
-      const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${geminiKey}`,
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: query }] }],
-          generationConfig: {
-            temperature: 0.7,
+        const response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${geminiKey}`,
           },
-        }),
-      });
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: query }] }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 800,
+            },
+          }),
+        });
 
-      const data = await response.json();
-      const aiResponse = data.candidates[0].content.parts[0].text;
+        if (!response.ok) {
+          throw new Error(`Errore nella chiamata a Gemini: ${response.statusText}`);
+        }
 
-      return new Response(
-        JSON.stringify({
-          text: aiResponse,
-          data: null,
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+        const data = await response.json();
+        console.log("Risposta completa da Gemini:", data);
+
+        if (!data.candidates || data.candidates.length === 0) {
+          throw new Error('Nessuna risposta generata da Gemini');
+        }
+
+        const aiResponse = data.candidates[0].content?.parts?.[0]?.text;
+        if (!aiResponse) {
+          throw new Error('Risposta di Gemini non valida');
+        }
+
+        return new Response(
+          JSON.stringify({
+            text: aiResponse,
+            data: null,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error("Errore durante la chiamata a Gemini:", error);
+        return new Response(
+          JSON.stringify({
+            text: "Mi dispiace, ma al momento non riesco a rispondere alla tua domanda. Riprova più tardi o disattiva la modalità Internet per cercare informazioni nel database.",
+            data: null,
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     // Altrimenti, procedi con la ricerca nel database

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,16 +13,20 @@ export const useAISettings = (onSave: () => void) => {
   const [hasChanges, setHasChanges] = useState(false);
   const [isTestingModel, setIsTestingModel] = useState(false);
 
+  // Assicuriamoci che le impostazioni di default siano sempre salvate
   useEffect(() => {
-    const savedProvider = localStorage.getItem('ai_provider');
-    const savedModel = localStorage.getItem('ai_model');
-    const savedLanguage = localStorage.getItem('ai_language');
-    const savedTemperature = localStorage.getItem('ai_temperature');
-
-    if (savedProvider) setProvider(savedProvider);
-    if (savedModel) setModel(savedModel);
-    if (savedLanguage) setLanguage(savedLanguage);
-    if (savedTemperature) setTemperature(parseFloat(savedTemperature));
+    if (!localStorage.getItem('ai_provider')) {
+      localStorage.setItem('ai_provider', 'groq');
+    }
+    if (!localStorage.getItem('ai_model')) {
+      localStorage.setItem('ai_model', 'mixtral-8x7b-32768');
+    }
+    if (!localStorage.getItem('ai_language')) {
+      localStorage.setItem('ai_language', 'it');
+    }
+    if (!localStorage.getItem('ai_temperature')) {
+      localStorage.setItem('ai_temperature', '0.7');
+    }
   }, []);
 
   const handleProviderChange = (newProvider: string) => {
@@ -31,9 +36,11 @@ export const useAISettings = (onSave: () => void) => {
     let newModel = '';
     
     const providerInfo = PROVIDER_INFO[newProvider];
-    toast.info(`${providerInfo.name}`, {
-      description: `${providerInfo.description}\n\nPunti di forza: ${providerInfo.strengths}`
-    });
+    if (providerInfo) {
+      toast.info(`${providerInfo.name}`, {
+        description: `${providerInfo.description}\n\nPunti di forza: ${providerInfo.strengths}`
+      });
+    }
     
     switch(newProvider) {
       case "groq":
@@ -82,8 +89,9 @@ export const useAISettings = (onSave: () => void) => {
       const response = await supabase.functions.invoke('process-query', {
         body: { 
           query: testPrompt,
-          provider,
-          model
+          aiProvider: provider,
+          aiModel: model,
+          isTest: true
         }
       });
       
@@ -113,6 +121,7 @@ export const useAISettings = (onSave: () => void) => {
     const testPassed = await testModel();
     
     if (testPassed) {
+      // Salviamo immediatamente le impostazioni
       localStorage.setItem('ai_provider', provider);
       localStorage.setItem('ai_model', model);
       localStorage.setItem('ai_language', language);

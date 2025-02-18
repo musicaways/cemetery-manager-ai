@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Search, Database, User, Settings, Info } from "lucide-react";
 import { toast } from "sonner";
@@ -30,13 +31,13 @@ const Index = () => {
         if (data.error) {
           toast.error(data.error);
         } else {
-          toast.success("Query processed successfully");
+          toast.success("Ricerca completata con successo");
         }
       }
       
     } catch (error) {
-      toast.error("Error processing query");
-      console.error("Error:", error);
+      toast.error("Errore durante l'elaborazione della richiesta");
+      console.error("Errore:", error);
     } finally {
       setIsProcessing(false);
     }
@@ -47,7 +48,7 @@ const Index = () => {
       <header className="border-b border-gray-700">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold">Cemetery Manager AI</h1>
+            <h1 className="text-2xl font-bold">Assistente Cimiteriale AI</h1>
             <div className="flex items-center space-x-4">
               <button className="p-2 hover:bg-gray-700 rounded-full">
                 <User className="w-5 h-5" />
@@ -75,7 +76,7 @@ const Index = () => {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ask anything about the cemetery data..."
+                placeholder="Chiedimi quello che vuoi sapere sul cimitero..."
                 className="flex-1 bg-transparent outline-none placeholder-gray-400"
                 disabled={isProcessing}
               />
@@ -85,13 +86,13 @@ const Index = () => {
 
           {response && (
             <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-              <h2 className="text-xl font-semibold mb-4">AI Assistant Response</h2>
+              <h2 className="text-xl font-semibold mb-4">Risposta dell'Assistente</h2>
               <div className="prose prose-invert">
                 <p className="text-gray-300 whitespace-pre-wrap">{response.text}</p>
               </div>
               {response.data && (
                 <div className="mt-4">
-                  <h3 className="text-lg font-semibold mb-2">Data Results</h3>
+                  <h3 className="text-lg font-semibold mb-2">Risultati della Ricerca</h3>
                   <pre className="bg-gray-900 p-4 rounded-lg overflow-x-auto">
                     {JSON.stringify(response.data, null, 2)}
                   </pre>
@@ -103,34 +104,44 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <button
               className="p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-blue-500 transition-colors"
-              onClick={() => setQuery("Show me all cemeteries")}
+              onClick={() => setQuery("Mostrami tutti i cimiteri")}
             >
-              <h3 className="text-lg font-semibold mb-2">View All Cemeteries</h3>
-              <p className="text-gray-400">Browse through all cemetery locations</p>
+              <h3 className="text-lg font-semibold mb-2">Lista Cimiteri</h3>
+              <p className="text-gray-400">Visualizza tutti i cimiteri disponibili</p>
             </button>
             <button
               className="p-4 bg-gray-800 rounded-lg border border-gray-700 hover:border-blue-500 transition-colors"
-              onClick={() => setQuery("How many total deceased are registered?")}
+              onClick={() => setQuery("Quanti defunti sono registrati in totale?")}
             >
-              <h3 className="text-lg font-semibold mb-2">Total Statistics</h3>
-              <p className="text-gray-400">View overall cemetery statistics</p>
+              <h3 className="text-lg font-semibold mb-2">Statistiche Generali</h3>
+              <p className="text-gray-400">Visualizza le statistiche complessive</p>
             </button>
           </div>
 
           <div className="bg-gray-800 rounded-lg p-6 border border-gray-700">
-            <h2 className="text-xl font-semibold mb-4">Example Questions</h2>
-            <ul className="space-y-3 text-gray-300">
-              <li className="flex items-center space-x-2">
+            <h2 className="text-xl font-semibold mb-4">Esempi di Domande</h2>
+            <p className="text-gray-400 mb-4">Clicca su una domanda per provare!</p>
+            <ul className="space-y-3">
+              <li 
+                className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                onClick={() => setQuery("Mostrami tutti i defunti nel Blocco A")}
+              >
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                <span>"Show me all deceased persons in Blocco A"</span>
+                <span className="text-gray-300">"Mostrami tutti i defunti nel Blocco A"</span>
               </li>
-              <li className="flex items-center space-x-2">
+              <li 
+                className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                onClick={() => setQuery("Quanti loculi liberi ci sono nel Settore 1?")}
+              >
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                <span>"How many free loculi are in Settore 1?"</span>
+                <span className="text-gray-300">"Quanti loculi liberi ci sono nel Settore 1?"</span>
               </li>
-              <li className="flex items-center space-x-2">
+              <li 
+                className="flex items-center space-x-2 p-2 hover:bg-gray-700 rounded-lg cursor-pointer transition-colors"
+                onClick={() => setQuery('Trova tutti i defunti con cognome "Rossi"')}
+              >
                 <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
-                <span>"Find all records for deceased named 'Rossi'"</span>
+                <span className="text-gray-300">"Trova tutti i defunti con cognome 'Rossi'"</span>
               </li>
             </ul>
           </div>

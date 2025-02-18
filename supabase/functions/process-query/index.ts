@@ -52,6 +52,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (apiKeysError) {
+      console.error('Errore nel recupero delle chiavi API:', apiKeysError);
       throw new Error('Errore nel recupero delle chiavi API');
     }
 
@@ -65,6 +66,7 @@ serve(async (req) => {
         throw new Error('Chiave API Groq non configurata');
       }
 
+      console.log("Chiamata a Groq API...");
       response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -86,6 +88,7 @@ serve(async (req) => {
         throw new Error('Chiave API Gemini non configurata');
       }
 
+      console.log("Chiamata a Gemini API...");
       response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKeys.gemini_key}`,
         {
@@ -122,25 +125,33 @@ serve(async (req) => {
         throw new Error(`Il modello ${aiModel} non è supportato. Usa uno dei seguenti modelli gratuiti: ${supportedModels.join(', ')}`);
       }
 
-      const hf = new HfInference(apiKeys.huggingface_key);
-      const result = await hf.textGeneration({
-        model: aiModel,
-        inputs: isTest ? 'Chi sei?' : enhancedQuery,
-        parameters: {
-          max_new_tokens: 1000,
-          temperature: 0.7,
-          top_p: 0.95,
-          return_full_text: false,
-        }
-      });
+      try {
+        console.log("Inizializzazione HuggingFace Inference...");
+        const hf = new HfInference(apiKeys.huggingface_key);
+        
+        console.log("Chiamata a HuggingFace API con modello:", aiModel);
+        const result = await hf.textGeneration({
+          model: aiModel,
+          inputs: isTest ? 'Chi sei?' : enhancedQuery,
+          parameters: {
+            max_new_tokens: 200, // Ridotto per evitare timeout
+            temperature: 0.7,
+            top_p: 0.95,
+            return_full_text: false,
+          }
+        });
 
-      return new Response(
-        JSON.stringify({ 
-          text: result.generated_text,
-          data: null 
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+        return new Response(
+          JSON.stringify({ 
+            text: result.generated_text,
+            data: null 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      } catch (error) {
+        console.error("Errore dettagliato HuggingFace:", error);
+        throw new Error(`Errore nell'elaborazione con HuggingFace: ${error.message}`);
+      }
     } else {
       throw new Error(`Provider AI non supportato: ${aiProvider}`);
     }
@@ -174,7 +185,7 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Errore:', error);
+    console.error('Errore dettagliato:', error);
     return new Response(
       JSON.stringify({
         text: "Mi dispiace, si è verificato un errore. " + error.message,

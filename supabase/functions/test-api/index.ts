@@ -31,17 +31,20 @@ serve(async (req) => {
           model: 'mixtral-8x7b-32768',
           messages: [{ role: 'user', content: 'Ciao!' }],
           temperature: 0.7,
+          max_tokens: 50
         };
         break;
 
       case 'gemini':
-        testEndpoint = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
-        testHeaders = {
-          ...testHeaders,
-          'x-goog-api-key': apiKey,
-        };
+        const apiVersion = 'v1beta';
+        const model = 'gemini-pro';
+        testEndpoint = `https://generativelanguage.googleapis.com/${apiVersion}/models/${model}:generateContent?key=${apiKey}`;
         testBody = {
-          contents: [{ parts: [{ text: 'Ciao!' }] }],
+          contents: [{
+            parts: [{
+              text: "Ciao!"
+            }]
+          }]
         };
         break;
 
@@ -54,6 +57,7 @@ serve(async (req) => {
         testBody = {
           model: 'mixtral-8x7b',
           messages: [{ role: 'user', content: 'Ciao!' }],
+          max_tokens: 50
         };
         break;
 
@@ -77,6 +81,8 @@ serve(async (req) => {
     }
 
     console.log(`Making test request to ${testEndpoint}...`);
+    console.log('Request headers:', testHeaders);
+    console.log('Request body:', testBody);
     
     const response = await fetch(testEndpoint, {
       method: 'POST',
@@ -84,17 +90,43 @@ serve(async (req) => {
       body: JSON.stringify(testBody),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`API test failed for ${provider}:`, errorText);
-      throw new Error(`Test fallito per ${provider}: ${response.status} ${response.statusText}`);
+    const responseText = await response.text();
+    console.log(`Raw response from ${provider}:`, responseText);
+
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (e) {
+      console.error('Failed to parse response as JSON:', e);
+      throw new Error(`Risposta non valida da ${provider}`);
     }
 
-    const data = await response.json();
+    if (!response.ok) {
+      console.error(`API test failed for ${provider}:`, data);
+      throw new Error(data.error?.message || `Test fallito per ${provider}: ${response.status} ${response.statusText}`);
+    }
+
+    // Verifica la struttura della risposta in base al provider
+    if (provider.toLowerCase() === 'gemini' && !data.candidates) {
+      throw new Error('Risposta non valida da Gemini API');
+    }
+    if (provider.toLowerCase() === 'groq' && !data.choices) {
+      throw new Error('Risposta non valida da Groq API');
+    }
+    if (provider.toLowerCase() === 'perplexity' && !data.choices) {
+      throw new Error('Risposta non valida da Perplexity API');
+    }
+    if (provider.toLowerCase() === 'huggingface' && !Array.isArray(data)) {
+      throw new Error('Risposta non valida da HuggingFace API');
+    }
+
     console.log(`Test successful for ${provider}:`, data);
 
     return new Response(
-      JSON.stringify({ success: true, message: `Test dell'API di ${provider} completato con successo!` }),
+      JSON.stringify({ 
+        success: true, 
+        message: `Test dell'API di ${provider} completato con successo!` 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

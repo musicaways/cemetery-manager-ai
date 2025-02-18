@@ -38,39 +38,30 @@ const Index = () => {
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
 
     try {
-      let requestBody: QueryRequest;
+      const aiProvider = localStorage.getItem('ai_provider') || 'groq';
+      const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
+      let requestBody: QueryRequest = {
+        query: finalQuery.trim(),
+        queryType: 'web',
+        aiProvider,
+        aiModel
+      };
+
       if (finalQuery.startsWith("/test-model")) {
         requestBody = {
-          query: "Sei un assistente AI. Rispondi brevemente con: 1) Il tuo nome, 2) Il modello che stai usando, 3) Il provider che ti gestisce.",
-          queryType: 'test',
-          isTest: true,
-          aiProvider: localStorage.getItem('ai_provider') || 'gemini',
-          aiModel: localStorage.getItem('ai_model') || 'gemini-pro'
-        };
-      } else {
-        // Se la query contiene parole chiave relative ai cimiteri, forza la modalità database
-        const cemeteryKeywords = ['cimitero', 'defunto', 'loculo', 'blocco', 'settore'];
-        const containsCemeteryKeywords = cemeteryKeywords.some(keyword => 
-          finalQuery.toLowerCase().includes(keyword)
-        );
-        
-        const queryType = containsCemeteryKeywords ? 'database' : 'web';
-        
-        requestBody = {
-          query: finalQuery.trim(),
-          queryType,
-          aiProvider: localStorage.getItem('ai_provider') || 'gemini',
-          aiModel: localStorage.getItem('ai_model') || 'gemini-pro'
+          ...requestBody,
+          isTest: true
         };
       }
 
-      console.log("Invio richiesta a Supabase:", requestBody);
+      console.log("Invio richiesta:", requestBody);
+      
       const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
         body: requestBody
       });
 
-      console.log("Risposta da Supabase:", { data, error });
+      console.log("Risposta ricevuta:", { data, error });
 
       if (error) {
         console.error("Errore Supabase:", error);
@@ -93,7 +84,7 @@ const Index = () => {
       
     } catch (error) {
       console.error("Errore dettagliato:", error);
-      toast.error("Errore durante l'elaborazione della richiesta");
+      toast.error("Errore durante l'elaborazione della richiesta. Verifica che le chiavi API siano corrette nelle impostazioni.");
     } finally {
       setIsProcessing(false);
       setTimeout(scrollToBottom, 100);

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Plus, Command, Globe, Search } from "lucide-react";
 import { toast } from "sonner";
@@ -33,25 +32,15 @@ export const ChatInput = ({
 
   const handleCommandSelect = (command: string) => {
     onQueryChange(command);
-    const form = document.createElement('form');
     const submitEvent = new Event('submit', {
       bubbles: true,
       cancelable: true,
-    });
-    submitEvent.preventDefault = () => {};
-    onSubmit(submitEvent as unknown as React.FormEvent);
-  };
-
-  const toggleWebSearch = () => {
-    setWebSearchEnabled(!webSearchEnabled);
-    toast.success(
-      !webSearchEnabled 
-        ? "Modalità Internet attivata - Ora risponderò a qualsiasi domanda" 
-        : "Modalità Database attivata - Ora cercherò informazioni sui cimiteri"
-    );
+    }) as unknown as React.FormEvent;
+    onSubmit(submitEvent);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
     if (!query.trim()) return;
     onSubmit(e);
   };
@@ -76,7 +65,14 @@ export const ChatInput = ({
               ? "text-[#9b87f5]" 
               : "text-[#8E9196] hover:text-[#9b87f5]"
           }`}
-          onClick={toggleWebSearch}
+          onClick={() => {
+            setWebSearchEnabled(!webSearchEnabled);
+            toast.success(
+              !webSearchEnabled 
+                ? "Modalità Internet attivata" 
+                : "Modalità Database attivata"
+            );
+          }}
           title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
         >
           <Globe className="h-4 w-4" />
@@ -127,6 +123,7 @@ export const ChatInput = ({
                   type="submit" 
                   size="sm" 
                   className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white h-8"
+                  disabled={isProcessing}
                 >
                   <Search className="h-4 w-4" />
                 </Button>

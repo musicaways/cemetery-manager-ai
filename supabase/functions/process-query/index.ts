@@ -17,119 +17,114 @@ serve(async (req) => {
     const { query, queryType, isTest, aiProvider, aiModel } = await req.json();
     console.log("Query ricevuta:", { query, queryType, isTest, aiProvider, aiModel });
 
-    if (isTest) {
-      return new Response(
-        JSON.stringify({
-          text: `Ciao! Sono il tuo assistente AI alimentato da ${aiProvider.toUpperCase()} e utilizzo il modello ${aiModel}. Come posso aiutarti oggi?`,
-          data: null
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
-
-    if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Configurazione Supabase mancante');
-    }
-
-    const supabase = createClient(supabaseUrl, supabaseKey);
-    
     const { data: apiKeys, error: apiKeysError } = await supabase
       .from('api_keys')
       .select('*')
       .maybeSingle();
 
-    if (apiKeysError || !apiKeys) {
-      throw new Error('Chiavi API non trovate');
+    if (apiKeysError) {
+      throw new Error('Errore nel recupero delle chiavi API');
     }
 
-    let apiKey = '';
-    let endpoint = '';
-    let requestBody = {};
-    let headers = { 'Content-Type': 'application/json' };
+    if (!apiKeys) {
+      throw new Error('Nessuna chiave API trovata. Configura le chiavi API nelle impostazioni.');
+    }
 
-    switch (aiProvider.toLowerCase()) {
-      case 'groq':
-        apiKey = apiKeys.groq_key;
-        endpoint = 'https://api.groq.com/openai/v1/chat/completions';
-        headers['Authorization'] = `Bearer ${apiKey}`;
-        requestBody = {
+    let response;
+    if (aiProvider === 'groq') {
+      if (!apiKeys.groq_key) {
+        throw new Error('Chiave API Groq non configurata');
+      }
+
+      response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKeys.groq_key}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
           model: 'mixtral-8x7b-32768',
           messages: [
-            { role: 'system', content: 'Sei un assistente AI. Cerca di essere preciso e diretto nelle tue risposte.' },
-            { role: 'user', content: query }
+            { role: 'system', content: 'Sei un assistente AI. Rispondi in italiano.' },
+            { role: 'user', content: isTest ? 'Chi sei?' : query }
           ],
           temperature: 0.7,
-          max_tokens: 1000
-        };
-        break;
+          max_tokens: 1000,
+        }),
+      });
+    } else if (aiProvider === 'gemini') {
+      if (!apiKeys.gemini_key) {
+        throw new Error('Chiave API Gemini non configurata');
+      }
 
-      case 'gemini':
-        apiKey = apiKeys.gemini_key;
-        endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`;
-        requestBody = {
-          contents: [{
-            parts: [{
-              text: query
-            }]
-          }],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1000,
-          }
-        };
-        break;
-
-      default:
-        throw new Error(`Provider ${aiProvider} non supportato`);
+      response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKeys.gemini_key}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: isTest ? 'Chi sei?' : query
+              }]
+            }],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 1000,
+            }
+          }),
+        }
+      );
+    } else {
+      throw new Error(`Provider AI non supportato: ${aiProvider}`);
     }
-
-    if (!apiKey) {
-      throw new Error(`Chiave API per ${aiProvider} non trovata`);
-    }
-
-    console.log(`Invio richiesta a ${aiProvider}...`);
-    const response = await fetch(endpoint, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(requestBody)
-    });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`Errore dalla risposta di ${aiProvider}:`, errorText);
-      throw new Error(`Errore nella chiamata a ${aiProvider}: ${response.status} ${response.statusText}`);
+      const errorData = await response.json();
+      console.error(`Errore API ${aiProvider}:`, errorData);
+      throw new Error(`Errore dal provider AI: ${errorData.error?.message || response.statusText}`);
     }
 
     const data = await response.json();
     console.log(`Risposta da ${aiProvider}:`, data);
 
     let aiResponse = '';
-    if (aiProvider.toLowerCase() === 'groq') {
-      aiResponse = data.choices[0]?.message?.content || '';
-    } else if (aiProvider.toLowerCase() === 'gemini') {
-      aiResponse = data.candidates[0]?.content?.parts[0]?.text || '';
+    if (aiProvider === 'groq') {
+      aiResponse = data.choices?.[0]?.message?.content;
+    } else if (aiProvider === 'gemini') {
+      aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
     }
 
     if (!aiResponse) {
-      throw new Error('Risposta non valida dall\'AI');
+      throw new Error('Risposta non valida dal provider AI');
     }
 
     return new Response(
-      JSON.stringify({ text: aiResponse, data: null }),
+      JSON.stringify({ 
+        text: aiResponse,
+        data: null 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error("Errore dettagliato:", error);
+    console.error('Errore:', error);
     return new Response(
       JSON.stringify({
-        text: "Mi dispiace, ma al momento non riesco a rispondere alla tua domanda. Verifica che le chiavi API siano corrette nelle impostazioni.",
+        text: "Mi dispiace, si è verificato un errore. " + error.message,
         error: error.message
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     );
   }
 });

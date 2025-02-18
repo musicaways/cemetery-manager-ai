@@ -3,7 +3,6 @@ import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Mic, X } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface VoiceRecorderProps {
   onRecordingComplete: (text: string) => void;
@@ -12,50 +11,56 @@ interface VoiceRecorderProps {
 export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const [duration, setDuration] = useState(0);
-  const mediaRecorder = useRef<MediaRecorder | null>(null);
-  const chunks = useRef<Blob[]>([]);
+  const recognition = useRef<SpeechRecognition | null>(null);
   const timerRef = useRef<number>();
 
   const startRecording = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      mediaRecorder.current = new MediaRecorder(stream);
-      
-      mediaRecorder.current.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunks.current.push(e.data);
+      // Verifica il supporto per Web Speech API
+      if (!('webkitSpeechRecognition' in window)) {
+        throw new Error('Il tuo browser non supporta il riconoscimento vocale');
+      }
+
+      // Inizializza il riconoscimento vocale
+      recognition.current = new webkitSpeechRecognition();
+      recognition.current.continuous = true;
+      recognition.current.interimResults = true;
+      recognition.current.lang = 'it-IT'; // Impostiamo l'italiano
+
+      let finalTranscript = '';
+
+      recognition.current.onresult = (event) => {
+        let interimTranscript = '';
+
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            finalTranscript += event.results[i][0].transcript;
+          } else {
+            interimTranscript += event.results[i][0].transcript;
+          }
+        }
+
+        // Aggiorna il testo quando abbiamo risultati finali
+        if (finalTranscript) {
+          onRecordingComplete(finalTranscript);
         }
       };
 
-      mediaRecorder.current.onstop = async () => {
-        const audioBlob = new Blob(chunks.current, { type: 'audio/webm' });
-        const reader = new FileReader();
-        reader.readAsDataURL(audioBlob);
-        reader.onloadend = async () => {
-          const base64Audio = reader.result?.toString().split(',')[1];
-          
-          if (base64Audio) {
-            try {
-              const { data, error } = await supabase.functions.invoke('process-voice', {
-                body: { audio: base64Audio }
-              });
-
-              if (error) throw error;
-              if (data?.text) {
-                onRecordingComplete(data.text);
-              }
-            } catch (error) {
-              console.error('Errore processing:', error);
-              toast.error('Errore durante l\'elaborazione dell\'audio');
-            }
-          }
-        };
+      recognition.current.onerror = (event) => {
+        console.error('Errore riconoscimento:', event.error);
+        toast.error('Errore durante il riconoscimento vocale');
+        stopRecording();
       };
 
-      mediaRecorder.current.start();
+      recognition.current.onend = () => {
+        stopRecording();
+      };
+
+      // Avvia il riconoscimento
+      recognition.current.start();
       setIsRecording(true);
-      chunks.current = [];
       
+      // Avvia il timer
       timerRef.current = window.setInterval(() => {
         setDuration(d => d + 1);
       }, 1000);
@@ -67,9 +72,8 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
   };
 
   const stopRecording = () => {
-    if (mediaRecorder.current && isRecording) {
-      mediaRecorder.current.stop();
-      mediaRecorder.current.stream.getTracks().forEach(track => track.stop());
+    if (recognition.current && isRecording) {
+      recognition.current.stop();
       clearInterval(timerRef.current);
       setIsRecording(false);
       setDuration(0);
@@ -106,3 +110,37 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
     </div>
   );
 };
+
+// Dichiarazione dei tipi per TypeScript
+declare global {
+  interface Window {
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start: () => void;
+  stop: () => void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onend: () => void;
+}
+
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: {
+    [key: number]: {
+      isFinal: boolean;
+      [key: number]: {
+        transcript: string;
+      };
+    };
+  };
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}

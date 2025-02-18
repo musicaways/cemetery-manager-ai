@@ -38,6 +38,12 @@ const processWithGroq = async (query: string) => {
   });
 
   const data = await response.json();
+  console.log("Groq response:", data);
+  
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    throw new Error('Invalid response from Groq API');
+  }
+  
   return data.choices[0].message.content;
 };
 
@@ -51,13 +57,26 @@ const processWithGemini = async (query: string) => {
     body: JSON.stringify({
       contents: [{
         parts: [{
-          text: query
+          text: `You are an AI assistant managing a cemetery database. You have access to the following tables:
+            - Cimitero (Id, Codice, Descrizione)
+            - Settore (Id, Codice, Descrizione, IdCimitero)
+            - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
+            - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
+            - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
+            
+            Convert this query into appropriate SQL and explain what you're doing: ${query}`
         }]
       }]
     })
   });
 
   const data = await response.json();
+  console.log("Gemini response:", data);
+  
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts || !data.candidates[0].content.parts[0]) {
+    throw new Error('Invalid response from Gemini API');
+  }
+  
   return data.candidates[0].content.parts[0].text;
 };
 
@@ -73,7 +92,14 @@ const processWithDeepseek = async (query: string) => {
       messages: [
         {
           role: "system",
-          content: "You are a cemetery database assistant."
+          content: `You are an AI assistant managing a cemetery database. You have access to the following tables:
+            - Cimitero (Id, Codice, Descrizione)
+            - Settore (Id, Codice, Descrizione, IdCimitero)
+            - Blocco (Id, Codice, Descrizione, IdSettore, NumeroFile, NumeroLoculi)
+            - Loculo (Id, IdBlocco, Numero, Fila, Annotazioni)
+            - Defunto (Id, IdLoculo, Nominativo, DataNascita, DataDecesso, Eta, Sesso)
+            
+            Convert user queries into appropriate SQL queries and explain what you're doing.`
         },
         {
           role: "user",
@@ -84,6 +110,12 @@ const processWithDeepseek = async (query: string) => {
   });
 
   const data = await response.json();
+  console.log("DeepSeek response:", data);
+  
+  if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+    throw new Error('Invalid response from DeepSeek API');
+  }
+  
   return data.choices[0].message.content;
 };
 
@@ -94,6 +126,7 @@ serve(async (req) => {
 
   try {
     const { query } = await req.json();
+    console.log("Received query:", query);
     
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -102,20 +135,30 @@ serve(async (req) => {
 
     let aiResponse;
     const provider = Deno.env.get('AI_PROVIDER') || 'groq';
+    console.log("Using AI provider:", provider);
 
     // Process with selected AI provider
-    switch (provider) {
-      case 'groq':
-        aiResponse = await processWithGroq(query);
-        break;
-      case 'gemini':
-        aiResponse = await processWithGemini(query);
-        break;
-      case 'deepseek':
-        aiResponse = await processWithDeepseek(query);
-        break;
-      default:
-        aiResponse = await processWithGroq(query);
+    try {
+      switch (provider) {
+        case 'groq':
+          aiResponse = await processWithGroq(query);
+          break;
+        case 'gemini':
+          aiResponse = await processWithGemini(query);
+          break;
+        case 'deepseek':
+          aiResponse = await processWithDeepseek(query);
+          break;
+        default:
+          aiResponse = await processWithGroq(query);
+      }
+    } catch (error) {
+      console.error("Error processing with AI provider:", error);
+      throw new Error(`Failed to process query with ${provider}: ${error.message}`);
+    }
+
+    if (!aiResponse) {
+      throw new Error('No response received from AI provider');
     }
 
     // Extract SQL query if present and execute
@@ -124,11 +167,17 @@ serve(async (req) => {
     
     if (sqlMatch) {
       const sqlQuery = sqlMatch[1];
+      console.log("Extracted SQL query:", sqlQuery);
+      
       const { data: queryResult, error: queryError } = await supabase.rpc(
         'get_complete_schema'
       );
       
-      if (queryError) throw queryError;
+      if (queryError) {
+        console.error("Error executing SQL query:", queryError);
+        throw queryError;
+      }
+      
       data = queryResult;
     }
 
@@ -138,8 +187,12 @@ serve(async (req) => {
     );
 
   } catch (error) {
+    console.error("Function error:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message,
+        details: error.stack 
+      }),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }

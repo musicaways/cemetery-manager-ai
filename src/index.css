@@ -46,7 +46,7 @@
     --primary: #19C37D;
     --primary-hover: #0EA36B;
     --secondary: #444654;
-    --secondary-transparent: rgba(68, 70, 84, 0.5);
+    --secondary-transparent: rgba(68, 70, 84, 0.8);
     --border: #565869;
     --border-transparent: rgba(86, 88, 105, 0.2);
     --input: #40414F;
@@ -64,6 +64,30 @@
 }
 
 @layer components {
+  .theme-chatgpt .quick-action-button {
+    @apply bg-[#202123] hover:bg-[#2A2B32] border-[#565869]/20 text-[#ECECF1];
+  }
+
+  .theme-chatgpt .input-container {
+    @apply bg-gradient-to-t from-[#343541] via-[#343541] to-transparent;
+  }
+
+  .theme-chatgpt .input-wrapper {
+    @apply bg-[#40414F] border border-[#565869]/20 rounded-xl;
+  }
+
+  .theme-chatgpt .input {
+    @apply bg-transparent text-[#ECECF1] placeholder:text-[#8E8EA0];
+  }
+
+  .theme-chatgpt .action-button {
+    @apply text-[#8E8EA0] hover:text-[#ECECF1];
+  }
+
+  .theme-chatgpt .send-button {
+    @apply bg-[#19C37D] hover:bg-[#0EA36B];
+  }
+
   .user-message {
     @apply bg-secondary rounded-2xl px-6 py-6 text-foreground;
   }
@@ -82,15 +106,6 @@
 
   .input-wrapper {
     @apply relative max-w-3xl mx-auto;
-  }
-
-  .input {
-    @apply w-full bg-input text-foreground resize-none p-4 pr-32 
-           rounded-xl outline-none max-h-[200px] overflow-y-auto;
-  }
-
-  .input::placeholder {
-    @apply text-[var(--foreground-muted)];
   }
 
   .action-buttons {

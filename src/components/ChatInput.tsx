@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Command, Globe, Send, Mic, Search } from "lucide-react";
+import { Plus, Command, Send, Mic } from "lucide-react";
 import { toast } from "sonner";
 import TextareaAutosize from 'react-textarea-autosize';
 import { VoiceRecorder } from "./VoiceRecorder";
@@ -11,6 +11,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useState } from "react";
 
 interface ChatInputProps {
   query: string;
@@ -35,6 +36,7 @@ export const ChatInput = ({
 }: ChatInputProps) => {
   const { theme } = useTheme();
   const isChatGPT = theme === 'chatgpt';
+  const [isRecording, setIsRecording] = useState(false);
 
   const handleCommandSelect = (command: string) => {
     onQueryChange(command);
@@ -51,19 +53,72 @@ export const ChatInput = ({
     onSubmit(e);
   };
 
+  const handleVoiceRecord = async () => {
+    setIsRecording(true);
+    try {
+      const recognition = new (window as any).webkitSpeechRecognition();
+      recognition.lang = 'it-IT';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onresult = (event: any) => {
+        const text = event.results[0][0].transcript;
+        onVoiceRecord(text);
+        setIsRecording(false);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error:', event.error);
+        toast.error('Errore durante il riconoscimento vocale');
+        setIsRecording(false);
+      };
+
+      recognition.start();
+    } catch (error) {
+      console.error('Speech recognition error:', error);
+      toast.error('Il riconoscimento vocale non è supportato su questo browser');
+      setIsRecording(false);
+    }
+  };
+
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent">
       <div className="max-w-3xl mx-auto px-4 py-4">
         <div className="relative">
-          <div className="flex items-center gap-2 bg-[#40414F] rounded-xl px-4 py-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-gray-400 hover:text-gray-300"
-              onClick={onMediaUploadClick}
-            >
-              <Plus className="w-5 h-5" />
-            </Button>
+          <div className="flex items-center gap-2 bg-[#40414F] rounded-xl px-4 py-2 shadow-lg">
+            <div className="flex gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-gray-400 hover:text-gray-300"
+                  >
+                    <Command className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="bg-[#202123] text-gray-200 border-[#565869]/20">
+                  <DropdownMenuItem onClick={() => handleCommandSelect("/image")}>
+                    Genera immagine
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleCommandSelect("/code")}>
+                    Scrivi codice
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleCommandSelect("/analyze")}>
+                    Analizza dati
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-gray-400 hover:text-gray-300"
+                onClick={onMediaUploadClick}
+              >
+                <Plus className="w-5 h-5" />
+              </Button>
+            </div>
 
             <div className="flex-1">
               <TextareaAutosize
@@ -83,23 +138,17 @@ export const ChatInput = ({
             </div>
 
             <div className="flex items-center gap-2">
-              {webSearchEnabled && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="text-gray-400 hover:text-gray-300"
-                  onClick={onWebSearchToggle}
-                >
-                  <Search className="w-5 h-5" />
-                </Button>
-              )}
-
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-gray-400 hover:text-gray-300"
+                className={`text-gray-400 hover:text-gray-300 relative ${isRecording ? 'animate-pulse' : ''}`}
+                onClick={handleVoiceRecord}
+                disabled={isRecording}
               >
-                <Mic className="w-5 h-5" onClick={() => onVoiceRecord("")} />
+                <Mic className="w-5 h-5" />
+                {isRecording && (
+                  <div className="absolute inset-0 rounded-full animate-ping bg-red-500/20" />
+                )}
               </Button>
 
               {query.trim() && (

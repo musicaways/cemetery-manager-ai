@@ -45,19 +45,28 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
   const renderAPIKeySection = (
     provider: string,
     icon: React.ReactNode,
-    label: string,
+    description: string,
     value: string,
     setter: (value: string) => void,
     linkUrl: string,
     linkText: string
   ) => (
     <div className="space-y-3">
+      <div className="flex items-start gap-3 mb-2">
+        <div className="w-8 h-8 rounded-lg bg-[var(--primary-color)] bg-opacity-20 flex items-center justify-center flex-shrink-0">
+          {icon}
+        </div>
+        <div>
+          <h3 className="text-sm font-medium text-gray-200">{provider}</h3>
+          <p className="text-xs text-gray-400">{description}</p>
+        </div>
+      </div>
       <div className="relative">
         <Input
           type="password"
           value={value}
           onChange={(e) => handleChange(provider.toLowerCase(), e.target.value, setter)}
-          placeholder={`Inserisci la tua ${label}`}
+          placeholder={`Inserisci qui la tua chiave API ${provider}`}
           className="bg-[var(--message-bg)] border-[var(--border-color)] pr-24"
         />
         <Button
@@ -88,7 +97,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
 
   return (
     <div className="space-y-6">
-      <Accordion type="single" collapsible className="w-full space-y-4">
+      <Accordion type="single" collapsible defaultValue="llm" className="w-full space-y-4">
         <AccordionItem value="llm" className="border-none">
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-2 text-base font-semibold text-gray-200">
@@ -100,8 +109,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
             <div className="space-y-6 mt-4">
               {renderAPIKeySection(
                 "Groq",
-                <KeyRound className="w-4 h-4" />,
-                "Groq API Key",
+                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                "Modello LLM veloce e performante, ottimo per generazione di testo e chat",
                 groqKey,
                 setGroqKey,
                 "https://console.groq.com/keys",
@@ -109,8 +118,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
               )}
               {renderAPIKeySection(
                 "Gemini",
-                <KeyRound className="w-4 h-4" />,
-                "Gemini API Key",
+                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                "LLM di Google, supporta analisi di immagini e generazione di testo",
                 geminiKey,
                 setGeminiKey,
                 "https://makersuite.google.com/app/apikey",
@@ -118,8 +127,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
               )}
               {renderAPIKeySection(
                 "Perplexity",
-                <KeyRound className="w-4 h-4" />,
-                "Perplexity API Key",
+                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                "LLM specializzato in ricerca e analisi di informazioni",
                 perplexityKey,
                 setPerplexityKey,
                 "https://docs.perplexity.ai/docs/get-started",
@@ -127,8 +136,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
               )}
               {renderAPIKeySection(
                 "HuggingFace",
-                <KeyRound className="w-4 h-4" />,
-                "HuggingFace API Key",
+                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                "Accesso a migliaia di modelli AI open source",
                 huggingfaceKey,
                 setHuggingfaceKey,
                 "https://huggingface.co/settings/tokens",
@@ -149,8 +158,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
             <div className="space-y-6 mt-4">
               {renderAPIKeySection(
                 "SerpStack",
-                <KeyRound className="w-4 h-4" />,
-                "SerpStack API Key",
+                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                "API per ricerche web in tempo reale",
                 serpstackKey,
                 setSerpstackKey,
                 "https://serpstack.com/dashboard",

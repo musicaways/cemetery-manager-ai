@@ -1,87 +1,61 @@
 
-/* Stili per il tema moderno */
-.chat-modern .message {
-  @apply rounded-lg shadow-md mb-4;
+/* Stili per il tema ChatGPT */
+.theme-chatgpt {
+  @apply bg-[#343541] text-[#ECECF1];
 }
 
-/* Stili per il tema classico */
-.chat-classic .message {
-  @apply rounded-none border-b border-gray-200 mb-2;
+.theme-chatgpt .message {
+  @apply border-b border-black/10 bg-[#444654] text-[#ECECF1];
 }
 
-/* Stili per il tema compatto */
-.chat-compact .message {
-  @apply rounded-sm shadow-sm mb-1 p-2;
+.theme-chatgpt .user-message {
+  @apply bg-[#343541] border-b border-black/10 text-[#ECECF1];
 }
 
-/* Stili per le forme degli avatar */
-.avatar-circle {
-  border-radius: 50%;
-}
-
-.avatar-square {
-  border-radius: 0.5rem;
-}
-
-.avatar-hexagon {
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-}
-
-/* Animazioni per il registratore vocale */
-@keyframes recording-pulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.recording-pulse {
-  animation: recording-pulse 1.5s ease-in-out infinite;
-}
-
-/* Stili per i messaggi di ChatGPT */
 .theme-chatgpt .message-content {
-  @apply text-[#ECECF1] leading-relaxed;
-}
-
-.theme-chatgpt .message-container {
-  @apply border-b border-[#2A2B32];
+  @apply text-[#ECECF1] leading-7;
 }
 
 .theme-chatgpt .avatar {
   @apply w-8 h-8 rounded-sm bg-[#19C37D] flex items-center justify-center;
 }
 
-.theme-chatgpt .thinking {
-  @apply flex items-center gap-1;
-}
-
-.theme-chatgpt .thinking-dot {
-  @apply w-2 h-2 bg-[#ECECF1] rounded-full;
-  animation: bounce 1.4s infinite;
-}
-
-.theme-chatgpt .thinking-dot:nth-child(2) {
-  animation-delay: 0.2s;
-}
-
-.theme-chatgpt .thinking-dot:nth-child(3) {
-  animation-delay: 0.4s;
-}
-
-@keyframes bounce {
-  0%, 80%, 100% { 
-    transform: translateY(0);
+/* Animazioni */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
   }
-  40% { 
-    transform: translateY(-6px);
+}
+
+@keyframes pulse {
+  50% {
+    opacity: .5;
   }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Scrollbar personalizzate */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #565869 transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-[#565869] rounded-full;
 }

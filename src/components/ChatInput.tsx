@@ -42,80 +42,47 @@ export const ChatInput = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent">
-      <div className="max-w-3xl mx-auto px-4 py-4">
-        <form onSubmit={handleSubmit} className="relative">
-          <div className="flex items-center gap-2 bg-[#40414F] rounded-xl px-4 py-2 shadow-lg border border-[#565869]/20">
-            <div className="flex gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-gray-400 hover:text-gray-300"
-                  >
-                    <Command className="w-5 h-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="bg-[#202123] text-gray-200 border-[#565869]/20">
-                  <DropdownMenuItem onClick={() => onQueryChange("/image")}>
-                    Genera immagine
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onQueryChange("/code")}>
-                    Scrivi codice
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onQueryChange("/analyze")}>
-                    Analizza dati
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-gray-400 hover:text-gray-300"
-                onClick={onMediaUploadClick}
-              >
-                <Plus className="w-5 h-5" />
-              </Button>
-            </div>
-
-            <div className="flex-1">
-              <TextareaAutosize
-                value={query}
-                onChange={(e) => onQueryChange(e.target.value)}
-                placeholder="Messaggio a ChatGPT..."
-                className="w-full bg-transparent text-white placeholder:text-gray-400 resize-none p-2 outline-none max-h-[200px] overflow-y-auto"
-                disabled={isProcessing}
-                maxRows={8}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    handleSubmit(e);
-                  }
-                }}
-              />
-            </div>
-
-            <div className="flex items-center gap-2">
-              <VoiceRecorder onRecordingComplete={onVoiceRecord} />
-
-              {query.trim() && (
-                <Button
-                  type="submit"
-                  onClick={handleSubmit}
-                  className="bg-[#19C37D] hover:bg-[#0EA36B] text-white rounded-lg px-4 py-2"
-                  disabled={isProcessing}
-                >
-                  <Send className="w-4 h-4" />
-                </Button>
-              )}
+    <div className="fixed bottom-0 left-0 right-0 w-full">
+      <div className="relative pb-3 pt-2 md:pt-0 w-full">
+        <div className="stretch mx-2 flex flex-row gap-3 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl">
+          <div className="relative flex h-full flex-1 flex-col">
+            <div className="relative flex w-full flex-grow flex-col rounded-xl border border-black/10 bg-[#40414F] shadow-[0_0_15px_rgba(0,0,0,0.1)] sm:rounded-2xl">
+              <form onSubmit={handleSubmit} className="flex flex-col">
+                <div className="relative flex flex-grow flex-col rounded-md bg-transparent px-4 py-2.5">
+                  <TextareaAutosize
+                    value={query}
+                    onChange={(e) => onQueryChange(e.target.value)}
+                    placeholder="Messaggio a ChatGPT..."
+                    className="m-0 h-6 max-h-32 w-full resize-none border-0 bg-transparent p-0 pl-0 pr-10 text-white placeholder:text-gray-400 focus:outline-none focus:ring-0 focus-visible:ring-0 sm:text-sm"
+                    disabled={isProcessing}
+                    maxRows={4}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleSubmit(e);
+                      }
+                    }}
+                  />
+                  <div className="absolute bottom-1.5 right-2 flex items-center gap-2">
+                    <VoiceRecorder onRecordingComplete={onVoiceRecord} />
+                    {query.trim() && (
+                      <Button
+                        type="submit"
+                        size="icon"
+                        className="group h-7 w-7 rounded-lg border border-transparent bg-[#19C37D] transition-colors hover:bg-[#1A7F4E] disabled:opacity-50"
+                        disabled={isProcessing}
+                      >
+                        <Send className="h-4 w-4 text-white" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </form>
             </div>
           </div>
-        </form>
-
+        </div>
         {isChatGPT && (
-          <div className="mt-2 px-2 flex items-center justify-center text-xs text-[#8E8EA0]">
+          <div className="mt-2 text-center text-xs text-gray-500">
             ChatGPT può produrre informazioni inaccurate
           </div>
         )}

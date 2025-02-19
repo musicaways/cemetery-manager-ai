@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,6 +24,75 @@
   }
 }
 
+@layer components {
+  .theme-lovable .user-message {
+    @apply bg-[var(--primary-color)] bg-opacity-20 border border-[var(--primary-color)] border-opacity-30 rounded-2xl rounded-tr-sm;
+  }
+
+  .theme-lovable .ai-message {
+    @apply bg-[var(--message-bg)] bg-opacity-80 border border-[var(--border-color)] border-opacity-50 rounded-2xl rounded-tl-sm;
+  }
+
+  .theme-chatgpt .user-message {
+    @apply bg-[var(--chat-bg)] border-none rounded-lg;
+  }
+
+  .theme-chatgpt .ai-message {
+    @apply bg-[var(--message-bg)] border-none rounded-lg;
+  }
+
+  .theme-claude .user-message {
+    @apply bg-white shadow-sm border border-gray-200 rounded-2xl;
+  }
+
+  .theme-claude .ai-message {
+    @apply bg-[var(--message-bg)] border border-gray-200 rounded-2xl;
+  }
+
+  .theme-modern .user-message {
+    @apply bg-[var(--primary-color)] bg-opacity-10 border border-[var(--primary-color)] border-opacity-20 rounded-3xl rounded-tr-lg;
+  }
+
+  .theme-modern .ai-message {
+    @apply bg-[var(--message-bg)] border border-[var(--border-color)] border-opacity-30 rounded-3xl rounded-tl-lg;
+  }
+
+  .theme-lovable .chat-input {
+    @apply bg-[var(--input-bg)] bg-opacity-50 border border-[var(--border-color)] border-opacity-50 rounded-lg;
+  }
+
+  .theme-chatgpt .chat-input {
+    @apply bg-[var(--input-bg)] border-0 shadow-lg rounded-xl;
+  }
+
+  .theme-claude .chat-input {
+    @apply bg-white border border-gray-200 shadow-sm rounded-2xl;
+  }
+
+  .theme-modern .chat-input {
+    @apply bg-[var(--input-bg)] border border-[var(--border-color)] border-opacity-30 shadow-lg rounded-2xl;
+  }
+}
+
+@layer utilities {
+  .theme-lovable button {
+    @apply rounded-[var(--button-radius)] transition-all duration-200;
+  }
+
+  .theme-chatgpt button {
+    @apply rounded-[var(--button-radius)] shadow-sm transition-all duration-200;
+  }
+
+  .theme-claude button {
+    @apply rounded-[var(--button-radius)] shadow-sm border-2 transition-all duration-200;
+  }
+
+  .theme-modern button {
+    @apply rounded-[var(--button-radius)] shadow-lg transition-all duration-200;
+  }
+}
+
+/* Scroll area styles */
 .scroll-area-viewport {
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -119,71 +189,4 @@
   --border-color: #334155;
   --button-radius: 1rem;
   --input-bg: #1E293B;
-}
-
-/* Chat Message Styles by Theme */
-.theme-lovable .user-message {
-  @apply bg-[var(--primary-color)]/20 border-[var(--primary-color)]/30 rounded-2xl rounded-tr-sm;
-}
-
-.theme-lovable .ai-message {
-  @apply bg-[var(--message-bg)]/80 border-[var(--border-color)]/50 rounded-2xl rounded-tl-sm;
-}
-
-.theme-chatgpt .user-message {
-  @apply bg-[var(--chat-bg)] border-none rounded-lg;
-}
-
-.theme-chatgpt .ai-message {
-  @apply bg-[var(--message-bg)] border-none rounded-lg;
-}
-
-.theme-claude .user-message {
-  @apply bg-white shadow-sm border-gray-200 rounded-2xl;
-}
-
-.theme-claude .ai-message {
-  @apply bg-[var(--message-bg)] border-gray-200 rounded-2xl;
-}
-
-.theme-modern .user-message {
-  @apply bg-[var(--primary-color)]/10 border-[var(--primary-color)]/20 rounded-3xl rounded-tr-lg;
-}
-
-.theme-modern .ai-message {
-  @apply bg-[var(--message-bg)] border-[var(--border-color)]/30 rounded-3xl rounded-tl-lg;
-}
-
-/* Input Bar Styles by Theme */
-.theme-lovable .chat-input {
-  @apply bg-[var(--input-bg)]/50 border-[var(--border-color)]/50 rounded-lg;
-}
-
-.theme-chatgpt .chat-input {
-  @apply bg-[var(--input-bg)] border-0 shadow-lg rounded-xl;
-}
-
-.theme-claude .chat-input {
-  @apply bg-white border-gray-200 shadow-sm rounded-2xl;
-}
-
-.theme-modern .chat-input {
-  @apply bg-[var(--input-bg)] border-[var(--border-color)]/30 shadow-lg rounded-2xl;
-}
-
-/* Button Styles by Theme */
-.theme-lovable button {
-  @apply rounded-[var(--button-radius)] transition-all duration-200;
-}
-
-.theme-chatgpt button {
-  @apply rounded-[var(--button-radius)] shadow-sm transition-all duration-200;
-}
-
-.theme-claude button {
-  @apply rounded-[var(--button-radius)] shadow-sm border-2 transition-all duration-200;
-}
-
-.theme-modern button {
-  @apply rounded-[var(--button-radius)] shadow-lg transition-all duration-200;
 }

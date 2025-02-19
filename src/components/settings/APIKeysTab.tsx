@@ -3,6 +3,7 @@ import { Key, Link, KeyRound, MessageSquare, Search, Bot, Brain, Sparkles, Cpu }
 import { Button } from "@/components/ui/button";
 import { useAPIKeys } from "./api-keys/useAPIKeys";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
   AccordionContent,
@@ -49,7 +50,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
     value: string,
     setter: (value: string) => void,
     linkUrl: string,
-    linkText: string
+    linkText: string,
+    isLast: boolean = false
   ) => (
     <div className="space-y-3">
       <div className="flex items-start gap-3">
@@ -90,6 +92,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
         <Link className="w-3 h-3 mr-1" />
         {linkText}
       </a>
+      {!isLast && <Separator className="my-4 bg-[var(--border-color)] opacity-50" />}
     </div>
   );
 
@@ -139,7 +142,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
                 huggingfaceKey,
                 setHuggingfaceKey,
                 "https://huggingface.co/settings/tokens",
-                "Ottieni la tua HuggingFace API Key"
+                "Ottieni la tua HuggingFace API Key",
+                true
               )}
             </div>
           </AccordionContent>
@@ -161,7 +165,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
                 serpstackKey,
                 setSerpstackKey,
                 "https://serpstack.com/dashboard",
-                "Ottieni la tua SerpStack API Key"
+                "Ottieni la tua SerpStack API Key",
+                true
               )}
             </div>
           </AccordionContent>

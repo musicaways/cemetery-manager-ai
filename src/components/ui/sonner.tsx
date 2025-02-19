@@ -10,17 +10,18 @@ const Toaster = ({ ...props }: ToasterProps) => {
   return (
     <Sonner
       theme={theme as ToasterProps["theme"]}
-      className="toaster group fixed"
+      className="toaster group"
       toastOptions={{
         classNames: {
-          toast: "group toast group-[.toaster]:bg-[#2A2F3C] group-[.toaster]:text-foreground group-[.toaster]:border-[#3A3F4C] group-[.toaster]:shadow-2xl group-[.toaster]:shadow-black/20 group-[.toaster]:rounded-xl group-[.toaster]:z-[100] group-[.toaster]:min-h-[60px] group-[.toaster]:max-w-[420px] group-[.toaster]:mt-16",
+          toast: "group toast group-[.toaster]:bg-[var(--message-bg)] group-[.toaster]:text-foreground group-[.toaster]:border-[var(--border-color)] group-[.toaster]:shadow-lg group-[.toaster]:rounded-xl group-[.toaster]:z-[100] group-[.toaster]:min-h-[60px] group-[.toaster]:max-w-[420px]",
           title: "group-[.toast]:text-white group-[.toast]:font-medium group-[.toast]:text-sm",
           description: "group-[.toast]:text-gray-200 group-[.toast]:text-sm group-[.toast]:leading-relaxed",
           actionButton: "group-[.toast]:bg-[var(--primary-color)] group-[.toast]:text-primary-foreground",
           cancelButton: "group-[.toast]:bg-muted group-[.toast]:text-muted-foreground",
-          success: "!bg-green-600/90 !text-white !border-green-500 !rounded-xl",
-          error: "!bg-red-600/90 !text-white !border-red-500 !rounded-xl",
-          info: "!bg-blue-600/90 !text-white !border-blue-500 !rounded-xl",
+          success: "group-[.toast]:!bg-green-600/90 group-[.toast]:!text-white group-[.toast]:!border-green-500 group-[.toast]:!rounded-xl",
+          error: "group-[.toast]:!bg-red-600/90 group-[.toast]:!text-white group-[.toast]:!border-red-500 group-[.toast]:!rounded-xl",
+          info: "group-[.toast]:!bg-blue-600/90 group-[.toast]:!text-white group-[.toast]:!border-blue-500 group-[.toast]:!rounded-xl",
+          closeButton: "group-[.toast]:!top-3 group-[.toast]:!right-3",
         },
       }}
       position="top-center"
@@ -29,7 +30,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       closeButton
       visibleToasts={1}
       gap={8}
-      offset="1.5rem"
+      offset="6rem"
       duration={4000}
       {...props}
     />

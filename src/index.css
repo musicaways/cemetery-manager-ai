@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -10,6 +9,8 @@
     --chat-bg: #1A1F2C;
     --message-bg: #2A2F3C;
     --border-color: #3A3F4C;
+    --button-radius: 0.5rem;
+    --input-bg: #2A2F3C;
     --avatar-shape: circle;
   }
 
@@ -18,7 +19,7 @@
   }
 
   body {
-    @apply bg-[var(--chat-bg)] text-foreground;
+    @apply bg-[var(--chat-bg)] text-foreground transition-colors duration-200;
   }
 }
 
@@ -86,6 +87,8 @@
   --chat-bg: #1A1F2C;
   --message-bg: #2A2F3C;
   --border-color: #3A3F4C;
+  --button-radius: 0.5rem;
+  --input-bg: #2A2F3C;
 }
 
 .theme-chatgpt {
@@ -94,6 +97,8 @@
   --chat-bg: #343541;
   --message-bg: #444654;
   --border-color: #565869;
+  --button-radius: 0.25rem;
+  --input-bg: #40414F;
 }
 
 .theme-claude {
@@ -102,6 +107,8 @@
   --chat-bg: #F9FAFB;
   --message-bg: #F3F4F6;
   --border-color: #E5E7EB;
+  --button-radius: 0.75rem;
+  --input-bg: #FFFFFF;
 }
 
 .theme-modern {
@@ -110,4 +117,73 @@
   --chat-bg: #0F172A;
   --message-bg: #1E293B;
   --border-color: #334155;
+  --button-radius: 1rem;
+  --input-bg: #1E293B;
+}
+
+/* Chat Message Styles by Theme */
+.theme-lovable .user-message {
+  @apply bg-[var(--primary-color)]/20 border-[var(--primary-color)]/30 rounded-2xl rounded-tr-sm;
+}
+
+.theme-lovable .ai-message {
+  @apply bg-[var(--message-bg)]/80 border-[var(--border-color)]/50 rounded-2xl rounded-tl-sm;
+}
+
+.theme-chatgpt .user-message {
+  @apply bg-[var(--chat-bg)] border-none rounded-lg;
+}
+
+.theme-chatgpt .ai-message {
+  @apply bg-[var(--message-bg)] border-none rounded-lg;
+}
+
+.theme-claude .user-message {
+  @apply bg-white shadow-sm border-gray-200 rounded-2xl;
+}
+
+.theme-claude .ai-message {
+  @apply bg-[var(--message-bg)] border-gray-200 rounded-2xl;
+}
+
+.theme-modern .user-message {
+  @apply bg-[var(--primary-color)]/10 border-[var(--primary-color)]/20 rounded-3xl rounded-tr-lg;
+}
+
+.theme-modern .ai-message {
+  @apply bg-[var(--message-bg)] border-[var(--border-color)]/30 rounded-3xl rounded-tl-lg;
+}
+
+/* Input Bar Styles by Theme */
+.theme-lovable .chat-input {
+  @apply bg-[var(--input-bg)]/50 border-[var(--border-color)]/50 rounded-lg;
+}
+
+.theme-chatgpt .chat-input {
+  @apply bg-[var(--input-bg)] border-0 shadow-lg rounded-xl;
+}
+
+.theme-claude .chat-input {
+  @apply bg-white border-gray-200 shadow-sm rounded-2xl;
+}
+
+.theme-modern .chat-input {
+  @apply bg-[var(--input-bg)] border-[var(--border-color)]/30 shadow-lg rounded-2xl;
+}
+
+/* Button Styles by Theme */
+.theme-lovable button {
+  @apply rounded-[var(--button-radius)] transition-all duration-200;
+}
+
+.theme-chatgpt button {
+  @apply rounded-[var(--button-radius)] shadow-sm transition-all duration-200;
+}
+
+.theme-claude button {
+  @apply rounded-[var(--button-radius)] shadow-sm border-2 transition-all duration-200;
+}
+
+.theme-modern button {
+  @apply rounded-[var(--button-radius)] shadow-lg transition-all duration-200;
 }

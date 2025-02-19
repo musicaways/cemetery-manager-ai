@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/lib/themeContext";
 import { toast } from "sonner";
 import { useState } from "react";
+import { MessageSquare, MessageCircle, Send, Plus } from "lucide-react";
 
 interface ThemeTabProps {
   onSave: () => void;
@@ -15,18 +16,14 @@ export const ThemeTab = ({ onSave }: ThemeTabProps) => {
 
   const handleThemeChange = (newTheme: string) => {
     if (!newTheme) return;
-    const themeColors = getThemeColors(newTheme);
-    document.documentElement.style.setProperty('--primary-color', themeColors.primary);
-    document.documentElement.style.setProperty('--primary-hover', themeColors.hover);
-    document.documentElement.style.setProperty('--chat-bg', themeColors.chatBg);
-    document.documentElement.style.setProperty('--message-bg', themeColors.messageBg);
-    document.documentElement.style.setProperty('--border-color', themeColors.border);
+    document.body.className = `theme-${newTheme} chat-${chatStyle}`;
     setHasChanges(true);
   };
 
   const handleChatStyleChange = (newStyle: string) => {
     if (!newStyle) return;
     setChatStyle(newStyle);
+    document.body.className = document.body.className.replace(/chat-\w+/, `chat-${newStyle}`);
     setHasChanges(true);
   };
 
@@ -44,86 +41,112 @@ export const ThemeTab = ({ onSave }: ThemeTabProps) => {
     onSave();
   };
 
-  const getThemeColors = (theme: string) => {
-    switch (theme) {
-      case "lovable":
-        return {
-          primary: "#9b87f5",
-          hover: "#7E69AB",
-          chatBg: "#1A1F2C",
-          messageBg: "#2A2F3C",
-          border: "#3A3F4C"
-        };
-      case "chatgpt":
-        return {
-          primary: "#19C37D",
-          hover: "#127C54",
-          chatBg: "#343541",
-          messageBg: "#444654",
-          border: "#565869"
-        };
-      case "claude":
-        return {
-          primary: "#7C3AED",
-          hover: "#6D28D9",
-          chatBg: "#F9FAFB",
-          messageBg: "#F3F4F6",
-          border: "#E5E7EB"
-        };
-      case "modern":
-        return {
-          primary: "#2563EB",
-          hover: "#1D4ED8",
-          chatBg: "#0F172A",
-          messageBg: "#1E293B",
-          border: "#334155"
-        };
-      default:
-        return {
-          primary: "#9b87f5",
-          hover: "#7E69AB",
-          chatBg: "#1A1F2C",
-          messageBg: "#2A2F3C",
-          border: "#3A3F4C"
-        };
-    }
-  };
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <label className="block text-sm font-medium text-gray-200 mb-2">
+        <h3 className="text-lg font-semibold text-gray-200 mb-4">
           Seleziona Tema
-        </label>
+        </h3>
         <ToggleGroup 
           type="single" 
           defaultValue="lovable"
           onValueChange={handleThemeChange}
-          className="grid grid-cols-2 gap-2"
+          className="grid grid-cols-2 gap-4"
         >
-          <ToggleGroupItem value="lovable" className="aspect-video p-4 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:border-[#9b87f5] transition-all flex flex-col items-center justify-center gap-2">
-            <div className="w-full h-3 bg-[#9b87f5] rounded" />
-            <span className="text-sm">Lovable</span>
+          <ToggleGroupItem 
+            value="lovable" 
+            className="aspect-[1.4/1] relative p-4 rounded-xl bg-[#1A1F2C] border border-white/10 data-[state=on]:border-[#9b87f5] transition-all"
+          >
+            <div className="absolute inset-0 p-3">
+              <div className="h-full flex flex-col">
+                <div className="flex-1 flex flex-col gap-2">
+                  <div className="w-3/4 h-8 bg-[#2A2F3C] rounded-lg opacity-50" />
+                  <div className="w-1/2 h-8 bg-[#9b87f5]/30 rounded-lg self-end" />
+                </div>
+                <div className="h-10 bg-[#2A2F3C] rounded-lg mt-2 flex items-center px-3 gap-2">
+                  <Plus className="w-4 h-4 text-[#9b87f5]" />
+                  <div className="flex-1 h-5 bg-[#3A3F4C] rounded" />
+                  <MessageCircle className="w-4 h-4 text-[#9b87f5]" />
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-2 left-4 text-sm font-medium text-gray-200">
+              Lovable
+            </div>
           </ToggleGroupItem>
-          <ToggleGroupItem value="chatgpt" className="aspect-video p-4 rounded-lg bg-[#343541] border border-white/10 data-[state=on]:border-[#19C37D] transition-all flex flex-col items-center justify-center gap-2">
-            <div className="w-full h-3 bg-[#19C37D] rounded" />
-            <span className="text-sm">ChatGPT</span>
+
+          <ToggleGroupItem 
+            value="chatgpt" 
+            className="aspect-[1.4/1] relative p-4 rounded-xl bg-[#343541] border border-white/10 data-[state=on]:border-[#19C37D] transition-all"
+          >
+            <div className="absolute inset-0 p-3">
+              <div className="h-full flex flex-col">
+                <div className="flex-1 flex flex-col gap-2">
+                  <div className="w-3/4 h-8 bg-[#444654] rounded opacity-50" />
+                  <div className="w-1/2 h-8 bg-[#19C37D]/20 rounded self-end" />
+                </div>
+                <div className="h-10 bg-[#40414F] rounded-md mt-2 flex items-center px-3 gap-2">
+                  <Plus className="w-4 h-4 text-[#19C37D]" />
+                  <div className="flex-1 h-5 bg-[#565869] rounded" />
+                  <Send className="w-4 h-4 text-[#19C37D]" />
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-2 left-4 text-sm font-medium text-gray-200">
+              ChatGPT
+            </div>
           </ToggleGroupItem>
-          <ToggleGroupItem value="claude" className="aspect-video p-4 rounded-lg bg-[#F9FAFB] border border-gray-200 data-[state=on]:border-[#7C3AED] transition-all flex flex-col items-center justify-center gap-2">
-            <div className="w-full h-3 bg-[#7C3AED] rounded" />
-            <span className="text-sm text-gray-900">Claude</span>
+
+          <ToggleGroupItem 
+            value="claude" 
+            className="aspect-[1.4/1] relative p-4 rounded-xl bg-[#F9FAFB] border border-gray-200 data-[state=on]:border-[#7C3AED] transition-all"
+          >
+            <div className="absolute inset-0 p-3">
+              <div className="h-full flex flex-col">
+                <div className="flex-1 flex flex-col gap-2">
+                  <div className="w-3/4 h-8 bg-white rounded-xl shadow-sm opacity-50" />
+                  <div className="w-1/2 h-8 bg-[#7C3AED]/10 rounded-xl self-end" />
+                </div>
+                <div className="h-10 bg-white rounded-xl shadow-sm mt-2 flex items-center px-3 gap-2">
+                  <Plus className="w-4 h-4 text-[#7C3AED]" />
+                  <div className="flex-1 h-5 bg-gray-100 rounded-lg" />
+                  <MessageSquare className="w-4 h-4 text-[#7C3AED]" />
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-2 left-4 text-sm font-medium text-gray-900">
+              Claude
+            </div>
           </ToggleGroupItem>
-          <ToggleGroupItem value="modern" className="aspect-video p-4 rounded-lg bg-[#0F172A] border border-white/10 data-[state=on]:border-[#2563EB] transition-all flex flex-col items-center justify-center gap-2">
-            <div className="w-full h-3 bg-[#2563EB] rounded" />
-            <span className="text-sm">Modern</span>
+
+          <ToggleGroupItem 
+            value="modern" 
+            className="aspect-[1.4/1] relative p-4 rounded-xl bg-[#0F172A] border border-white/10 data-[state=on]:border-[#2563EB] transition-all"
+          >
+            <div className="absolute inset-0 p-3">
+              <div className="h-full flex flex-col">
+                <div className="flex-1 flex flex-col gap-2">
+                  <div className="w-3/4 h-8 bg-[#1E293B] rounded-2xl opacity-50" />
+                  <div className="w-1/2 h-8 bg-[#2563EB]/20 rounded-2xl self-end" />
+                </div>
+                <div className="h-10 bg-[#1E293B] rounded-2xl mt-2 flex items-center px-3 gap-2">
+                  <Plus className="w-4 h-4 text-[#2563EB]" />
+                  <div className="flex-1 h-5 bg-[#334155] rounded-xl" />
+                  <MessageCircle className="w-4 h-4 text-[#2563EB]" />
+                </div>
+              </div>
+            </div>
+            <div className="absolute bottom-2 left-4 text-sm font-medium text-gray-200">
+              Modern
+            </div>
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-200 mb-2">
+        <h3 className="text-lg font-semibold text-gray-200 mb-4">
           Densità Layout
-        </label>
+        </h3>
         <ToggleGroup 
           type="single" 
           value={chatStyle}
@@ -132,24 +155,45 @@ export const ThemeTab = ({ onSave }: ThemeTabProps) => {
               handleChatStyleChange(value);
             }
           }}
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-3 gap-4"
         >
-          <ToggleGroupItem value="modern" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-            Comodo
+          <ToggleGroupItem 
+            value="modern" 
+            className="p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
+          >
+            <div className="space-y-2">
+              <div className="w-full h-6 bg-current opacity-20 rounded" />
+              <div className="w-2/3 h-6 bg-current opacity-20 rounded" />
+            </div>
           </ToggleGroupItem>
-          <ToggleGroupItem value="classic" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-            Classico
+          <ToggleGroupItem 
+            value="classic" 
+            className="p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
+          >
+            <div className="space-y-1">
+              <div className="w-full h-4 bg-current opacity-20 rounded" />
+              <div className="w-2/3 h-4 bg-current opacity-20 rounded" />
+              <div className="w-1/2 h-4 bg-current opacity-20 rounded" />
+            </div>
           </ToggleGroupItem>
-          <ToggleGroupItem value="compact" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-            Compatto
+          <ToggleGroupItem 
+            value="compact" 
+            className="p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
+          >
+            <div className="space-y-1">
+              <div className="w-full h-3 bg-current opacity-20 rounded" />
+              <div className="w-2/3 h-3 bg-current opacity-20 rounded" />
+              <div className="w-1/2 h-3 bg-current opacity-20 rounded" />
+              <div className="w-1/3 h-3 bg-current opacity-20 rounded" />
+            </div>
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-200 mb-2">
+        <h3 className="text-lg font-semibold text-gray-200 mb-4">
           Forma Avatar
-        </label>
+        </h3>
         <ToggleGroup 
           type="single" 
           value={avatarShape}
@@ -158,16 +202,27 @@ export const ThemeTab = ({ onSave }: ThemeTabProps) => {
               handleAvatarShapeChange(value);
             }
           }}
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-3 gap-4"
         >
-          <ToggleGroupItem value="circle" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-            Tondo
+          <ToggleGroupItem 
+            value="circle" 
+            className="aspect-square p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
+          >
+            <div className="w-full h-full rounded-full bg-current opacity-20" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="square" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-            Quadrato
+          <ToggleGroupItem 
+            value="square" 
+            className="aspect-square p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
+          >
+            <div className="w-full h-full rounded-lg bg-current opacity-20" />
           </ToggleGroupItem>
-          <ToggleGroupItem value="hexagon" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-            Esagono
+          <ToggleGroupItem 
+            value="hexagon" 
+            className="aspect-square p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
+          >
+            <div className="w-full h-full bg-current opacity-20" style={{
+              clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)"
+            }} />
           </ToggleGroupItem>
         </ToggleGroup>
       </div>

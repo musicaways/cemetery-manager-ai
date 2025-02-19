@@ -5,20 +5,14 @@
 
 @layer base {
   :root {
-    --background: #F8FAFC;
-    --foreground: #1E293B;
-    --foreground-muted: rgba(30, 41, 59, 0.5);
-    --foreground-hover: rgba(30, 41, 59, 0.8);
-    --primary: #2563EB;
-    --primary-hover: #1D4ED8;
-    --secondary: #F1F5F9;
-    --secondary-transparent: rgba(241, 245, 249, 0.8);
-    --secondary-hover: rgba(241, 245, 249, 0.95);
-    --border: #E2E8F0;
-    --border-transparent: rgba(226, 232, 240, 0.5);
-    --ring: #94A3B8;
-    --input: #FFFFFF;
-    --radius: 1rem;
+    --color-bg: #343541;
+    --color-text: #ECECF1;
+    --color-secondary-text: #A8A8B3;
+    --color-input-bg: #40414F;
+    --color-input-text: #ECECF1;
+    --color-accent: #19C37D;
+    --color-border: #565869;
+    --color-hover: #565869;
   }
 
   .theme-modern {
@@ -41,7 +35,7 @@
   .theme-chatgpt {
     --background: #343541;
     --foreground: #ECECF1;
-    --foreground-muted: rgba(236, 236, 241, 0.5);
+    --foreground-muted: #A8A8B3;
     --foreground-hover: rgba(236, 236, 241, 0.8);
     --primary: #19C37D;
     --primary-hover: #0EA36B;
@@ -50,7 +44,7 @@
     --border: #565869;
     --border-transparent: rgba(86, 88, 105, 0.2);
     --input: #40414F;
-    --radius: 0.5rem;
+    --radius: 0.75rem;
   }
 
   * {
@@ -73,59 +67,59 @@
   }
 
   .theme-chatgpt .quick-action-button {
-    @apply bg-[#202123] hover:bg-[#2A2B32] border-[#565869]/20 text-[#ECECF1];
+    @apply bg-[#40414F] hover:bg-[#565869] border-[#565869] text-[#ECECF1] transition-colors duration-200;
   }
 
   .theme-chatgpt .input-container {
-    @apply bg-gradient-to-t from-[#343541] via-[#343541] to-transparent;
+    @apply bg-gradient-to-t from-[#343541] via-[#343541] to-transparent pb-8 pt-6;
   }
 
   .theme-chatgpt .input-wrapper {
-    @apply bg-[#40414F] border border-[#565869]/20 rounded-xl shadow-lg;
+    @apply bg-[#40414F] border border-[#565869] rounded-xl shadow-lg;
   }
 
   .theme-chatgpt .input {
-    @apply bg-transparent text-[#ECECF1] placeholder:text-[#8E8EA0];
+    @apply bg-transparent text-[#ECECF1] placeholder:text-[#A8A8B3];
   }
 
   .theme-chatgpt .action-button {
-    @apply text-[#8E8EA0] hover:text-[#ECECF1];
+    @apply text-[#A8A8B3] hover:text-[#ECECF1] transition-colors;
   }
 
   .theme-chatgpt .send-button {
-    @apply bg-[#19C37D] hover:bg-[#0EA36B];
+    @apply bg-[#19C37D] hover:bg-[#0EA36B] transition-colors;
   }
 
   .user-message {
-    @apply bg-secondary rounded-2xl px-6 py-6 text-foreground;
+    @apply bg-[#40414F] px-4 py-6 text-[#ECECF1] border-b border-black/10;
   }
 
   .ai-message {
-    @apply bg-[var(--secondary-transparent)] backdrop-blur-sm rounded-2xl px-6 py-6 text-foreground;
+    @apply bg-[#444654] px-4 py-6 text-[#ECECF1] border-b border-black/10;
   }
 
   .chat-input {
-    @apply bg-input border border-border rounded-2xl shadow-sm;
+    @apply bg-[#40414F] border border-[#565869] rounded-xl text-[#ECECF1] shadow-lg;
   }
 
   .input-container {
-    @apply fixed bottom-0 left-0 right-0 px-4 py-4 bg-gradient-to-t from-background via-background to-transparent;
+    @apply fixed bottom-0 left-0 right-0 px-4 bg-gradient-to-t from-[#343541] via-[#343541] to-transparent pb-8 pt-6;
   }
 
   .input-wrapper {
-    @apply relative max-w-3xl mx-auto;
+    @apply relative mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl;
   }
 
   .action-buttons {
-    @apply absolute left-2 bottom-2 flex items-center gap-1;
+    @apply absolute left-2 bottom-2 flex items-center gap-2;
   }
 
   .action-button {
-    @apply text-[var(--foreground-muted)] hover:text-[var(--foreground-hover)] transition-colors;
+    @apply text-[#A8A8B3] hover:text-[#ECECF1] transition-colors h-8 w-8 p-0;
   }
 
   .send-button {
-    @apply absolute right-2 bottom-2 bg-primary hover:bg-primary-hover text-white transition-colors;
+    @apply absolute right-2 bottom-2 bg-[#19C37D] hover:bg-[#0EA36B] text-white transition-colors h-8 w-8 rounded-lg p-1;
   }
 
   .quick-actions {
@@ -133,31 +127,9 @@
   }
 
   .quick-action-button {
-    @apply flex items-center gap-3 p-4 rounded-2xl bg-[var(--secondary-transparent)] backdrop-blur-sm 
-           border border-[var(--border-transparent)] text-sm text-foreground hover:bg-[var(--secondary-hover)] 
-           transition-colors duration-200;
+    @apply flex items-center gap-3 p-4 rounded-xl bg-[#40414F] border border-[#565869] 
+           text-sm text-[#ECECF1] hover:bg-[#565869] transition-colors duration-200;
   }
-}
-
-@keyframes ping {
-  75%, 100% {
-    transform: scale(2);
-    opacity: 0;
-  }
-}
-
-@keyframes pulse {
-  50% {
-    opacity: .5;
-  }
-}
-
-.animate-ping {
-  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 /* Scrollbar personalizzate */
@@ -197,4 +169,26 @@
 .theme-chatgpt .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #565869;
   border-radius: 3px;
+}
+
+/* Animations */
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse {
+  50% {
+    opacity: .5;
+  }
+}
+
+.animate-ping {
+  animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

@@ -18,7 +18,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[var(--chat-bg)] text-foreground;
   }
 }
 
@@ -77,4 +77,37 @@
 
 .avatar-hexagon {
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* Theme-specific styles */
+.theme-lovable {
+  --primary-color: #9b87f5;
+  --primary-hover: #7E69AB;
+  --chat-bg: #1A1F2C;
+  --message-bg: #2A2F3C;
+  --border-color: #3A3F4C;
+}
+
+.theme-chatgpt {
+  --primary-color: #19C37D;
+  --primary-hover: #127C54;
+  --chat-bg: #343541;
+  --message-bg: #444654;
+  --border-color: #565869;
+}
+
+.theme-claude {
+  --primary-color: #7C3AED;
+  --primary-hover: #6D28D9;
+  --chat-bg: #F9FAFB;
+  --message-bg: #F3F4F6;
+  --border-color: #E5E7EB;
+}
+
+.theme-modern {
+  --primary-color: #2563EB;
+  --primary-hover: #1D4ED8;
+  --chat-bg: #0F172A;
+  --message-bg: #1E293B;
+  --border-color: #334155;
 }

@@ -1,3 +1,4 @@
+
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/lib/themeContext";
@@ -14,8 +15,12 @@ export const ThemeTab = ({ onSave }: ThemeTabProps) => {
 
   const handleThemeChange = (newTheme: string) => {
     if (!newTheme) return;
-    document.documentElement.style.setProperty('--primary-color', getThemeColor(newTheme));
-    document.documentElement.style.setProperty('--primary-hover', getThemeHoverColor(newTheme));
+    const themeColors = getThemeColors(newTheme);
+    document.documentElement.style.setProperty('--primary-color', themeColors.primary);
+    document.documentElement.style.setProperty('--primary-hover', themeColors.hover);
+    document.documentElement.style.setProperty('--chat-bg', themeColors.chatBg);
+    document.documentElement.style.setProperty('--message-bg', themeColors.messageBg);
+    document.documentElement.style.setProperty('--border-color', themeColors.border);
     setHasChanges(true);
   };
 
@@ -39,23 +44,48 @@ export const ThemeTab = ({ onSave }: ThemeTabProps) => {
     onSave();
   };
 
-  const getThemeColor = (theme: string) => {
+  const getThemeColors = (theme: string) => {
     switch (theme) {
-      case "purple": return "#9b87f5";
-      case "blue": return "#2563eb";
-      case "green": return "#059669";
-      case "red": return "#dc2626";
-      default: return "#9b87f5";
-    }
-  };
-
-  const getThemeHoverColor = (theme: string) => {
-    switch (theme) {
-      case "purple": return "#7E69AB";
-      case "blue": return "#1d4ed8";
-      case "green": return "#047857";
-      case "red": return "#b91c1c";
-      default: return "#7E69AB";
+      case "lovable":
+        return {
+          primary: "#9b87f5",
+          hover: "#7E69AB",
+          chatBg: "#1A1F2C",
+          messageBg: "#2A2F3C",
+          border: "#3A3F4C"
+        };
+      case "chatgpt":
+        return {
+          primary: "#19C37D",
+          hover: "#127C54",
+          chatBg: "#343541",
+          messageBg: "#444654",
+          border: "#565869"
+        };
+      case "claude":
+        return {
+          primary: "#7C3AED",
+          hover: "#6D28D9",
+          chatBg: "#F9FAFB",
+          messageBg: "#F3F4F6",
+          border: "#E5E7EB"
+        };
+      case "modern":
+        return {
+          primary: "#2563EB",
+          hover: "#1D4ED8",
+          chatBg: "#0F172A",
+          messageBg: "#1E293B",
+          border: "#334155"
+        };
+      default:
+        return {
+          primary: "#9b87f5",
+          hover: "#7E69AB",
+          chatBg: "#1A1F2C",
+          messageBg: "#2A2F3C",
+          border: "#3A3F4C"
+        };
     }
   };
 
@@ -63,32 +93,36 @@ export const ThemeTab = ({ onSave }: ThemeTabProps) => {
     <div className="space-y-6">
       <div>
         <label className="block text-sm font-medium text-gray-200 mb-2">
-          Tema Colori
+          Seleziona Tema
         </label>
         <ToggleGroup 
           type="single" 
-          defaultValue="purple"
+          defaultValue="lovable"
           onValueChange={handleThemeChange}
-          className="flex flex-wrap gap-2"
+          className="grid grid-cols-2 gap-2"
         >
-          <ToggleGroupItem value="purple" className="p-1 rounded-lg transition-all data-[state=on]:ring-2 data-[state=on]:ring-[#9b87f5] data-[state=on]:ring-offset-2 data-[state=on]:ring-offset-[#2A2F3C]">
-            <div className="w-8 h-8 bg-[#9b87f5] rounded-md" />
+          <ToggleGroupItem value="lovable" className="aspect-video p-4 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:border-[#9b87f5] transition-all flex flex-col items-center justify-center gap-2">
+            <div className="w-full h-3 bg-[#9b87f5] rounded" />
+            <span className="text-sm">Lovable</span>
           </ToggleGroupItem>
-          <ToggleGroupItem value="blue" className="p-1 rounded-lg transition-all data-[state=on]:ring-2 data-[state=on]:ring-blue-500 data-[state=on]:ring-offset-2 data-[state=on]:ring-offset-[#2A2F3C]">
-            <div className="w-8 h-8 bg-blue-500 rounded-md" />
+          <ToggleGroupItem value="chatgpt" className="aspect-video p-4 rounded-lg bg-[#343541] border border-white/10 data-[state=on]:border-[#19C37D] transition-all flex flex-col items-center justify-center gap-2">
+            <div className="w-full h-3 bg-[#19C37D] rounded" />
+            <span className="text-sm">ChatGPT</span>
           </ToggleGroupItem>
-          <ToggleGroupItem value="green" className="p-1 rounded-lg transition-all data-[state=on]:ring-2 data-[state=on]:ring-green-500 data-[state=on]:ring-offset-2 data-[state=on]:ring-offset-[#2A2F3C]">
-            <div className="w-8 h-8 bg-green-500 rounded-md" />
+          <ToggleGroupItem value="claude" className="aspect-video p-4 rounded-lg bg-[#F9FAFB] border border-gray-200 data-[state=on]:border-[#7C3AED] transition-all flex flex-col items-center justify-center gap-2">
+            <div className="w-full h-3 bg-[#7C3AED] rounded" />
+            <span className="text-sm text-gray-900">Claude</span>
           </ToggleGroupItem>
-          <ToggleGroupItem value="red" className="p-1 rounded-lg transition-all data-[state=on]:ring-2 data-[state=on]:ring-red-500 data-[state=on]:ring-offset-2 data-[state=on]:ring-offset-[#2A2F3C]">
-            <div className="w-8 h-8 bg-red-500 rounded-md" />
+          <ToggleGroupItem value="modern" className="aspect-video p-4 rounded-lg bg-[#0F172A] border border-white/10 data-[state=on]:border-[#2563EB] transition-all flex flex-col items-center justify-center gap-2">
+            <div className="w-full h-3 bg-[#2563EB] rounded" />
+            <span className="text-sm">Modern</span>
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
 
       <div>
         <label className="block text-sm font-medium text-gray-200 mb-2">
-          Stile Chat
+          Densità Layout
         </label>
         <ToggleGroup 
           type="single" 
@@ -101,7 +135,7 @@ export const ThemeTab = ({ onSave }: ThemeTabProps) => {
           className="flex flex-wrap gap-2"
         >
           <ToggleGroupItem value="modern" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
-            Moderno
+            Comodo
           </ToggleGroupItem>
           <ToggleGroupItem value="classic" className="px-4 py-2 rounded-lg bg-[#1A1F2C] border border-white/10 data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all">
             Classico

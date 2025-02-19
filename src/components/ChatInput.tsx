@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Command, Send, Mic } from "lucide-react";
-import { toast } from "sonner";
+import { Plus, Command, Send } from "lucide-react";
 import TextareaAutosize from 'react-textarea-autosize';
 import { VoiceRecorder } from "./VoiceRecorder";
 import { useTheme } from "@/lib/themeContext";
@@ -11,7 +10,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useState } from "react";
 
 interface ChatInputProps {
   query: string;
@@ -36,16 +34,6 @@ export const ChatInput = ({
 }: ChatInputProps) => {
   const { theme } = useTheme();
   const isChatGPT = theme === 'chatgpt';
-  const [isRecording, setIsRecording] = useState(false);
-
-  const handleCommandSelect = (command: string) => {
-    onQueryChange(command);
-    const submitEvent = new Event('submit', {
-      bubbles: true,
-      cancelable: true,
-    }) as unknown as React.FormEvent;
-    onSubmit(submitEvent);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,39 +41,11 @@ export const ChatInput = ({
     onSubmit(e);
   };
 
-  const handleVoiceRecord = async () => {
-    setIsRecording(true);
-    try {
-      const recognition = new (window as any).webkitSpeechRecognition();
-      recognition.lang = 'it-IT';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onresult = (event: any) => {
-        const text = event.results[0][0].transcript;
-        onVoiceRecord(text);
-        setIsRecording(false);
-      };
-
-      recognition.onerror = (event: any) => {
-        console.error('Speech recognition error:', event.error);
-        toast.error('Errore durante il riconoscimento vocale');
-        setIsRecording(false);
-      };
-
-      recognition.start();
-    } catch (error) {
-      console.error('Speech recognition error:', error);
-      toast.error('Il riconoscimento vocale non è supportato su questo browser');
-      setIsRecording(false);
-    }
-  };
-
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-background via-background to-transparent">
       <div className="max-w-3xl mx-auto px-4 py-4">
-        <div className="relative">
-          <div className="flex items-center gap-2 bg-[#40414F] rounded-xl px-4 py-2 shadow-lg">
+        <form onSubmit={handleSubmit} className="relative">
+          <div className="flex items-center gap-2 bg-[#40414F] rounded-xl px-4 py-2 shadow-lg border border-[#565869]/20">
             <div className="flex gap-2">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -98,13 +58,13 @@ export const ChatInput = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="bg-[#202123] text-gray-200 border-[#565869]/20">
-                  <DropdownMenuItem onClick={() => handleCommandSelect("/image")}>
+                  <DropdownMenuItem onClick={() => onQueryChange("/image")}>
                     Genera immagine
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleCommandSelect("/code")}>
+                  <DropdownMenuItem onClick={() => onQueryChange("/code")}>
                     Scrivi codice
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleCommandSelect("/analyze")}>
+                  <DropdownMenuItem onClick={() => onQueryChange("/analyze")}>
                     Analizza dati
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -138,18 +98,7 @@ export const ChatInput = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="icon"
-                className={`text-gray-400 hover:text-gray-300 relative ${isRecording ? 'animate-pulse' : ''}`}
-                onClick={handleVoiceRecord}
-                disabled={isRecording}
-              >
-                <Mic className="w-5 h-5" />
-                {isRecording && (
-                  <div className="absolute inset-0 rounded-full animate-ping bg-red-500/20" />
-                )}
-              </Button>
+              <VoiceRecorder onRecordingComplete={onVoiceRecord} />
 
               {query.trim() && (
                 <Button
@@ -163,7 +112,7 @@ export const ChatInput = ({
               )}
             </div>
           </div>
-        </div>
+        </form>
 
         {isChatGPT && (
           <div className="mt-2 px-2 flex items-center justify-center text-xs text-[#8E8EA0]">

@@ -28,7 +28,7 @@
 }
 
 /* Animazioni per il registratore vocale */
-@keyframes pulse {
+@keyframes recording-pulse {
   0% {
     transform: scale(1);
     opacity: 1;
@@ -44,7 +44,7 @@
 }
 
 .recording-pulse {
-  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: recording-pulse 1.5s ease-in-out infinite;
 }
 
 /* Stili per i messaggi di ChatGPT */

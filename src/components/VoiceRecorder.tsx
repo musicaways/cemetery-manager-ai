@@ -65,11 +65,11 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
       type="button"
       variant="ghost"
       size="icon"
-      className="h-8 w-8 p-1 text-gray-400 hover:text-gray-300"
+      className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300"
       onClick={startRecording}
       disabled={isRecording}
     >
-      <div className={`relative h-full w-full ${isRecording ? 'animate-pulse' : ''}`}>
+      <div className={`relative h-5 w-5 ${isRecording ? 'animate-pulse' : ''}`}>
         <Mic className="h-full w-full" />
         {isRecording && (
           <div className="absolute inset-0 animate-ping">

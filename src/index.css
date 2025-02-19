@@ -21,7 +21,10 @@
     --primary: #2563EB;
     --primary-hover: #1D4ED8;
     --secondary: #1E293B;
+    --secondary-transparent: rgba(30, 41, 59, 0.5);
+    --secondary-hover: rgba(30, 41, 59, 0.8);
     --border: #334155;
+    --border-transparent: rgba(51, 65, 85, 0.5);
     --ring: #94A3B8;
     --input: #1E293B;
     --radius: 1rem;
@@ -32,7 +35,7 @@
   }
 
   .theme-modern .ai-message {
-    @apply bg-secondary/50 backdrop-blur-sm rounded-2xl px-6 py-6 text-foreground;
+    @apply bg-[var(--secondary-transparent)] backdrop-blur-sm rounded-2xl px-6 py-6 text-foreground;
   }
 
   .theme-modern .chat-input {
@@ -69,8 +72,9 @@
   }
 
   .theme-modern .quick-action-button {
-    @apply flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border/50 
-           text-sm text-foreground hover:bg-secondary/80 transition-colors duration-200;
+    @apply flex items-center gap-3 p-4 rounded-2xl bg-[var(--secondary-transparent)] backdrop-blur-sm 
+           border border-[var(--border-transparent)] text-sm text-foreground hover:bg-[var(--secondary-hover)] 
+           transition-colors duration-200;
   }
 
   /* Tema ChatGPT */
@@ -80,7 +84,9 @@
     --primary: #19C37D;
     --primary-hover: #0EA36B;
     --secondary: #444654;
+    --secondary-transparent: rgba(68, 70, 84, 0.5);
     --border: #565869;
+    --border-transparent: rgba(86, 88, 105, 0.2);
     --input: #40414F;
     --radius: 0.5rem;
   }

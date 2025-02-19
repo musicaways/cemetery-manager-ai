@@ -1,4 +1,3 @@
-
 import { Key, Link, KeyRound, MessageSquare, Search, Bot, Brain, Sparkles, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAPIKeys } from "./api-keys/useAPIKeys";
@@ -55,7 +54,9 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
   ) => (
     <div className="space-y-3">
       <div className="flex items-start gap-3">
-        {icon}
+        <div className="text-[var(--primary-color)]">
+          {icon}
+        </div>
         <div>
           <h3 className="text-sm font-medium text-gray-200">{provider}</h3>
           <p className="text-xs text-gray-400">{description}</p>
@@ -97,7 +98,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
       <Accordion type="single" collapsible defaultValue="llm" className="w-full space-y-4">
         <AccordionItem value="llm" className="border-none">
           <AccordionTrigger className="hover:no-underline">

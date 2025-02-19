@@ -1,3 +1,4 @@
+
 import { Bot, Cpu, Languages, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAISettings } from './ai/useAISettings';
@@ -33,15 +34,19 @@ export const AITab = ({ onSave }: AITabProps) => {
       onClick={() => handleProviderChange(providerId)}
       className={`p-4 rounded-lg border transition-all ${
         provider === providerId
-          ? 'bg-[var(--primary-color)] border-[var(--primary-color)] text-white'
+          ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
           : 'bg-[var(--message-bg)] border-[var(--border-color)] hover:border-[var(--primary-color)] hover:border-opacity-50'
       }`}
     >
       <div className="flex items-start gap-3">
-        {icon}
+        <div className={provider === providerId ? 'text-white' : 'text-[var(--primary-color)]'}>
+          {icon}
+        </div>
         <div className="text-left">
-          <span className="text-sm font-medium block">{name}</span>
-          <p className={`text-xs mt-1 ${provider === providerId ? 'text-white/80' : 'text-gray-400'}`}>
+          <span className={`text-sm font-medium block ${provider === providerId ? 'text-white' : 'text-gray-200'}`}>
+            {name}
+          </span>
+          <p className={`text-xs mt-1 ${provider === providerId ? 'text-white/90' : 'text-gray-400'}`}>
             {description}
           </p>
         </div>
@@ -50,7 +55,7 @@ export const AITab = ({ onSave }: AITabProps) => {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
       <Accordion type="single" collapsible className="w-full space-y-4">
         <AccordionItem value="provider" className="border-none">
           <AccordionTrigger className="hover:no-underline">
@@ -65,19 +70,19 @@ export const AITab = ({ onSave }: AITabProps) => {
                 'groq',
                 'Groq',
                 'Provider veloce e performante, ottimo per elaborazione di testo',
-                <Cpu className="w-5 h-5 text-[var(--primary-color)]" />
+                <Cpu className="w-5 h-5" />
               )}
               {renderProviderCard(
                 'gemini',
                 'Gemini',
                 'Servizio AI di Google con supporto multimodale',
-                <Bot className="w-5 h-5 text-[var(--primary-color)]" />
+                <Bot className="w-5 h-5" />
               )}
               {renderProviderCard(
                 'huggingface',
                 'HuggingFace',
                 'Accesso a migliaia di modelli open source',
-                <Bot className="w-5 h-5 text-[var(--primary-color)]" />
+                <Bot className="w-5 h-5" />
               )}
             </div>
           </AccordionContent>

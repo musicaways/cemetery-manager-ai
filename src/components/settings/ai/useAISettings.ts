@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,11 +12,9 @@ export const useAISettings = (onSave: () => void) => {
   const [model, setModel] = useState(() => localStorage.getItem('ai_model') || "mixtral-8x7b-32768");
   const [language, setLanguage] = useState(() => localStorage.getItem('ai_language') || "it");
   const [temperature, setTemperature] = useState(() => parseFloat(localStorage.getItem('ai_temperature') || "0.7"));
-  const [selectedModelInfo, setSelectedModelInfo] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [isTestingModel, setIsTestingModel] = useState(false);
 
-  // Assicuriamoci che le impostazioni di default siano sempre salvate
   useEffect(() => {
     if (!localStorage.getItem('ai_provider') || localStorage.getItem('ai_provider') === 'ollama') {
       localStorage.setItem('ai_provider', 'groq');
@@ -37,13 +36,6 @@ export const useAISettings = (onSave: () => void) => {
     setHasChanges(true);
     let newModel = '';
     
-    const providerInfo = PROVIDER_INFO[newProvider];
-    if (providerInfo) {
-      toast.info(`${providerInfo.name}`, {
-        description: `${providerInfo.description}\n\nPunti di forza: ${providerInfo.strengths}`
-      });
-    }
-    
     switch(newProvider) {
       case "groq":
         newModel = "mixtral-8x7b-32768";
@@ -56,25 +48,12 @@ export const useAISettings = (onSave: () => void) => {
     }
     
     setModel(newModel);
-    showModelInfo(newModel);
-  };
-
-  const showModelInfo = (modelId: string) => {
-    const modelInfo = MODEL_DESCRIPTIONS[modelId];
-    if (modelInfo) {
-      const { name, description, strengths, details } = modelInfo;
-      toast.info(name, {
-        description: `${description}\n\n${strengths}\n\nDettagli:\n• ${details.parameters}\n• ${details.context}\n• ${details.languages}\n• ${details.speed}`,
-        duration: 5000
-      });
-    }
   };
 
   const handleModelChange = (newModel: string) => {
     if (!newModel) return;
     setModel(newModel);
     setHasChanges(true);
-    showModelInfo(newModel);
   };
 
   const testModel = async () => {
@@ -119,7 +98,6 @@ export const useAISettings = (onSave: () => void) => {
     const testPassed = await testModel();
     
     if (testPassed) {
-      // Salviamo immediatamente le impostazioni
       localStorage.setItem('ai_provider', provider);
       localStorage.setItem('ai_model', model);
       localStorage.setItem('ai_language', language);
@@ -127,9 +105,7 @@ export const useAISettings = (onSave: () => void) => {
       setHasChanges(false);
       
       toast.dismiss(toastLoading);
-      toast.success('Impostazioni AI salvate con successo', {
-        description: `Provider: ${provider.toUpperCase()}, Modello: ${MODEL_DESCRIPTIONS[model]?.name}`
-      });
+      toast.success('Impostazioni AI salvate con successo');
       
       onSave();
     } else {

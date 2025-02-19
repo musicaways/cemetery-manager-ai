@@ -65,7 +65,7 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
       type="button"
       variant="ghost"
       size="icon"
-      className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300"
+      className="h-9 w-9 rounded-full bg-[#40414F] p-0 text-gray-400 hover:bg-[#202123]/40 hover:text-gray-300"
       onClick={startRecording}
       disabled={isRecording}
     >

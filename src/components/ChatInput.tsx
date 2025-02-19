@@ -38,7 +38,7 @@ export const ChatInput = ({
     <div className="fixed bottom-0 left-0 right-0 w-full bg-gradient-to-t from-[#343541] via-[#343541] to-transparent pb-8 pt-6">
       <div className="mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl">
         <div className="relative flex h-full flex-1 items-stretch md:flex-col">
-          <div className="relative flex w-full flex-grow flex-col rounded-xl border border-black/10 bg-[#40414F] shadow-[0_0_15px_rgba(0,0,0,0.1)]">
+          <div className="relative flex w-full flex-grow flex-col rounded-2xl border border-black/10 bg-[#40414F] shadow-[0_0_15px_rgba(0,0,0,0.1)]">
             <form onSubmit={handleSubmit} className="stretch flex flex-row gap-3">
               <div className="flex flex-grow flex-col relative border-0 bg-transparent p-0">
                 <div className="relative flex items-center">
@@ -52,29 +52,16 @@ export const ChatInput = ({
                     >
                       <Plus className="h-5 w-5" />
                     </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300"
-                      onClick={onWebSearchToggle}
-                    >
-                      <Globe className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8 p-0 text-gray-400 hover:text-gray-300"
-                    >
-                      <Command className="h-5 w-5" />
-                    </Button>
+                    <div className="flex items-center gap-1 rounded-xl bg-[#202123]/40 px-2 py-1">
+                      <Globe className="h-5 w-5 text-gray-400" />
+                      <span className="text-sm text-gray-400">Cerca</span>
+                    </div>
                   </div>
                   <TextareaAutosize
                     value={query}
                     onChange={(e) => onQueryChange(e.target.value)}
                     placeholder="Messaggio a ChatGPT..."
-                    className="m-0 w-full resize-none border-0 bg-transparent py-3.5 pl-32 pr-20 text-white placeholder-gray-400/70 focus:ring-0 focus-visible:ring-0 dark:bg-transparent md:py-3.5"
+                    className="m-0 w-full resize-none border-0 bg-transparent py-3.5 pl-36 pr-20 text-white placeholder-gray-400/70 focus:ring-0 focus-visible:ring-0 dark:bg-transparent md:py-3.5"
                     disabled={isProcessing}
                     maxRows={4}
                     onKeyDown={(e) => {

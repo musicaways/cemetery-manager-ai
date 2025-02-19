@@ -62,15 +62,20 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
 
   return (
     <Button
+      type="button"
       variant="ghost"
       size="icon"
-      className="group relative"
+      className="h-8 w-8 p-1 text-gray-400 hover:text-gray-300"
       onClick={startRecording}
       disabled={isRecording}
     >
-      <div className={`absolute inset-0 ${isRecording ? 'animate-ping bg-red-500/30 rounded-full' : ''}`} />
-      <div className={`relative h-9 w-9 rounded-full flex items-center justify-center transition-colors ${isRecording ? 'bg-red-500/20 text-red-500' : 'text-gray-400 hover:text-gray-300 hover:bg-gray-800'}`}>
-        <Mic className="h-5 w-5" />
+      <div className={`relative h-full w-full ${isRecording ? 'animate-pulse' : ''}`}>
+        <Mic className="h-full w-full" />
+        {isRecording && (
+          <div className="absolute inset-0 animate-ping">
+            <div className="h-full w-full rounded-full bg-red-500/30" />
+          </div>
+        )}
       </div>
     </Button>
   );

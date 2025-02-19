@@ -79,8 +79,12 @@
   }
 
   .input {
-    @apply w-full bg-input text-foreground placeholder:text-foreground/50 resize-none p-4 pr-32 
+    @apply w-full bg-input text-foreground resize-none p-4 pr-32 
            rounded-xl outline-none max-h-[200px] overflow-y-auto;
+  }
+
+  .input::placeholder {
+    @apply text-foreground opacity-50;
   }
 
   .action-buttons {

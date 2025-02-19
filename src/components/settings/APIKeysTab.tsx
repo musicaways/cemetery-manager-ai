@@ -1,5 +1,4 @@
-
-import { Key, Link, KeyRound, MessageSquare, Search } from "lucide-react";
+import { Key, Link, KeyRound, MessageSquare, Search, Bot, Sparkles, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAPIKeys } from "./api-keys/useAPIKeys";
 import { Input } from "@/components/ui/input";
@@ -52,10 +51,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
     linkText: string
   ) => (
     <div className="space-y-3">
-      <div className="flex items-start gap-3 mb-2">
-        <div className="w-8 h-8 rounded-lg bg-[var(--primary-color)] bg-opacity-20 flex items-center justify-center flex-shrink-0">
-          {icon}
-        </div>
+      <div className="flex items-start gap-3">
+        {icon}
         <div>
           <h3 className="text-sm font-medium text-gray-200">{provider}</h3>
           <p className="text-xs text-gray-400">{description}</p>
@@ -109,7 +106,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
             <div className="space-y-6 mt-4">
               {renderAPIKeySection(
                 "Groq",
-                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                <Bot className="w-5 h-5 text-[var(--primary-color)]" />,
                 "Modello LLM veloce e performante, ottimo per generazione di testo e chat",
                 groqKey,
                 setGroqKey,
@@ -118,7 +115,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
               )}
               {renderAPIKeySection(
                 "Gemini",
-                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                <Sparkles className="w-5 h-5 text-[var(--primary-color)]" />,
                 "LLM di Google, supporta analisi di immagini e generazione di testo",
                 geminiKey,
                 setGeminiKey,
@@ -127,7 +124,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
               )}
               {renderAPIKeySection(
                 "Perplexity",
-                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                <Brain className="w-5 h-5 text-[var(--primary-color)]" />,
                 "LLM specializzato in ricerca e analisi di informazioni",
                 perplexityKey,
                 setPerplexityKey,
@@ -136,7 +133,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
               )}
               {renderAPIKeySection(
                 "HuggingFace",
-                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                <Cpu className="w-5 h-5 text-[var(--primary-color)]" />,
                 "Accesso a migliaia di modelli AI open source",
                 huggingfaceKey,
                 setHuggingfaceKey,
@@ -158,7 +155,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
             <div className="space-y-6 mt-4">
               {renderAPIKeySection(
                 "SerpStack",
-                <KeyRound className="w-4 h-4 text-[var(--primary-color)]" />,
+                <Search className="w-5 h-5 text-[var(--primary-color)]" />,
                 "API per ricerche web in tempo reale",
                 serpstackKey,
                 setSerpstackKey,

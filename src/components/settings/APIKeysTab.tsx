@@ -1,8 +1,14 @@
 
-import { Key } from "lucide-react";
+import { Key, Link, KeyRound, MessageSquare, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { APIKeyField } from "./api-keys/APIKeyField";
 import { useAPIKeys } from "./api-keys/useAPIKeys";
+import { Input } from "@/components/ui/input";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface APIKeysTabProps {
   onSave: () => void;
@@ -36,62 +42,124 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
     );
   }
 
+  const renderAPIKeySection = (
+    provider: string,
+    icon: React.ReactNode,
+    label: string,
+    value: string,
+    setter: (value: string) => void,
+    linkUrl: string,
+    linkText: string
+  ) => (
+    <div className="space-y-3">
+      <div className="relative">
+        <Input
+          type="password"
+          value={value}
+          onChange={(e) => handleChange(provider.toLowerCase(), e.target.value, setter)}
+          placeholder={`Inserisci la tua ${label}`}
+          className="bg-[var(--message-bg)] border-[var(--border-color)] pr-24"
+        />
+        <Button
+          onClick={() => testAPI(provider, value)}
+          disabled={!value || isTesting === provider}
+          variant="secondary"
+          size="sm"
+          className="absolute right-1 top-1 h-8"
+        >
+          {isTesting === provider ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+          ) : (
+            "Test"
+          )}
+        </Button>
+      </div>
+      <a 
+        href={linkUrl} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="inline-flex items-center text-sm text-[var(--primary-color)] hover:text-[var(--primary-hover)] transition-colors"
+      >
+        <Link className="w-3 h-3 mr-1" />
+        {linkText}
+      </a>
+    </div>
+  );
+
   return (
-    <div className="space-y-4">
-      <APIKeyField
-        label="Groq API Key"
-        value={groqKey}
-        onChange={(e) => handleChange('groq', e.target.value, setGroqKey)}
-        linkUrl="https://console.groq.com/keys"
-        linkText="Ottieni la tua Groq API Key"
-        provider="Groq"
-        onTest={testAPI}
-        isTesting={isTesting === "Groq"}
-      />
+    <div className="space-y-6">
+      <Accordion type="single" collapsible className="w-full space-y-4">
+        <AccordionItem value="llm" className="border-none">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2 text-base font-semibold text-gray-200">
+              <MessageSquare className="w-4 h-4" />
+              LLM API Keys
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-6 mt-4">
+              {renderAPIKeySection(
+                "Groq",
+                <KeyRound className="w-4 h-4" />,
+                "Groq API Key",
+                groqKey,
+                setGroqKey,
+                "https://console.groq.com/keys",
+                "Ottieni la tua Groq API Key"
+              )}
+              {renderAPIKeySection(
+                "Gemini",
+                <KeyRound className="w-4 h-4" />,
+                "Gemini API Key",
+                geminiKey,
+                setGeminiKey,
+                "https://makersuite.google.com/app/apikey",
+                "Ottieni la tua Gemini API Key"
+              )}
+              {renderAPIKeySection(
+                "Perplexity",
+                <KeyRound className="w-4 h-4" />,
+                "Perplexity API Key",
+                perplexityKey,
+                setPerplexityKey,
+                "https://docs.perplexity.ai/docs/get-started",
+                "Ottieni la tua Perplexity API Key"
+              )}
+              {renderAPIKeySection(
+                "HuggingFace",
+                <KeyRound className="w-4 h-4" />,
+                "HuggingFace API Key",
+                huggingfaceKey,
+                setHuggingfaceKey,
+                "https://huggingface.co/settings/tokens",
+                "Ottieni la tua HuggingFace API Key"
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      <APIKeyField
-        label="Gemini API Key"
-        value={geminiKey}
-        onChange={(e) => handleChange('gemini', e.target.value, setGeminiKey)}
-        linkUrl="https://makersuite.google.com/app/apikey"
-        linkText="Ottieni la tua Gemini API Key"
-        provider="Gemini"
-        onTest={testAPI}
-        isTesting={isTesting === "Gemini"}
-      />
-
-      <APIKeyField
-        label="Perplexity API Key"
-        value={perplexityKey}
-        onChange={(e) => handleChange('perplexity', e.target.value, setPerplexityKey)}
-        linkUrl="https://docs.perplexity.ai/docs/get-started"
-        linkText="Ottieni la tua Perplexity API Key"
-        provider="Perplexity"
-        onTest={testAPI}
-        isTesting={isTesting === "Perplexity"}
-      />
-
-      <APIKeyField
-        label="HuggingFace API Key"
-        value={huggingfaceKey}
-        onChange={(e) => handleChange('huggingface', e.target.value, setHuggingfaceKey)}
-        linkUrl="https://huggingface.co/settings/tokens"
-        linkText="Ottieni la tua HuggingFace API Key"
-        provider="HuggingFace"
-        onTest={testAPI}
-        isTesting={isTesting === "HuggingFace"}
-      />
-
-      <APIKeyField
-        label="SerpStack API Key"
-        value={serpstackKey}
-        onChange={(e) => handleChange('serpstack', e.target.value, setSerpstackKey)}
-        linkUrl="https://serpstack.com/dashboard"
-        linkText="Ottieni la tua SerpStack API Key"
-        provider="SerpStack"
-        onTest={testAPI}
-        isTesting={isTesting === "SerpStack"}
-      />
+        <AccordionItem value="search" className="border-none">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2 text-base font-semibold text-gray-200">
+              <Search className="w-4 h-4" />
+              Search API Keys
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-6 mt-4">
+              {renderAPIKeySection(
+                "SerpStack",
+                <KeyRound className="w-4 h-4" />,
+                "SerpStack API Key",
+                serpstackKey,
+                setSerpstackKey,
+                "https://serpstack.com/dashboard",
+                "Ottieni la tua SerpStack API Key"
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <Button 
         onClick={saveKeys} 

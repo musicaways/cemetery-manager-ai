@@ -26,3 +26,62 @@
 .avatar-hexagon {
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
+
+/* Animazioni per il registratore vocale */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.recording-pulse {
+  animation: pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Stili per i messaggi di ChatGPT */
+.theme-chatgpt .message-content {
+  @apply text-[#ECECF1] leading-relaxed;
+}
+
+.theme-chatgpt .message-container {
+  @apply border-b border-[#2A2B32];
+}
+
+.theme-chatgpt .avatar {
+  @apply w-8 h-8 rounded-sm bg-[#19C37D] flex items-center justify-center;
+}
+
+.theme-chatgpt .thinking {
+  @apply flex items-center gap-1;
+}
+
+.theme-chatgpt .thinking-dot {
+  @apply w-2 h-2 bg-[#ECECF1] rounded-full;
+  animation: bounce 1.4s infinite;
+}
+
+.theme-chatgpt .thinking-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.theme-chatgpt .thinking-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes bounce {
+  0%, 80%, 100% { 
+    transform: translateY(0);
+  }
+  40% { 
+    transform: translateY(-6px);
+  }
+}

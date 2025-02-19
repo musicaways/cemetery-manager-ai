@@ -4,17 +4,21 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-border;
+  :root {
+    --background: #F8FAFC;
+    --foreground: #1E293B;
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --secondary: #F1F5F9;
+    --secondary-transparent: rgba(241, 245, 249, 0.8);
+    --secondary-hover: rgba(241, 245, 249, 0.95);
+    --border: #E2E8F0;
+    --border-transparent: rgba(226, 232, 240, 0.5);
+    --ring: #94A3B8;
+    --input: #FFFFFF;
+    --radius: 1rem;
   }
 
-  body {
-    @apply bg-background text-foreground;
-  }
-}
-
-@layer components {
-  /* Tema Moderno (default) */
   .theme-modern {
     --background: #F8FAFC;
     --foreground: #1E293B;
@@ -30,54 +34,6 @@
     --radius: 1rem;
   }
 
-  .theme-modern .user-message {
-    @apply bg-secondary rounded-2xl px-6 py-6 text-foreground;
-  }
-
-  .theme-modern .ai-message {
-    @apply bg-[var(--secondary-transparent)] backdrop-blur-sm rounded-2xl px-6 py-6 text-foreground;
-  }
-
-  .theme-modern .chat-input {
-    @apply bg-white border border-border rounded-2xl shadow-sm;
-  }
-
-  .theme-modern .input-container {
-    @apply fixed bottom-0 left-0 right-0 px-4 py-4 bg-gradient-to-t from-background via-background to-transparent;
-  }
-
-  .theme-modern .input-wrapper {
-    @apply relative max-w-3xl mx-auto;
-  }
-
-  .theme-modern .input {
-    @apply w-full bg-white text-foreground placeholder:text-slate-400 resize-none p-4 pr-32 
-           rounded-xl outline-none max-h-[200px] overflow-y-auto;
-  }
-
-  .theme-modern .action-buttons {
-    @apply absolute left-2 bottom-2 flex items-center gap-1;
-  }
-
-  .theme-modern .action-button {
-    @apply text-slate-400 hover:text-slate-600 transition-colors;
-  }
-
-  .theme-modern .send-button {
-    @apply absolute right-2 bottom-2 bg-primary hover:bg-primary-hover text-white transition-colors;
-  }
-
-  .theme-modern .quick-actions {
-    @apply grid grid-cols-2 gap-4 max-w-2xl mx-auto mt-8;
-  }
-
-  .theme-modern .quick-action-button {
-    @apply flex items-center gap-3 p-4 rounded-2xl bg-[var(--secondary-transparent)] backdrop-blur-sm 
-           border border-[var(--border-transparent)] text-sm text-foreground hover:bg-[var(--secondary-hover)] 
-           transition-colors duration-200;
-  }
-
-  /* Tema ChatGPT */
   .theme-chatgpt {
     --background: #343541;
     --foreground: #ECECF1;
@@ -91,85 +47,63 @@
     --radius: 0.5rem;
   }
 
-  .theme-chatgpt .user-message {
-    @apply bg-transparent px-4 py-6 text-[#ECECF1];
+  * {
+    @apply border-border;
   }
 
-  .theme-chatgpt .ai-message {
-    @apply bg-[#444654] px-4 py-6 text-[#ECECF1];
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}
+
+@layer components {
+  .user-message {
+    @apply bg-secondary rounded-2xl px-6 py-6 text-foreground;
   }
 
-  .theme-chatgpt .chat-input {
-    @apply bg-[#40414F] border-0 shadow-lg;
+  .ai-message {
+    @apply bg-[var(--secondary-transparent)] backdrop-blur-sm rounded-2xl px-6 py-6 text-foreground;
   }
 
-  .theme-chatgpt .quick-actions {
-    @apply grid grid-cols-2 gap-2 max-w-2xl mx-auto mt-8;
+  .chat-input {
+    @apply bg-input border border-border rounded-2xl shadow-sm;
   }
 
-  .theme-chatgpt .quick-action-button {
-    @apply flex items-center gap-3 py-3 px-4 rounded-xl bg-[#202123]/50 border border-[#565869]/20 
-           text-sm text-[#ECECF1] hover:bg-[#202123] transition-colors duration-200;
+  .input-container {
+    @apply fixed bottom-0 left-0 right-0 px-4 py-4 bg-gradient-to-t from-background via-background to-transparent;
   }
 
-  .theme-chatgpt .action-button {
-    @apply flex items-center gap-2 p-2 rounded-md text-[#ECECF1]/60 hover:bg-[#202123] transition-colors;
+  .input-wrapper {
+    @apply relative max-w-3xl mx-auto;
   }
 
-  .theme-chatgpt .input-container {
-    @apply fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#343541] via-[#343541] to-transparent 
-           pt-6 pb-3 px-4;
+  .input {
+    @apply w-full bg-input text-foreground placeholder:text-foreground/50 resize-none p-4 pr-32 
+           rounded-xl outline-none max-h-[200px] overflow-y-auto;
   }
 
-  .theme-chatgpt .input-wrapper {
-    @apply relative max-w-3xl mx-auto bg-[#40414F] rounded-xl shadow-xl border border-[#565869]/20;
-  }
-
-  .theme-chatgpt .input {
-    @apply w-full bg-transparent text-[#ECECF1] placeholder-[#8E8EA0] p-4 pr-32 resize-none outline-none
-           max-h-[200px] overflow-y-auto;
-  }
-
-  .theme-chatgpt .send-button {
-    @apply absolute right-2 bottom-2 p-2 rounded-lg bg-[#19C37D] text-white opacity-90 
-           hover:opacity-100 disabled:opacity-50 disabled:hover:opacity-50 transition-opacity;
-  }
-
-  .theme-chatgpt .action-buttons {
+  .action-buttons {
     @apply absolute left-2 bottom-2 flex items-center gap-1;
   }
 
-  .theme-chatgpt .avatar {
-    @apply w-8 h-8 rounded flex items-center justify-center bg-[#19C37D] text-white;
+  .action-button {
+    @apply text-foreground/50 hover:text-foreground/80 transition-colors;
   }
 
-  .theme-chatgpt .message-content {
-    @apply text-[#ECECF1] text-sm leading-6 whitespace-pre-wrap;
+  .send-button {
+    @apply absolute right-2 bottom-2 bg-primary hover:bg-primary-hover text-white transition-colors;
   }
 
-  .theme-chatgpt .thinking {
-    @apply flex gap-1 items-center;
+  .quick-actions {
+    @apply grid grid-cols-2 gap-4 max-w-2xl mx-auto mt-8;
   }
 
-  .theme-chatgpt .thinking-dot {
-    @apply w-2 h-2 bg-[#ECECF1]/60 rounded-full animate-bounce;
+  .quick-action-button {
+    @apply flex items-center gap-3 p-4 rounded-2xl bg-[var(--secondary-transparent)] backdrop-blur-sm 
+           border border-[var(--border-transparent)] text-sm text-foreground hover:bg-[var(--secondary-hover)] 
+           transition-colors duration-200;
   }
-}
-
-/* Animazioni */
-@keyframes slide-up {
-  from {
-    transform: translateY(10px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.animate-slide-up {
-  animation: slide-up 0.3s ease-out;
 }
 
 /* Scrollbar personalizzate */

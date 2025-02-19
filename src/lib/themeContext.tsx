@@ -16,16 +16,29 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
-  const [theme, setTheme] = useState<'modern' | 'chatgpt'>(() => {
-    const savedTheme = localStorage.getItem('app_theme');
-    return (savedTheme as 'modern' | 'chatgpt') || 'modern';
-  });
-  const [avatarShape, setAvatarShape] = useState(() => {
-    return localStorage.getItem('avatar_shape') || 'circle';
-  });
+  const [theme, setTheme] = useState<'modern' | 'chatgpt'>('modern');
+  const [avatarShape, setAvatarShape] = useState('circle');
 
   useEffect(() => {
-    document.body.className = `theme-${theme}`;
+    // Recupera il tema salvato
+    const savedTheme = localStorage.getItem('app_theme');
+    if (savedTheme) {
+      setTheme(savedTheme as 'modern' | 'chatgpt');
+    }
+
+    // Recupera la forma dell'avatar salvata
+    const savedShape = localStorage.getItem('avatar_shape');
+    if (savedShape) {
+      setAvatarShape(savedShape);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Rimuovi tutte le classi di tema esistenti
+    document.documentElement.classList.remove('theme-modern', 'theme-chatgpt');
+    // Aggiungi la classe del tema corrente
+    document.documentElement.classList.add(`theme-${theme}`);
+    // Salva il tema nelle localStorage
     localStorage.setItem('app_theme', theme);
   }, [theme]);
 
@@ -33,16 +46,24 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
     localStorage.setItem('avatar_shape', avatarShape);
   }, [avatarShape]);
 
+  const value = {
+    theme,
+    setTheme,
+    avatarShape,
+    setAvatarShape,
+  };
+
   return (
-    <ThemeContext.Provider value={{
-      theme,
-      setTheme,
-      avatarShape,
-      setAvatarShape,
-    }}>
+    <ThemeContext.Provider value={value}>
       {children}
     </ThemeContext.Provider>
   );
 };
 
-export const useTheme = () => useContext(ThemeContext);
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  return context;
+};

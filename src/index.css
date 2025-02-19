@@ -28,15 +28,49 @@
   }
 
   .theme-modern .user-message {
-    @apply bg-[#1E293B] rounded-2xl px-6 py-6 text-gray-100;
+    @apply bg-secondary rounded-2xl px-6 py-6 text-foreground;
   }
 
   .theme-modern .ai-message {
-    @apply bg-[#1E293B]/50 backdrop-blur-sm rounded-2xl px-6 py-6 text-gray-100;
+    @apply bg-secondary/50 backdrop-blur-sm rounded-2xl px-6 py-6 text-foreground;
   }
 
   .theme-modern .chat-input {
-    @apply bg-[#1E293B] border border-[#334155] rounded-2xl shadow-lg;
+    @apply bg-secondary border border-border rounded-2xl shadow-lg;
+  }
+
+  .theme-modern .input-container {
+    @apply fixed bottom-0 left-0 right-0 px-4 py-4 bg-gradient-to-t from-background via-background to-transparent;
+  }
+
+  .theme-modern .input-wrapper {
+    @apply relative max-w-3xl mx-auto;
+  }
+
+  .theme-modern .input {
+    @apply w-full bg-secondary text-foreground placeholder:text-muted-foreground resize-none p-4 pr-32 
+           rounded-xl outline-none max-h-[200px] overflow-y-auto;
+  }
+
+  .theme-modern .action-buttons {
+    @apply absolute left-2 bottom-2 flex items-center gap-1;
+  }
+
+  .theme-modern .action-button {
+    @apply text-muted-foreground hover:text-foreground transition-colors;
+  }
+
+  .theme-modern .send-button {
+    @apply absolute right-2 bottom-2 bg-primary hover:bg-primary-hover text-white transition-colors;
+  }
+
+  .theme-modern .quick-actions {
+    @apply grid grid-cols-2 gap-4 max-w-2xl mx-auto mt-8;
+  }
+
+  .theme-modern .quick-action-button {
+    @apply flex items-center gap-3 p-4 rounded-2xl bg-secondary/50 backdrop-blur-sm border border-border/50 
+           text-sm text-foreground hover:bg-secondary/80 transition-colors duration-200;
   }
 
   /* Tema ChatGPT */
@@ -132,28 +166,12 @@
   animation: slide-up 0.3s ease-out;
 }
 
-/* Scrollbar per tema ChatGPT */
-.theme-chatgpt .custom-scrollbar {
+/* Scrollbar personalizzate */
+.custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #565869 transparent;
 }
 
-.theme-chatgpt .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-}
-
-.theme-chatgpt .custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.theme-chatgpt .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #565869;
-  border-radius: 3px;
-}
-
-/* Scrollbar per tema Moderno */
 .theme-modern .custom-scrollbar {
-  scrollbar-width: thin;
   scrollbar-color: #334155 transparent;
 }
 
@@ -168,4 +186,21 @@
 .theme-modern .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #334155;
   border-radius: 6px;
+}
+
+.theme-chatgpt .custom-scrollbar {
+  scrollbar-color: #565869 transparent;
+}
+
+.theme-chatgpt .custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.theme-chatgpt .custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.theme-chatgpt .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #565869;
+  border-radius: 3px;
 }

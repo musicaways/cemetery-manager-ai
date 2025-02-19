@@ -4,82 +4,115 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    --primary-color: #19C37D;
-    --primary-hover: #0EA36B;
-    --chat-bg: #343541;
-    --message-bg: #444654;
-    --border-color: #565869;
-    --button-radius: 0.5rem;
-    --input-bg: #40414F;
-  }
-
   * {
     @apply border-border;
   }
 
   body {
-    @apply bg-[var(--chat-bg)] text-foreground transition-colors duration-200;
+    @apply bg-background text-foreground;
   }
 }
 
 @layer components {
+  /* Tema Moderno (default) */
+  .theme-modern {
+    --background: #0F172A;
+    --foreground: #E2E8F0;
+    --primary: #2563EB;
+    --primary-hover: #1D4ED8;
+    --secondary: #1E293B;
+    --border: #334155;
+    --ring: #94A3B8;
+    --input: #1E293B;
+    --radius: 1rem;
+  }
+
+  .theme-modern .user-message {
+    @apply bg-[#1E293B] rounded-2xl px-6 py-6 text-gray-100;
+  }
+
+  .theme-modern .ai-message {
+    @apply bg-[#1E293B]/50 backdrop-blur-sm rounded-2xl px-6 py-6 text-gray-100;
+  }
+
+  .theme-modern .chat-input {
+    @apply bg-[#1E293B] border border-[#334155] rounded-2xl shadow-lg;
+  }
+
+  /* Tema ChatGPT */
   .theme-chatgpt {
-    --primary-color: #19C37D;
+    --background: #343541;
+    --foreground: #ECECF1;
+    --primary: #19C37D;
     --primary-hover: #0EA36B;
-    --chat-bg: #343541;
-    --message-bg: #444654;
-    --border-color: #565869;
-    --button-radius: 0.5rem;
-    --input-bg: #40414F;
+    --secondary: #444654;
+    --border: #565869;
+    --input: #40414F;
+    --radius: 0.5rem;
   }
 
   .theme-chatgpt .user-message {
-    @apply bg-transparent px-4 py-6 text-gray-100;
+    @apply bg-transparent px-4 py-6 text-[#ECECF1];
   }
 
   .theme-chatgpt .ai-message {
-    @apply bg-[#444654] px-4 py-6 text-gray-100;
+    @apply bg-[#444654] px-4 py-6 text-[#ECECF1];
   }
 
   .theme-chatgpt .chat-input {
-    @apply bg-[#40414F] border-0 shadow-lg rounded-xl;
+    @apply bg-[#40414F] border-0 shadow-lg;
   }
 
-  .chatgpt-button {
-    @apply flex items-center gap-3 py-3 px-4 rounded-xl bg-[#202123]/50 border border-[#565869]/20 
-           text-sm text-gray-300 hover:bg-[#202123] transition-colors duration-200;
-  }
-
-  .chatgpt-actions-button {
-    @apply flex items-center gap-2 p-2 rounded-md hover:bg-gray-800 text-gray-400 transition-colors;
-  }
-
-  .chatgpt-quick-actions {
+  .theme-chatgpt .quick-actions {
     @apply grid grid-cols-2 gap-2 max-w-2xl mx-auto mt-8;
   }
 
-  .chatgpt-input-container {
+  .theme-chatgpt .quick-action-button {
+    @apply flex items-center gap-3 py-3 px-4 rounded-xl bg-[#202123]/50 border border-[#565869]/20 
+           text-sm text-[#ECECF1] hover:bg-[#202123] transition-colors duration-200;
+  }
+
+  .theme-chatgpt .action-button {
+    @apply flex items-center gap-2 p-2 rounded-md text-[#ECECF1]/60 hover:bg-[#202123] transition-colors;
+  }
+
+  .theme-chatgpt .input-container {
     @apply fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#343541] via-[#343541] to-transparent 
            pt-6 pb-3 px-4;
   }
 
-  .chatgpt-input-wrapper {
+  .theme-chatgpt .input-wrapper {
     @apply relative max-w-3xl mx-auto bg-[#40414F] rounded-xl shadow-xl border border-[#565869]/20;
   }
 
-  .chatgpt-input {
-    @apply w-full bg-transparent text-white placeholder-gray-400 p-4 pr-32 resize-none outline-none
+  .theme-chatgpt .input {
+    @apply w-full bg-transparent text-[#ECECF1] placeholder-[#8E8EA0] p-4 pr-32 resize-none outline-none
            max-h-[200px] overflow-y-auto;
   }
 
-  .chatgpt-send-button {
+  .theme-chatgpt .send-button {
     @apply absolute right-2 bottom-2 p-2 rounded-lg bg-[#19C37D] text-white opacity-90 
            hover:opacity-100 disabled:opacity-50 disabled:hover:opacity-50 transition-opacity;
   }
 
-  .chatgpt-action-buttons {
+  .theme-chatgpt .action-buttons {
     @apply absolute left-2 bottom-2 flex items-center gap-1;
+  }
+
+  .theme-chatgpt .avatar {
+    @apply w-8 h-8 rounded flex items-center justify-center bg-[#19C37D] text-white;
+  }
+
+  .theme-chatgpt .message-content {
+    @apply text-[#ECECF1] text-sm leading-6 whitespace-pre-wrap;
+  }
+
+  .theme-chatgpt .thinking {
+    @apply flex gap-1 items-center;
+  }
+
+  .theme-chatgpt .thinking-dot {
+    @apply w-2 h-2 bg-[#ECECF1]/60 rounded-full animate-bounce;
   }
 }
 
@@ -99,21 +132,40 @@
   animation: slide-up 0.3s ease-out;
 }
 
-/* Scrollbar personalizzata */
-.chatgpt-scrollbar {
+/* Scrollbar per tema ChatGPT */
+.theme-chatgpt .custom-scrollbar {
   scrollbar-width: thin;
   scrollbar-color: #565869 transparent;
 }
 
-.chatgpt-scrollbar::-webkit-scrollbar {
+.theme-chatgpt .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
 }
 
-.chatgpt-scrollbar::-webkit-scrollbar-track {
+.theme-chatgpt .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.chatgpt-scrollbar::-webkit-scrollbar-thumb {
+.theme-chatgpt .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #565869;
   border-radius: 3px;
+}
+
+/* Scrollbar per tema Moderno */
+.theme-modern .custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #334155 transparent;
+}
+
+.theme-modern .custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.theme-modern .custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.theme-modern .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #334155;
+  border-radius: 6px;
 }

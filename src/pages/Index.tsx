@@ -97,7 +97,7 @@ const Index = () => {
         }]);
         
         if (response.error) {
-          toast.error(response.error, { duration: 2000 });
+          toast.error(response.error);
         }
       }
       
@@ -105,9 +105,7 @@ const Index = () => {
       
     } catch (error) {
       console.error("Errore dettagliato:", error);
-      toast.error("Errore durante l'elaborazione della richiesta. " + (error as Error).message, {
-        duration: 2000
-      });
+      toast.error("Errore durante l'elaborazione della richiesta");
     } finally {
       setIsProcessing(false);
       setTimeout(scrollToBottom, 100);
@@ -134,7 +132,7 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--chat-bg)] text-gray-100 overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
       <Header onSettingsClick={() => setIsSettingsOpen(true)} />
 
       <main className="container mx-auto px-4 py-4 mb-20">
@@ -160,8 +158,7 @@ const Index = () => {
           toast.success(
             !webSearchEnabled 
               ? "Modalità Internet attivata" 
-              : "Modalità Database attivata",
-            { duration: 2000 }
+              : "Modalità Database attivata"
           );
         }}
       />

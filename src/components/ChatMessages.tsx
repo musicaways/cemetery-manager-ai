@@ -67,17 +67,17 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         {messages.map((message, index) => (
           <div 
             key={index} 
-            className={`animate-slide-up ${message.type === 'response' && isChatGPT ? 'bg-[#444654]' : ''}`}
+            className={`animate-slide-up ${message.type === 'response' ? 'ai-message' : 'user-message'}`}
           >
             <div className="max-w-3xl mx-auto">
-              <div className={`flex items-start gap-4 ${isChatGPT ? 'px-4 py-6' : 'p-6'}`}>
+              <div className="flex items-start gap-4">
                 {message.type === 'response' && (
-                  <div className={isChatGPT ? 'avatar' : 'w-8 h-8 rounded-lg flex items-center justify-center bg-primary'}>
+                  <div className="w-8 h-8 rounded-sm flex items-center justify-center bg-[#19C37D]">
                     <Bot className="w-5 h-5 text-white" />
                   </div>
                 )}
                 <div className="flex-1 space-y-2">
-                  <p className={isChatGPT ? 'message-content' : 'text-foreground whitespace-pre-wrap'}>
+                  <p className="text-[#ECECF1] whitespace-pre-wrap">
                     {message.content}
                   </p>
                 </div>
@@ -87,16 +87,16 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         ))}
 
         {isProcessing && (
-          <div className={`animate-slide-up ${isChatGPT ? 'bg-[#444654]' : ''}`}>
+          <div className="ai-message">
             <div className="max-w-3xl mx-auto">
-              <div className={`flex items-start gap-4 ${isChatGPT ? 'px-4 py-6' : 'p-6'}`}>
-                <div className={isChatGPT ? 'avatar' : 'w-8 h-8 rounded-lg flex items-center justify-center bg-primary'}>
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-sm flex items-center justify-center bg-[#19C37D]">
                   <Bot className="w-5 h-5 text-white" />
                 </div>
-                <div className={isChatGPT ? 'thinking' : 'flex gap-1'}>
-                  <div className={isChatGPT ? 'thinking-dot' : 'w-2 h-2 bg-foreground/60 rounded-full animate-bounce'} style={{ animationDelay: '0ms' }}></div>
-                  <div className={isChatGPT ? 'thinking-dot' : 'w-2 h-2 bg-foreground/60 rounded-full animate-bounce'} style={{ animationDelay: '150ms' }}></div>
-                  <div className={isChatGPT ? 'thinking-dot' : 'w-2 h-2 bg-foreground/60 rounded-full animate-bounce'} style={{ animationDelay: '300ms' }}></div>
+                <div className="flex gap-1">
+                  <div className="w-2 h-2 bg-[#ECECF1]/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                  <div className="w-2 h-2 bg-[#ECECF1]/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                  <div className="w-2 h-2 bg-[#ECECF1]/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
               </div>
             </div>

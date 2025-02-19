@@ -35,8 +35,8 @@ export const ChatInput = ({
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 w-full bg-gradient-to-t from-[#343541] via-[#343541] to-transparent pb-8 pt-6">
-      <div className="mx-2 flex flex-row gap-3 last:mb-2 md:mx-4 md:last:mb-6 lg:mx-auto lg:max-w-2xl xl:max-w-3xl">
+    <div className="input-container">
+      <div className="input-wrapper">
         <div className="relative flex h-full flex-1 items-stretch md:flex-col">
           <div className="relative flex w-full flex-grow flex-col rounded-2xl border border-black/10 bg-[#40414F] shadow-[0_0_15px_rgba(0,0,0,0.1)]">
             <form onSubmit={handleSubmit} className="stretch flex flex-row gap-3">

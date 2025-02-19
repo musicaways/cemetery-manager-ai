@@ -50,12 +50,12 @@ export const ChatInput = ({
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 p-0 text-[#A8A8B3] hover:text-[#ECECF1] transition-colors"
+                    className="h-8 w-8 p-0 text-[#A8A8B3] hover:text-[#ECECF1] hover:bg-[#565869] transition-all duration-200"
                     onClick={onMediaUploadClick}
                   >
                     <Plus className="h-5 w-5" />
                   </Button>
-                  <div className="flex items-center gap-1 rounded-xl bg-[#202123]/40 px-2 py-1">
+                  <div className="flex items-center gap-1 rounded-xl bg-[#202123]/40 px-2 py-1 hover:bg-[#202123]/60 transition-colors duration-200 cursor-pointer" onClick={onWebSearchToggle}>
                     <Globe className="h-5 w-5 text-[#A8A8B3]" />
                     <span className="text-sm text-[#A8A8B3]">Cerca</span>
                   </div>

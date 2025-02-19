@@ -4,7 +4,15 @@ import { Button } from "@/components/ui/button";
 import { useTheme } from "@/lib/themeContext";
 import { toast } from "sonner";
 import { useState } from "react";
-import { MessageSquare, MessageCircle, Send, Plus } from "lucide-react";
+import { MessageSquare, MessageCircle, Send, Plus, Settings2 } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface ThemeTabProps {
   onSave: () => void;
@@ -42,190 +50,202 @@ export const ThemeTab = ({ onSave }: ThemeTabProps) => {
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-200 mb-4">
-          Seleziona Tema
-        </h3>
-        <ToggleGroup 
-          type="single" 
-          defaultValue="lovable"
-          onValueChange={handleThemeChange}
-          className="grid grid-cols-2 gap-4"
-        >
-          <ToggleGroupItem 
-            value="lovable" 
-            className="aspect-[1.4/1] relative p-4 rounded-xl bg-[#1A1F2C] border border-white/10 data-[state=on]:border-[#9b87f5] transition-all"
-          >
-            <div className="absolute inset-0 p-3">
-              <div className="h-full flex flex-col">
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="w-3/4 h-8 bg-[#2A2F3C] rounded-lg opacity-50" />
-                  <div className="w-1/2 h-8 bg-[#9b87f5]/30 rounded-lg self-end" />
+    <div className="space-y-6">
+      <Accordion type="single" collapsible className="w-full space-y-4">
+        <AccordionItem value="themes" className="border-none">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2 text-base font-semibold text-gray-200">
+              <Settings2 className="w-4 h-4" />
+              Seleziona Tema
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <div className="relative aspect-[1.2/1] group cursor-pointer" onClick={() => handleThemeChange('lovable')}>
+                <div className="absolute inset-0 rounded-lg overflow-hidden border border-white/10 transition-all duration-200 group-hover:border-[#9b87f5]">
+                  <div className="h-full p-3 bg-[#1A1F2C]">
+                    <div className="space-y-2">
+                      <div className="w-2/3 h-3 bg-[#9b87f5]/20 rounded-lg" />
+                      <div className="w-full h-3 bg-[#2A2F3C] rounded-lg" />
+                      <div className="mt-auto pt-2">
+                        <div className="h-8 bg-[#2A2F3C] rounded-lg flex items-center px-2 gap-2">
+                          <Plus className="w-3 h-3 text-[#9b87f5]" />
+                          <div className="flex-1 h-3 bg-[#3A3F4C] rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="h-10 bg-[#2A2F3C] rounded-lg mt-2 flex items-center px-3 gap-2">
-                  <Plus className="w-4 h-4 text-[#9b87f5]" />
-                  <div className="flex-1 h-5 bg-[#3A3F4C] rounded" />
-                  <MessageCircle className="w-4 h-4 text-[#9b87f5]" />
+                <span className="absolute bottom-2 left-3 text-sm font-medium text-gray-200">Lovable</span>
+              </div>
+
+              <div className="relative aspect-[1.2/1] group cursor-pointer" onClick={() => handleThemeChange('chatgpt')}>
+                <div className="absolute inset-0 rounded-lg overflow-hidden border border-white/10 transition-all duration-200 group-hover:border-[#19C37D]">
+                  <div className="h-full p-3 bg-[#343541]">
+                    <div className="space-y-2">
+                      <div className="w-2/3 h-3 bg-[#19C37D]/20 rounded" />
+                      <div className="w-full h-3 bg-[#444654] rounded" />
+                      <div className="mt-auto pt-2">
+                        <div className="h-8 bg-[#40414F] rounded flex items-center px-2 gap-2">
+                          <Plus className="w-3 h-3 text-[#19C37D]" />
+                          <div className="flex-1 h-3 bg-[#565869] rounded" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+                <span className="absolute bottom-2 left-3 text-sm font-medium text-gray-200">ChatGPT</span>
+              </div>
+
+              <div className="relative aspect-[1.2/1] group cursor-pointer" onClick={() => handleThemeChange('claude')}>
+                <div className="absolute inset-0 rounded-lg overflow-hidden border border-gray-200 transition-all duration-200 group-hover:border-[#7C3AED]">
+                  <div className="h-full p-3 bg-[#F9FAFB]">
+                    <div className="space-y-2">
+                      <div className="w-2/3 h-3 bg-[#7C3AED]/10 rounded-xl" />
+                      <div className="w-full h-3 bg-white shadow-sm rounded-xl" />
+                      <div className="mt-auto pt-2">
+                        <div className="h-8 bg-white rounded-xl shadow-sm flex items-center px-2 gap-2">
+                          <Plus className="w-3 h-3 text-[#7C3AED]" />
+                          <div className="flex-1 h-3 bg-gray-100 rounded-lg" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span className="absolute bottom-2 left-3 text-sm font-medium text-gray-900">Claude</span>
+              </div>
+
+              <div className="relative aspect-[1.2/1] group cursor-pointer" onClick={() => handleThemeChange('modern')}>
+                <div className="absolute inset-0 rounded-lg overflow-hidden border border-white/10 transition-all duration-200 group-hover:border-[#2563EB]">
+                  <div className="h-full p-3 bg-[#0F172A]">
+                    <div className="space-y-2">
+                      <div className="w-2/3 h-3 bg-[#2563EB]/20 rounded-2xl" />
+                      <div className="w-full h-3 bg-[#1E293B] rounded-2xl" />
+                      <div className="mt-auto pt-2">
+                        <div className="h-8 bg-[#1E293B] rounded-2xl flex items-center px-2 gap-2">
+                          <Plus className="w-3 h-3 text-[#2563EB]" />
+                          <div className="flex-1 h-3 bg-[#334155] rounded-xl" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <span className="absolute bottom-2 left-3 text-sm font-medium text-gray-200">Modern</span>
               </div>
             </div>
-            <div className="absolute bottom-2 left-4 text-sm font-medium text-gray-200">
-              Lovable
-            </div>
-          </ToggleGroupItem>
+          </AccordionContent>
+        </AccordionItem>
 
-          <ToggleGroupItem 
-            value="chatgpt" 
-            className="aspect-[1.4/1] relative p-4 rounded-xl bg-[#343541] border border-white/10 data-[state=on]:border-[#19C37D] transition-all"
-          >
-            <div className="absolute inset-0 p-3">
-              <div className="h-full flex flex-col">
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="w-3/4 h-8 bg-[#444654] rounded opacity-50" />
-                  <div className="w-1/2 h-8 bg-[#19C37D]/20 rounded self-end" />
-                </div>
-                <div className="h-10 bg-[#40414F] rounded-md mt-2 flex items-center px-3 gap-2">
-                  <Plus className="w-4 h-4 text-[#19C37D]" />
-                  <div className="flex-1 h-5 bg-[#565869] rounded" />
-                  <Send className="w-4 h-4 text-[#19C37D]" />
-                </div>
-              </div>
+        <AccordionItem value="layout" className="border-none">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2 text-base font-semibold text-gray-200">
+              <MessageSquare className="w-4 h-4" />
+              Densità Layout
             </div>
-            <div className="absolute bottom-2 left-4 text-sm font-medium text-gray-200">
-              ChatGPT
-            </div>
-          </ToggleGroupItem>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              <button
+                onClick={() => handleChatStyleChange('modern')}
+                className={`p-3 rounded-lg border transition-all ${
+                  chatStyle === 'modern'
+                    ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
+                    : 'bg-[var(--message-bg)] border-[var(--border-color)]'
+                }`}
+              >
+                <div className="space-y-2">
+                  <div className="w-full h-3 bg-current opacity-20 rounded" />
+                  <div className="w-2/3 h-3 bg-current opacity-20 rounded" />
+                </div>
+                <span className="text-xs font-medium mt-2 block">Comodo</span>
+              </button>
 
-          <ToggleGroupItem 
-            value="claude" 
-            className="aspect-[1.4/1] relative p-4 rounded-xl bg-[#F9FAFB] border border-gray-200 data-[state=on]:border-[#7C3AED] transition-all"
-          >
-            <div className="absolute inset-0 p-3">
-              <div className="h-full flex flex-col">
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="w-3/4 h-8 bg-white rounded-xl shadow-sm opacity-50" />
-                  <div className="w-1/2 h-8 bg-[#7C3AED]/10 rounded-xl self-end" />
+              <button
+                onClick={() => handleChatStyleChange('classic')}
+                className={`p-3 rounded-lg border transition-all ${
+                  chatStyle === 'classic'
+                    ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
+                    : 'bg-[var(--message-bg)] border-[var(--border-color)]'
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="w-full h-2 bg-current opacity-20 rounded" />
+                  <div className="w-2/3 h-2 bg-current opacity-20 rounded" />
+                  <div className="w-1/2 h-2 bg-current opacity-20 rounded" />
                 </div>
-                <div className="h-10 bg-white rounded-xl shadow-sm mt-2 flex items-center px-3 gap-2">
-                  <Plus className="w-4 h-4 text-[#7C3AED]" />
-                  <div className="flex-1 h-5 bg-gray-100 rounded-lg" />
-                  <MessageSquare className="w-4 h-4 text-[#7C3AED]" />
-                </div>
-              </div>
-            </div>
-            <div className="absolute bottom-2 left-4 text-sm font-medium text-gray-900">
-              Claude
-            </div>
-          </ToggleGroupItem>
+                <span className="text-xs font-medium mt-2 block">Classico</span>
+              </button>
 
-          <ToggleGroupItem 
-            value="modern" 
-            className="aspect-[1.4/1] relative p-4 rounded-xl bg-[#0F172A] border border-white/10 data-[state=on]:border-[#2563EB] transition-all"
-          >
-            <div className="absolute inset-0 p-3">
-              <div className="h-full flex flex-col">
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="w-3/4 h-8 bg-[#1E293B] rounded-2xl opacity-50" />
-                  <div className="w-1/2 h-8 bg-[#2563EB]/20 rounded-2xl self-end" />
+              <button
+                onClick={() => handleChatStyleChange('compact')}
+                className={`p-3 rounded-lg border transition-all ${
+                  chatStyle === 'compact'
+                    ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
+                    : 'bg-[var(--message-bg)] border-[var(--border-color)]'
+                }`}
+              >
+                <div className="space-y-1">
+                  <div className="w-full h-1.5 bg-current opacity-20 rounded" />
+                  <div className="w-2/3 h-1.5 bg-current opacity-20 rounded" />
+                  <div className="w-1/2 h-1.5 bg-current opacity-20 rounded" />
+                  <div className="w-1/3 h-1.5 bg-current opacity-20 rounded" />
                 </div>
-                <div className="h-10 bg-[#1E293B] rounded-2xl mt-2 flex items-center px-3 gap-2">
-                  <Plus className="w-4 h-4 text-[#2563EB]" />
-                  <div className="flex-1 h-5 bg-[#334155] rounded-xl" />
-                  <MessageCircle className="w-4 h-4 text-[#2563EB]" />
-                </div>
-              </div>
+                <span className="text-xs font-medium mt-2 block">Compatto</span>
+              </button>
             </div>
-            <div className="absolute bottom-2 left-4 text-sm font-medium text-gray-200">
-              Modern
-            </div>
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
+          </AccordionContent>
+        </AccordionItem>
 
-      <div>
-        <h3 className="text-lg font-semibold text-gray-200 mb-4">
-          Densità Layout
-        </h3>
-        <ToggleGroup 
-          type="single" 
-          value={chatStyle}
-          onValueChange={(value) => {
-            if (value) {
-              handleChatStyleChange(value);
-            }
-          }}
-          className="grid grid-cols-3 gap-4"
-        >
-          <ToggleGroupItem 
-            value="modern" 
-            className="p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
-          >
-            <div className="space-y-2">
-              <div className="w-full h-6 bg-current opacity-20 rounded" />
-              <div className="w-2/3 h-6 bg-current opacity-20 rounded" />
+        <AccordionItem value="avatar" className="border-none">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2 text-base font-semibold text-gray-200">
+              <MessageCircle className="w-4 h-4" />
+              Forma Avatar
             </div>
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="classic" 
-            className="p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
-          >
-            <div className="space-y-1">
-              <div className="w-full h-4 bg-current opacity-20 rounded" />
-              <div className="w-2/3 h-4 bg-current opacity-20 rounded" />
-              <div className="w-1/2 h-4 bg-current opacity-20 rounded" />
-            </div>
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="compact" 
-            className="p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
-          >
-            <div className="space-y-1">
-              <div className="w-full h-3 bg-current opacity-20 rounded" />
-              <div className="w-2/3 h-3 bg-current opacity-20 rounded" />
-              <div className="w-1/2 h-3 bg-current opacity-20 rounded" />
-              <div className="w-1/3 h-3 bg-current opacity-20 rounded" />
-            </div>
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              <button
+                onClick={() => handleAvatarShapeChange('circle')}
+                className={`aspect-square p-4 rounded-lg border transition-all ${
+                  avatarShape === 'circle'
+                    ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
+                    : 'bg-[var(--message-bg)] border-[var(--border-color)]'
+                }`}
+              >
+                <div className="w-full h-full rounded-full bg-current opacity-20" />
+              </button>
 
-      <div>
-        <h3 className="text-lg font-semibold text-gray-200 mb-4">
-          Forma Avatar
-        </h3>
-        <ToggleGroup 
-          type="single" 
-          value={avatarShape}
-          onValueChange={(value) => {
-            if (value) {
-              handleAvatarShapeChange(value);
-            }
-          }}
-          className="grid grid-cols-3 gap-4"
-        >
-          <ToggleGroupItem 
-            value="circle" 
-            className="aspect-square p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
-          >
-            <div className="w-full h-full rounded-full bg-current opacity-20" />
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="square" 
-            className="aspect-square p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
-          >
-            <div className="w-full h-full rounded-lg bg-current opacity-20" />
-          </ToggleGroupItem>
-          <ToggleGroupItem 
-            value="hexagon" 
-            className="aspect-square p-4 rounded-lg bg-[var(--message-bg)] border border-[var(--border-color)] data-[state=on]:bg-[var(--primary-color)] data-[state=on]:border-[var(--primary-color)] transition-all"
-          >
-            <div className="w-full h-full bg-current opacity-20" style={{
-              clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)"
-            }} />
-          </ToggleGroupItem>
-        </ToggleGroup>
-      </div>
+              <button
+                onClick={() => handleAvatarShapeChange('square')}
+                className={`aspect-square p-4 rounded-lg border transition-all ${
+                  avatarShape === 'square'
+                    ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
+                    : 'bg-[var(--message-bg)] border-[var(--border-color)]'
+                }`}
+              >
+                <div className="w-full h-full rounded-lg bg-current opacity-20" />
+              </button>
+
+              <button
+                onClick={() => handleAvatarShapeChange('hexagon')}
+                className={`aspect-square p-4 rounded-lg border transition-all ${
+                  avatarShape === 'hexagon'
+                    ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
+                    : 'bg-[var(--message-bg)] border-[var(--border-color)]'
+                }`}
+              >
+                <div 
+                  className="w-full h-full bg-current opacity-20"
+                  style={{
+                    clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)"
+                  }}
+                />
+              </button>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       {hasChanges && (
         <Button onClick={saveSettings} className="w-full">

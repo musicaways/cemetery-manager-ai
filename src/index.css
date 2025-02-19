@@ -16,17 +16,17 @@
 @layer components {
   /* Tema Moderno (default) */
   .theme-modern {
-    --background: #0F172A;
-    --foreground: #E2E8F0;
+    --background: #F8FAFC;
+    --foreground: #1E293B;
     --primary: #2563EB;
     --primary-hover: #1D4ED8;
-    --secondary: #1E293B;
-    --secondary-transparent: rgba(30, 41, 59, 0.5);
-    --secondary-hover: rgba(30, 41, 59, 0.8);
-    --border: #334155;
-    --border-transparent: rgba(51, 65, 85, 0.5);
+    --secondary: #F1F5F9;
+    --secondary-transparent: rgba(241, 245, 249, 0.8);
+    --secondary-hover: rgba(241, 245, 249, 0.95);
+    --border: #E2E8F0;
+    --border-transparent: rgba(226, 232, 240, 0.5);
     --ring: #94A3B8;
-    --input: #1E293B;
+    --input: #FFFFFF;
     --radius: 1rem;
   }
 
@@ -39,7 +39,7 @@
   }
 
   .theme-modern .chat-input {
-    @apply bg-secondary border border-border rounded-2xl shadow-lg;
+    @apply bg-white border border-border rounded-2xl shadow-sm;
   }
 
   .theme-modern .input-container {
@@ -51,7 +51,7 @@
   }
 
   .theme-modern .input {
-    @apply w-full bg-secondary text-foreground placeholder:text-muted-foreground resize-none p-4 pr-32 
+    @apply w-full bg-white text-foreground placeholder:text-slate-400 resize-none p-4 pr-32 
            rounded-xl outline-none max-h-[200px] overflow-y-auto;
   }
 
@@ -60,7 +60,7 @@
   }
 
   .theme-modern .action-button {
-    @apply text-muted-foreground hover:text-foreground transition-colors;
+    @apply text-slate-400 hover:text-slate-600 transition-colors;
   }
 
   .theme-modern .send-button {

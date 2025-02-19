@@ -1,4 +1,5 @@
-import { Key, Link, KeyRound, MessageSquare, Search, Bot, Sparkles, Cpu } from "lucide-react";
+
+import { Key, Link, KeyRound, MessageSquare, Search, Bot, Brain, Sparkles, Cpu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAPIKeys } from "./api-keys/useAPIKeys";
 import { Input } from "@/components/ui/input";

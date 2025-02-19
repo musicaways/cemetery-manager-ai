@@ -7,6 +7,8 @@
   :root {
     --background: #F8FAFC;
     --foreground: #1E293B;
+    --foreground-muted: rgba(30, 41, 59, 0.5);
+    --foreground-hover: rgba(30, 41, 59, 0.8);
     --primary: #2563EB;
     --primary-hover: #1D4ED8;
     --secondary: #F1F5F9;
@@ -22,6 +24,8 @@
   .theme-modern {
     --background: #F8FAFC;
     --foreground: #1E293B;
+    --foreground-muted: rgba(30, 41, 59, 0.5);
+    --foreground-hover: rgba(30, 41, 59, 0.8);
     --primary: #2563EB;
     --primary-hover: #1D4ED8;
     --secondary: #F1F5F9;
@@ -37,6 +41,8 @@
   .theme-chatgpt {
     --background: #343541;
     --foreground: #ECECF1;
+    --foreground-muted: rgba(236, 236, 241, 0.5);
+    --foreground-hover: rgba(236, 236, 241, 0.8);
     --primary: #19C37D;
     --primary-hover: #0EA36B;
     --secondary: #444654;
@@ -84,7 +90,7 @@
   }
 
   .input::placeholder {
-    @apply text-foreground opacity-50;
+    @apply text-[var(--foreground-muted)];
   }
 
   .action-buttons {
@@ -92,7 +98,7 @@
   }
 
   .action-button {
-    @apply text-foreground/50 hover:text-foreground/80 transition-colors;
+    @apply text-[var(--foreground-muted)] hover:text-[var(--foreground-hover)] transition-colors;
   }
 
   .send-button {

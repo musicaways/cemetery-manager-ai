@@ -47,7 +47,7 @@ export const ChatInput = ({
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-[#1A1F2C] border-t border-[#2A2F3C]/40 backdrop-blur-xl p-4">
+    <footer className="fixed bottom-0 left-0 right-0 bg-black border-t border-white/5 backdrop-blur-xl p-4">
       <div className="max-w-3xl mx-auto space-y-3">
         {/* Input Bar */}
         <div className="relative">
@@ -58,7 +58,7 @@ export const ChatInput = ({
               ? "Fammi qualsiasi domanda..." 
               : "Cerca informazioni su cimiteri, blocchi, loculi o defunti..."
             }
-            className="w-full bg-[#2A2F3C]/50 border border-[#3A3F4C]/50 rounded-lg px-4 py-2.5 text-gray-100 placeholder-[#8E9196] focus:outline-none focus:ring-2 focus:ring-[#9b87f5]/50"
+            className="w-full bg-black/50 rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9b87f5]/50"
             disabled={isProcessing}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -91,7 +91,7 @@ export const ChatInput = ({
               className={`h-8 w-8 p-0 rounded-full border transition-all duration-200 ${
                 webSearchEnabled 
                   ? "text-[#9b87f5] border-[#9b87f5] bg-[#9b87f5]/10" 
-                  : "text-[#8E9196] border-[#3A3F4C] hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
+                  : "text-gray-400 border-white/10 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
               }`}
               onClick={onWebSearchToggle}
               title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
@@ -102,7 +102,7 @@ export const ChatInput = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 rounded-full border border-[#3A3F4C] text-[#8E9196] hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+              className="h-8 w-8 p-0 rounded-full border border-white/10 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
               onClick={onMediaUploadClick}
             >
               <Paperclip className="h-4 w-4" />
@@ -113,14 +113,14 @@ export const ChatInput = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 rounded-full border border-[#3A3F4C] text-[#8E9196] hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+                  className="h-8 w-8 p-0 rounded-full border border-white/10 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-[#2A2F3C] border-[#3A3F4C] text-gray-100">
+              <DropdownMenuContent className="bg-black border-white/10 text-white">
                 <DropdownMenuItem 
-                  className="hover:bg-[#3A3F4C] cursor-pointer"
+                  className="hover:bg-white/5 cursor-pointer"
                   onClick={() => handleCommandSelect("/test-model")}
                 >
                   Test Modello AI

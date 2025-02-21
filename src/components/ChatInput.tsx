@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Globe, Paperclip, Function, Mic, Send } from "lucide-react";
+import { Globe, Paperclip, Settings, Mic, Send } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -112,7 +112,7 @@ export const ChatInput = ({
                 size="sm"
                 className="text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10 h-8 w-8 p-0"
               >
-                <Function className="h-4 w-4" />
+                <Settings className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="bg-[#2A2F3C] border-[#3A3F4C] text-gray-100">

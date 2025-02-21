@@ -1,7 +1,15 @@
 
-import { Send } from "lucide-react";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus, Command, Globe, Search } from "lucide-react";
+import { toast } from "sonner";
+import TextareaAutosize from 'react-textarea-autosize';
 import { VoiceRecorder } from "./VoiceRecorder";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ChatInputProps {
   query: string;
@@ -17,10 +25,22 @@ interface ChatInputProps {
 export const ChatInput = ({
   query,
   isProcessing,
+  webSearchEnabled,
   onQueryChange,
   onSubmit,
-  onVoiceRecord
+  onMediaUploadClick,
+  onVoiceRecord,
+  onWebSearchToggle
 }: ChatInputProps) => {
+  const handleCommandSelect = (command: string) => {
+    onQueryChange(command);
+    const submitEvent = new Event('submit', {
+      bubbles: true,
+      cancelable: true,
+    }) as unknown as React.FormEvent;
+    onSubmit(submitEvent);
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
@@ -28,46 +48,87 @@ export const ChatInput = ({
   };
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 w-[90%] max-w-2xl">
-      <div className="bg-[#40414F] border border-[#565869] rounded-xl px-4 py-3 flex items-center shadow-md">
-        {/* Icona Microfono */}
-        <VoiceRecorder 
-          onRecordingComplete={onVoiceRecord}
-          className="p-2 rounded-md hover:bg-[#565869] transition"
-        />
+    <footer className="fixed bottom-0 left-0 right-0 bg-[#1A1F2C] border-t border-[#2A2F3C]/40 backdrop-blur-xl p-3">
+      <div className="max-w-3xl mx-auto flex items-center space-x-2">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-[#8E9196] hover:text-[#9b87f5] h-8 w-8"
+          onClick={onMediaUploadClick}
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
 
-        {/* Campo di Input */}
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => onQueryChange(e.target.value)}
-          placeholder="Messaggio a ChatGPT..."
-          className="flex-1 bg-transparent text-[#ECECF1] placeholder-[#A8A8B3] outline-none px-3"
-          disabled={isProcessing}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-              e.preventDefault();
-              handleSubmit(e);
-            }
-          }}
-        />
+        <Button
+          variant="ghost"
+          size="icon"
+          className={`h-8 w-8 transition-colors ${
+            webSearchEnabled 
+              ? "text-[#9b87f5]" 
+              : "text-[#8E9196] hover:text-[#9b87f5]"
+          }`}
+          onClick={onWebSearchToggle}
+          title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
+        >
+          <Globe className="h-4 w-4" />
+        </Button>
 
-        {/* Icona Invio */}
-        {query.trim() && (
-          <button
-            disabled={!query.trim() || isProcessing}
-            className={`p-2 rounded-md transition-all duration-200 ${
-              query.trim() && !isProcessing ? "opacity-100 hover:rotate-12" : "opacity-50"
-            }`}
-            onClick={(e) => handleSubmit(e)}
-          >
-            <Send className="w-5 h-5 text-[#A8A8B3] hover:text-white" />
-          </button>
-        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-[#8E9196] hover:text-[#9b87f5] h-8 w-8"
+            >
+              <Command className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="bg-[#2A2F3C] border-[#3A3F4C] text-gray-100">
+            <DropdownMenuItem 
+              className="hover:bg-[#3A3F4C] cursor-pointer"
+              onClick={() => handleCommandSelect("/test-model")}
+            >
+              Test Modello AI
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <div className="flex-1">
+          <form onSubmit={handleSubmit}>
+            <div className="flex items-center space-x-2 p-2 bg-[#2A2F3C]/50 rounded-lg border border-[#3A3F4C]/50">
+              <TextareaAutosize
+                value={query}
+                onChange={(e) => onQueryChange(e.target.value)}
+                placeholder={webSearchEnabled 
+                  ? "Fammi qualsiasi domanda..." 
+                  : "Cerca informazioni su cimiteri, blocchi, loculi o defunti..."
+                }
+                className="flex-1 bg-transparent outline-none placeholder-[#8E9196] text-gray-100 resize-none min-h-[36px] max-h-[120px] py-1"
+                disabled={isProcessing}
+                maxRows={4}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSubmit(e);
+                  }
+                }}
+              />
+              {query.trim() && (
+                <Button 
+                  type="submit" 
+                  size="sm" 
+                  className="bg-[#9b87f5] hover:bg-[#7E69AB] text-white h-8"
+                  disabled={isProcessing}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </form>
+        </div>
+
+        <VoiceRecorder onRecordingComplete={onVoiceRecord} />
       </div>
-      <div className="px-3 pt-2 text-center text-xs text-[#8E8EA0]">
-        ChatGPT può commettere errori. Considera di verificare le informazioni importanti.
-      </div>
-    </div>
+    </footer>
   );
 };

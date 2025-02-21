@@ -1,8 +1,8 @@
-import { Key, Link, KeyRound, MessageSquare, Search, Bot, Brain, Sparkles, Cpu } from "lucide-react";
+
+import { Key, Link, KeyRound, MessageSquare, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAPIKeys } from "./api-keys/useAPIKeys";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
 import {
   Accordion,
   AccordionContent,
@@ -45,29 +45,19 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
   const renderAPIKeySection = (
     provider: string,
     icon: React.ReactNode,
-    description: string,
+    label: string,
     value: string,
     setter: (value: string) => void,
     linkUrl: string,
-    linkText: string,
-    isLast: boolean = false
+    linkText: string
   ) => (
     <div className="space-y-3">
-      <div className="flex items-start gap-3">
-        <div className="text-[var(--primary-color)]">
-          {icon}
-        </div>
-        <div>
-          <h3 className="text-sm font-medium text-gray-200">{provider}</h3>
-          <p className="text-xs text-gray-400">{description}</p>
-        </div>
-      </div>
       <div className="relative">
         <Input
           type="password"
           value={value}
           onChange={(e) => handleChange(provider.toLowerCase(), e.target.value, setter)}
-          placeholder={`Inserisci qui la tua chiave API ${provider}`}
+          placeholder={`Inserisci la tua ${label}`}
           className="bg-[var(--message-bg)] border-[var(--border-color)] pr-24"
         />
         <Button
@@ -93,13 +83,12 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
         <Link className="w-3 h-3 mr-1" />
         {linkText}
       </a>
-      {!isLast && <Separator className="my-4 bg-[var(--border-color)] opacity-50" />}
     </div>
   );
 
   return (
-    <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
-      <Accordion type="single" collapsible defaultValue="llm" className="w-full space-y-4">
+    <div className="space-y-6">
+      <Accordion type="single" collapsible className="w-full space-y-4">
         <AccordionItem value="llm" className="border-none">
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-2 text-base font-semibold text-gray-200">
@@ -111,8 +100,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
             <div className="space-y-6 mt-4">
               {renderAPIKeySection(
                 "Groq",
-                <Bot className="w-5 h-5 text-[var(--primary-color)]" />,
-                "Modello LLM veloce e performante, ottimo per generazione di testo e chat",
+                <KeyRound className="w-4 h-4" />,
+                "Groq API Key",
                 groqKey,
                 setGroqKey,
                 "https://console.groq.com/keys",
@@ -120,8 +109,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
               )}
               {renderAPIKeySection(
                 "Gemini",
-                <Sparkles className="w-5 h-5 text-[var(--primary-color)]" />,
-                "LLM di Google, supporta analisi di immagini e generazione di testo",
+                <KeyRound className="w-4 h-4" />,
+                "Gemini API Key",
                 geminiKey,
                 setGeminiKey,
                 "https://makersuite.google.com/app/apikey",
@@ -129,8 +118,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
               )}
               {renderAPIKeySection(
                 "Perplexity",
-                <Brain className="w-5 h-5 text-[var(--primary-color)]" />,
-                "LLM specializzato in ricerca e analisi di informazioni",
+                <KeyRound className="w-4 h-4" />,
+                "Perplexity API Key",
                 perplexityKey,
                 setPerplexityKey,
                 "https://docs.perplexity.ai/docs/get-started",
@@ -138,13 +127,12 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
               )}
               {renderAPIKeySection(
                 "HuggingFace",
-                <Cpu className="w-5 h-5 text-[var(--primary-color)]" />,
-                "Accesso a migliaia di modelli AI open source",
+                <KeyRound className="w-4 h-4" />,
+                "HuggingFace API Key",
                 huggingfaceKey,
                 setHuggingfaceKey,
                 "https://huggingface.co/settings/tokens",
-                "Ottieni la tua HuggingFace API Key",
-                true
+                "Ottieni la tua HuggingFace API Key"
               )}
             </div>
           </AccordionContent>
@@ -161,13 +149,12 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
             <div className="space-y-6 mt-4">
               {renderAPIKeySection(
                 "SerpStack",
-                <Search className="w-5 h-5 text-[var(--primary-color)]" />,
-                "API per ricerche web in tempo reale",
+                <KeyRound className="w-4 h-4" />,
+                "SerpStack API Key",
                 serpstackKey,
                 setSerpstackKey,
                 "https://serpstack.com/dashboard",
-                "Ottieni la tua SerpStack API Key",
-                true
+                "Ottieni la tua SerpStack API Key"
               )}
             </div>
           </AccordionContent>

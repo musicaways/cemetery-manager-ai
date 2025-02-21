@@ -9,6 +9,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 
 interface AITabProps {
   onSave: () => void;
@@ -29,33 +30,8 @@ export const AITab = ({ onSave }: AITabProps) => {
     saveSettings
   } = useAISettings(onSave);
 
-  const renderProviderCard = (providerId: string, name: string, description: string, icon: React.ReactNode) => (
-    <button
-      onClick={() => handleProviderChange(providerId)}
-      className={`p-4 rounded-lg border transition-all ${
-        provider === providerId
-          ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
-          : 'bg-[var(--message-bg)] border-[var(--border-color)] hover:border-[var(--primary-color)] hover:border-opacity-50'
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        <div className={provider === providerId ? 'text-white' : 'text-[var(--primary-color)]'}>
-          {icon}
-        </div>
-        <div className="text-left">
-          <span className={`text-sm font-medium block ${provider === providerId ? 'text-white' : 'text-gray-200'}`}>
-            {name}
-          </span>
-          <p className={`text-xs mt-1 ${provider === providerId ? 'text-white/90' : 'text-gray-400'}`}>
-            {description}
-          </p>
-        </div>
-      </div>
-    </button>
-  );
-
   return (
-    <div className="space-y-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+    <div className="space-y-6">
       <Accordion type="single" collapsible className="w-full space-y-4">
         <AccordionItem value="provider" className="border-none">
           <AccordionTrigger className="hover:no-underline">
@@ -65,25 +41,42 @@ export const AITab = ({ onSave }: AITabProps) => {
             </div>
           </AccordionTrigger>
           <AccordionContent>
-            <div className="grid gap-3 mt-4">
-              {renderProviderCard(
-                'groq',
-                'Groq',
-                'Provider veloce e performante, ottimo per elaborazione di testo',
-                <Cpu className="w-5 h-5" />
-              )}
-              {renderProviderCard(
-                'gemini',
-                'Gemini',
-                'Servizio AI di Google con supporto multimodale',
-                <Bot className="w-5 h-5" />
-              )}
-              {renderProviderCard(
-                'huggingface',
-                'HuggingFace',
-                'Accesso a migliaia di modelli open source',
-                <Bot className="w-5 h-5" />
-              )}
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              <button
+                onClick={() => handleProviderChange('groq')}
+                className={`p-4 rounded-lg border transition-all ${
+                  provider === 'groq'
+                    ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
+                    : 'bg-[var(--message-bg)] border-[var(--border-color)]'
+                }`}
+              >
+                <Cpu className="w-5 h-5 mx-auto mb-2" />
+                <span className="text-sm font-medium block">Groq</span>
+              </button>
+
+              <button
+                onClick={() => handleProviderChange('gemini')}
+                className={`p-4 rounded-lg border transition-all ${
+                  provider === 'gemini'
+                    ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
+                    : 'bg-[var(--message-bg)] border-[var(--border-color)]'
+                }`}
+              >
+                <Bot className="w-5 h-5 mx-auto mb-2" />
+                <span className="text-sm font-medium block">Gemini</span>
+              </button>
+
+              <button
+                onClick={() => handleProviderChange('huggingface')}
+                className={`p-4 rounded-lg border transition-all ${
+                  provider === 'huggingface'
+                    ? 'bg-[var(--primary-color)] border-[var(--primary-color)]'
+                    : 'bg-[var(--message-bg)] border-[var(--border-color)]'
+                }`}
+              >
+                <Bot className="w-5 h-5 mx-auto mb-2" />
+                <span className="text-sm font-medium block">HuggingFace</span>
+              </button>
             </div>
           </AccordionContent>
         </AccordionItem>

@@ -81,50 +81,54 @@ export const ChatInput = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-center gap-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`h-8 w-8 p-0 transition-colors ${
-              webSearchEnabled 
-                ? "text-[#9b87f5] bg-[#9b87f5]/10" 
-                : "text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10"
-            }`}
-            onClick={onWebSearchToggle}
-            title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
-          >
-            <Globe className="h-4 w-4" />
-          </Button>
+        <div className="flex items-center justify-between w-full">
+          {/* Left-aligned buttons */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`h-8 w-8 p-0 transition-colors ${
+                webSearchEnabled 
+                  ? "text-[#9b87f5] bg-[#9b87f5]/10" 
+                  : "text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10"
+              }`}
+              onClick={onWebSearchToggle}
+              title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
+            >
+              <Globe className="h-4 w-4" />
+            </Button>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10 h-8 w-8 p-0"
-            onClick={onMediaUploadClick}
-          >
-            <Paperclip className="h-4 w-4" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10 h-8 w-8 p-0"
+              onClick={onMediaUploadClick}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10 h-8 w-8 p-0"
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="bg-[#2A2F3C] border-[#3A3F4C] text-gray-100">
-              <DropdownMenuItem 
-                className="hover:bg-[#3A3F4C] cursor-pointer"
-                onClick={() => handleCommandSelect("/test-model")}
-              >
-                Test Modello AI
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10 h-8 w-8 p-0"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-[#2A2F3C] border-[#3A3F4C] text-gray-100">
+                <DropdownMenuItem 
+                  className="hover:bg-[#3A3F4C] cursor-pointer"
+                  onClick={() => handleCommandSelect("/test-model")}
+                >
+                  Test Modello AI
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
+          {/* Right-aligned voice recorder */}
           <VoiceRecorder 
             onRecordingComplete={onVoiceRecord}
           />

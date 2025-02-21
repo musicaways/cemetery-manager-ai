@@ -78,7 +78,7 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
           className="relative h-10 w-10 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:text-red-400"
           onClick={stopRecording}
         >
-          <div className="absolute inset-0 rounded-full animate-ping bg-red-500/20" />
+          <div className="absolute inset-0 rounded-full animate-ping bg-red-500/20" style={{ animationDirection: 'reverse' }} />
           <MicOff className="h-5 w-5 relative z-10" />
           <span className="sr-only">Interrompi registrazione</span>
         </Button>

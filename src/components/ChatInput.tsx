@@ -72,8 +72,9 @@ export const ChatInput = ({
               type="submit" 
               size="sm"
               onClick={handleSubmit}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-[#9b87f5] hover:bg-[#7E69AB] text-white h-8 w-8 p-0"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9b87f5] hover:text-[#7E69AB] h-8 w-8 p-0"
               disabled={isProcessing}
+              variant="ghost"
             >
               <Send className="h-4 w-4" />
             </Button>
@@ -87,10 +88,10 @@ export const ChatInput = ({
             <Button
               variant="ghost"
               size="sm"
-              className={`h-8 w-8 p-0 transition-colors ${
+              className={`h-8 w-8 p-0 rounded-full border transition-all duration-200 ${
                 webSearchEnabled 
-                  ? "text-[#9b87f5] bg-[#9b87f5]/10" 
-                  : "text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10"
+                  ? "text-[#9b87f5] border-[#9b87f5] bg-[#9b87f5]/10" 
+                  : "text-[#8E9196] border-[#3A3F4C] hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
               }`}
               onClick={onWebSearchToggle}
               title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
@@ -101,7 +102,7 @@ export const ChatInput = ({
             <Button
               variant="ghost"
               size="sm"
-              className="text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10 h-8 w-8 p-0"
+              className="h-8 w-8 p-0 rounded-full border border-[#3A3F4C] text-[#8E9196] hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
               onClick={onMediaUploadClick}
             >
               <Paperclip className="h-4 w-4" />
@@ -112,7 +113,7 @@ export const ChatInput = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-[#8E9196] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10 h-8 w-8 p-0"
+                  className="h-8 w-8 p-0 rounded-full border border-[#3A3F4C] text-[#8E9196] hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
                 >
                   <Settings className="h-4 w-4" />
                 </Button>

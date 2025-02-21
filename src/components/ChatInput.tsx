@@ -58,7 +58,7 @@ export const ChatInput = ({
               ? "Fammi qualsiasi domanda..." 
               : "Cerca informazioni su cimiteri, blocchi, loculi o defunti..."
             }
-            className="w-full bg-black/50 rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#9b87f5]/50"
+            className="w-full bg-[#1A1A1A] rounded-lg px-4 py-2.5 text-white placeholder-gray-400 focus:outline-none"
             disabled={isProcessing}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -88,10 +88,10 @@ export const ChatInput = ({
             <Button
               variant="ghost"
               size="sm"
-              className={`h-8 w-8 p-0 rounded-full border transition-all duration-200 ${
+              className={`h-8 w-8 p-0 rounded-full border-2 transition-all duration-200 ${
                 webSearchEnabled 
                   ? "text-[#9b87f5] border-[#9b87f5] bg-[#9b87f5]/10" 
-                  : "text-gray-400 border-white/10 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
+                  : "text-gray-400 border-white/20 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
               }`}
               onClick={onWebSearchToggle}
               title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
@@ -102,7 +102,7 @@ export const ChatInput = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 rounded-full border border-white/10 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
               onClick={onMediaUploadClick}
             >
               <Paperclip className="h-4 w-4" />
@@ -113,7 +113,7 @@ export const ChatInput = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 rounded-full border border-white/10 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+                  className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
                 >
                   <Settings className="h-4 w-4" />
                 </Button>

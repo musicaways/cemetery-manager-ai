@@ -70,36 +70,36 @@ export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
   };
 
   return (
-    <div className="flex items-center space-x-2">
-      {isRecording ? (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-10 w-10 rounded-full bg-red-500/10 text-red-500 hover:bg-red-500/20 hover:text-red-400"
-          onClick={stopRecording}
-        >
-          <div className="absolute inset-0 rounded-full animate-ping bg-red-500/20" style={{ animationDirection: 'reverse' }} />
-          <MicOff className="h-5 w-5 relative z-10" />
-          <span className="sr-only">Interrompi registrazione</span>
-        </Button>
-      ) : (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-10 w-10 rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 hover:text-blue-400 transition-all duration-200"
-          onClick={startRecording}
-        >
-          <Mic className="h-5 w-5" />
-          <span className="sr-only">Avvia registrazione vocale</span>
-        </Button>
-      )}
-      
+    <div className="relative flex items-center">
       {isRecording && (
-        <div className="flex items-center space-x-2 bg-gray-800/50 px-3 py-1 rounded-full border border-gray-700/50">
-          <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-          <span className="text-sm text-gray-400">{duration}s</span>
+        <div className="absolute right-full mr-2 flex items-center space-x-2 bg-[#333333]/50 px-3 py-1 rounded-full border border-[#9b87f5]/20">
+          <div className="w-2 h-2 rounded-full bg-[#9b87f5] animate-[pulse_1.5s_ease-in-out_infinite]" />
+          <span className="text-sm text-[#9b87f5]">{duration}s</span>
         </div>
       )}
+      
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={isRecording ? stopRecording : startRecording}
+        className={`relative h-8 w-8 rounded-full transition-all duration-200 ${
+          isRecording 
+            ? "border-2 border-[#9b87f5] bg-[#9b87f5]/10 text-[#9b87f5]"
+            : "border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
+        }`}
+      >
+        {isRecording && (
+          <div className="absolute inset-0 rounded-full animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] bg-[#9b87f5]/30" />
+        )}
+        {isRecording ? (
+          <MicOff className="h-4 w-4 relative z-10" />
+        ) : (
+          <Mic className="h-4 w-4" />
+        )}
+        <span className="sr-only">
+          {isRecording ? "Interrompi registrazione" : "Avvia registrazione vocale"}
+        </span>
+      </Button>
     </div>
   );
 };

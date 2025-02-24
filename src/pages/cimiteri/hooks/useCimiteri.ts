@@ -19,10 +19,10 @@ export const useCimiteri = () => {
           foto:CimiteroFoto(*),
           documenti:CimiteroDocumenti(*),
           mappe:CimiteroMappe(*)
-        `);
+        `)
+        .order('Descrizione', { ascending: true });
 
       if (cimiteriError) throw cimiteriError;
-      console.log("Loaded cemeteries:", cimiteriData);
       setCimiteri(cimiteriData || []);
       return cimiteriData;
     } catch (error: any) {

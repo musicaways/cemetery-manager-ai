@@ -1,3 +1,4 @@
+
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,7 +17,6 @@ interface ChatMessage {
 
 const Index = () => {
   const [query, setQuery] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -27,7 +27,6 @@ const Index = () => {
 
   const handleSearch = (searchText: string) => {
     if (!searchText.trim()) return;
-    setSearchQuery(searchText);
     
     const foundElement = messages.findIndex(message => 
       message.content.toLowerCase().includes(searchText.toLowerCase())
@@ -139,6 +138,8 @@ const Index = () => {
     const scrollArea = scrollAreaRef.current?.querySelector('.scroll-area-viewport');
     if (!scrollArea) return;
 
+    let scrollTimeout: NodeJS.Timeout;
+
     const handleScroll = () => {
       scrollArea.classList.add('scrolling');
       clearTimeout(scrollTimeout);
@@ -167,7 +168,6 @@ const Index = () => {
           onQuestionSelect={(q) => handleSubmit(undefined, q)}
           scrollAreaRef={scrollAreaRef}
           messagesEndRef={messagesEndRef}
-          searchQuery={searchQuery}
         />
       </main>
 

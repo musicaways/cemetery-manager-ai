@@ -5,7 +5,6 @@ import {
   Sheet,
   SheetContent,
   SheetHeader,
-  SheetTitle,
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
@@ -32,16 +31,13 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
             <SheetTrigger asChild>
               <Button
                 variant="ghost"
-                size="icon"
-                className="text-[var(--primary-color)] hover:text-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 h-10 w-10"
+                size="sm"
+                className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
               >
-                <Menu className="h-5 w-5" />
+                <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-80 bg-black border-r border-[#2A2F3C]/40">
-              <SheetHeader>
-                <SheetTitle className="text-white">Assistente Cimiteriale</SheetTitle>
-              </SheetHeader>
               <div className="mt-4 space-y-4">
                 <div className="space-y-2">
                   <SheetClose asChild>

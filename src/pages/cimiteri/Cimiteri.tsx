@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -7,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Image, ImagePlus, MapPin, FileText, Info, Save, Edit2, MapPinned } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { MediaUpload } from "@/components/MediaUpload";
 
 interface Cimitero {
   Id: number;
@@ -58,6 +58,7 @@ export const Cimiteri = () => {
   const [editMode, setEditMode] = useState(false);
   const [editedData, setEditedData] = useState<Partial<Cimitero>>({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   const loadCimiteri = async () => {
     try {
@@ -130,6 +131,24 @@ export const Cimiteri = () => {
     }));
   };
 
+  const handleUploadComplete = async (url: string) => {
+    if (!selectedCimitero) return;
+    
+    try {
+      const { error } = await supabase
+        .from("Cimitero")
+        .update({ FotoCopertina: url })
+        .eq("Id", selectedCimitero.Id);
+
+      if (error) throw error;
+
+      toast.success("Foto di copertina aggiornata");
+      loadCimiteri();
+    } catch (error: any) {
+      toast.error("Errore durante l'aggiornamento della foto: " + error.message);
+    }
+  };
+
   const filteredCimiteri = cimiteri.filter(cimitero =>
     cimitero.Descrizione?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     cimitero.Codice?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -150,7 +169,7 @@ export const Cimiteri = () => {
           <div
             key={cimitero.Id}
             onClick={() => setSelectedCimitero(cimitero)}
-            className="group relative bg-black/40 backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 hover:border-[var(--primary-color)] transition-all duration-300 cursor-pointer hover:scale-[0.98]"
+            className="group relative bg-[#1A1F2C] backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 hover:border-[var(--primary-color)] transition-all duration-300 cursor-pointer hover:scale-[0.98]"
           >
             <div className="aspect-video relative overflow-hidden">
               {(cimitero.FotoCopertina || cimitero.foto?.[0]?.Url) ? (
@@ -168,7 +187,7 @@ export const Cimiteri = () => {
             </div>
 
             <div className="p-4">
-              <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">
+              <h3 className="text-xl font-semibold text-white mb-2 line-clamp-1">
                 {cimitero.Descrizione || "Nome non specificato"}
               </h3>
               <div className="flex items-center text-sm text-gray-400">
@@ -185,6 +204,10 @@ export const Cimiteri = () => {
                   <MapPinned className="w-4 h-4 mr-1" />
                   <span>{cimitero.settori?.length || 0}</span>
                 </div>
+                <div className="flex items-center text-gray-400">
+                  <FileText className="w-4 h-4 mr-1" />
+                  <span>{cimitero.documenti?.length || 0}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -196,7 +219,7 @@ export const Cimiteri = () => {
         setEditMode(false);
       }}>
         <DialogContent className="max-w-4xl bg-[#1A1F2C] border-gray-800 p-0">
-          <div className="relative aspect-[21/9] overflow-hidden">
+          <div className="relative aspect-[21/9] overflow-hidden group">
             {(selectedCimitero?.FotoCopertina || selectedCimitero?.foto?.[0]?.Url) ? (
               <img
                 src={selectedCimitero?.FotoCopertina || selectedCimitero?.foto?.[0]?.Url}
@@ -209,6 +232,15 @@ export const Cimiteri = () => {
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] to-transparent" />
+            {editMode && (
+              <Button
+                onClick={() => setIsUploadOpen(true)}
+                className="absolute top-4 right-4 bg-black/60 hover:bg-black/80"
+              >
+                <ImagePlus className="w-4 h-4 mr-2" />
+                Cambia foto
+              </Button>
+            )}
           </div>
 
           <ScrollArea className="h-[60vh]">
@@ -291,10 +323,91 @@ export const Cimiteri = () => {
                   )}
                 </div>
 
-                {/* Settori */}
+                {/* Galleria Foto */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center">
+                    <Image className="w-5 h-5 mr-2" />
+                    Galleria Foto
+                  </h3>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                    {selectedCimitero?.foto?.map((foto) => (
+                      <div key={foto.Id} className="relative group aspect-video rounded-lg overflow-hidden">
+                        <img
+                          src={foto.Url}
+                          alt={foto.Descrizione || "Foto cimitero"}
+                          className="w-full h-full object-cover"
+                        />
+                        {foto.Descrizione && (
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">
+                            <p className="text-white text-sm text-center">{foto.Descrizione}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Documenti */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center">
+                    <FileText className="w-5 h-5 mr-2" />
+                    Documenti
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedCimitero?.documenti?.map((doc) => (
+                      <a
+                        key={doc.Id}
+                        href={doc.Url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center p-4 bg-black/20 rounded-lg hover:bg-black/30 transition-colors"
+                      >
+                        <FileText className="w-8 h-8 text-[var(--primary-color)] mr-3" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium line-clamp-1">{doc.NomeFile}</p>
+                          {doc.Descrizione && (
+                            <p className="text-sm text-gray-400 line-clamp-1">{doc.Descrizione}</p>
+                          )}
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Mappe */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold flex items-center">
                     <MapPin className="w-5 h-5 mr-2" />
+                    Mappe
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {selectedCimitero?.mappe?.map((mappa) => (
+                      <a
+                        key={mappa.Id}
+                        href={mappa.Url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block aspect-[4/3] relative group rounded-lg overflow-hidden"
+                      >
+                        <img
+                          src={mappa.Url}
+                          alt={mappa.Descrizione || "Mappa cimitero"}
+                          className="w-full h-full object-cover"
+                        />
+                        {mappa.Descrizione && (
+                          <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">
+                            <p className="text-white text-sm text-center">{mappa.Descrizione}</p>
+                          </div>
+                        )}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Settori */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center">
+                    <MapPinned className="w-5 h-5 mr-2" />
                     Settori
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -314,6 +427,12 @@ export const Cimiteri = () => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      <MediaUpload 
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        onUpload={handleUploadComplete}
+      />
     </div>
   );
 };

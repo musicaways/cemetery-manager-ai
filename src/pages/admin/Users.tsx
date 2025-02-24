@@ -21,15 +21,20 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Check, Ban, Save, Edit2, X } from "lucide-react";
 
+type UserRole = 'admin' | 'read_write' | 'read_only';
+
+type TablePermission = {
+  role: UserRole;
+};
+
 type UserProfile = {
   id: string;
   email: string;
   full_name: string;
   status: 'pending' | 'active' | 'banned';
   created_at: string;
+  table_permissions: TablePermission[];
 };
-
-type UserRole = 'admin' | 'read_write' | 'read_only';
 
 type UserUpdate = {
   id: string;

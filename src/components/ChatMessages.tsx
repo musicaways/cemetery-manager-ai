@@ -1,3 +1,4 @@
+
 import { Skull, Copy, MoreHorizontal, MessageCircle } from "lucide-react";
 import { SuggestedQuestions } from "./SuggestedQuestions";
 import { ResultsList } from "./ResultsList";
@@ -64,11 +65,11 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
   return (
     <ScrollArea 
       ref={scrollAreaRef}
-      className="h-[calc(100vh-8.5rem)] rounded-lg"
+      className="h-[calc(100vh-8.5rem)]"
     >
-      <div className="max-w-5xl mx-auto px-2 sm:px-4 space-y-8">
+      <div className="space-y-6">
         {messages.length === 0 && !isProcessing && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6 animate-fade-in px-4">
             <div className="text-center space-y-2">
               <div className="w-12 h-12 mx-auto bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
                 <MessageCircle className="w-6 h-6 text-white" />
@@ -81,25 +82,25 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         )}
 
         {messages.map((message, index) => (
-          <div key={index} className="animate-fade-in space-y-6">
+          <div key={index} data-message-index={index} className="animate-fade-in px-2">
             {message.type === 'query' && (
               <div className="flex justify-end">
-                <div className="max-w-[85%] sm:max-w-[80%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-4 border border-[var(--primary-color)]/30 backdrop-blur-sm">
+                <div className="max-w-[95%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-4 border border-[var(--primary-color)]/30 backdrop-blur-sm">
                   <p className="text-gray-100 whitespace-pre-wrap">{message.content}</p>
                 </div>
               </div>
             )}
             
             {message.type === 'response' && (
-              <div className="space-y-4 max-w-full">
+              <div className="space-y-4 max-w-[95%]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm transform hover:scale-105 transition-all duration-200">
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
                     <MessageCircle className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold text-gray-200">Assistente AI</span>
                     <span className="text-xs text-gray-400">
-                      {format(message.timestamp || new Date(), "d MMMM yyyy, HH:mm", { locale: it })}
+                      {message.timestamp ? format(message.timestamp, "d MMMM yyyy, HH:mm", { locale: it }) : ''}
                     </span>
                   </div>
                 </div>
@@ -159,7 +160,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         ))}
 
         {isProcessing && (
-          <div className="flex items-start space-x-3">
+          <div className="flex items-start space-x-3 px-2">
             <div className="w-10 h-10 bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
               <MessageCircle className="w-5 h-5 text-white" />
             </div>

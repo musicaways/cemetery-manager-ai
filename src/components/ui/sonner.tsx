@@ -14,10 +14,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
       expand={true}
       closeButton={true}
       richColors={true}
-      className="toaster group"
+      className="toaster group fixed top-4"
       toastOptions={{
         classNames: {
-          toast: "group toast group-[.toaster]:bg-[var(--message-bg)] group-[.toaster]:bg-opacity-95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:shadow-lg group-[.toaster]:rounded-xl group-[.toaster]:z-[100] group-[.toaster]:min-h-[60px] group-[.toaster]:max-w-[420px] group-[.toaster]:border-none group-[.toaster]:!mt-4",
+          toast: "group toast group-[.toaster]:bg-[var(--message-bg)] group-[.toaster]:bg-opacity-95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:shadow-lg group-[.toaster]:rounded-xl group-[.toaster]:border-none group-[.toaster]:min-h-[60px] group-[.toaster]:max-w-[420px] group-[.toaster]:mb-4",
           title: "group-[.toast]:text-white group-[.toast]:font-medium group-[.toast]:text-sm",
           description: "group-[.toast]:text-gray-200 group-[.toast]:text-sm group-[.toast]:leading-relaxed",
           actionButton: "group-[.toast]:bg-[var(--primary-color)] group-[.toast]:text-primary-foreground",

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -102,7 +101,8 @@ export const RelationDialog = ({
     }
   };
 
-  const otherTables = tables.filter(
+  // Rimuoviamo il filtro delle tabelle per mostrare tutte le tabelle disponibili
+  const availableTables = tables.filter(
     (table) => table.table_name !== currentTable.table_name
   );
 
@@ -128,7 +128,7 @@ export const RelationDialog = ({
 
         <RelationFields
           currentTable={currentTable}
-          otherTables={otherTables}
+          otherTables={availableTables}
           selectedColumn={selectedColumn}
           selectedTable={selectedTable}
           selectedForeignColumn={selectedForeignColumn}

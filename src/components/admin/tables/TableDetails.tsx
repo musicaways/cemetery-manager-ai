@@ -1,3 +1,4 @@
+
 import { TableInfo } from "@/types/database";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -111,6 +112,28 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
     setIsEditRelationOpen(true);
   };
 
+  const handleDeleteRelation = async (relation: any) => {
+    if (window.confirm(`Sei sicuro di voler eliminare la relazione tra ${table.table_name}.${relation.column} e ${relation.foreign_table}.${relation.foreign_column}?`)) {
+      try {
+        const dropConstraintSQL = `
+          ALTER TABLE "${table.table_name}"
+          DROP CONSTRAINT IF EXISTS "${relation.name}";
+        `;
+
+        const { error } = await supabase.rpc('execute_sql', {
+          sql: dropConstraintSQL
+        });
+
+        if (error) throw error;
+
+        toast.success("Relazione eliminata con successo");
+        onTableDeleted();
+      } catch (error: any) {
+        toast.error(`Errore: ${error.message}`);
+      }
+    }
+  };
+
   return (
     <TooltipProvider>
       <div className="space-y-4">
@@ -131,6 +154,7 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
         <RelationsSection
           relations={table.foreign_keys || []}
           onEditRelation={handleEditRelation}
+          onDeleteRelation={handleDeleteRelation}
         />
 
         <AddEditColumnDialog

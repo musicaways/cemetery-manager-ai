@@ -1,14 +1,15 @@
 
 import { Button } from "@/components/ui/button";
-import { Link2, Pencil } from "lucide-react";
+import { Link2, Pencil, Trash2 } from "lucide-react";
 import { ForeignKeyInfo } from "@/types/database";
 
 interface RelationsSectionProps {
   relations: ForeignKeyInfo[];
   onEditRelation: (relation: ForeignKeyInfo) => void;
+  onDeleteRelation: (relation: ForeignKeyInfo) => void;
 }
 
-export const RelationsSection = ({ relations, onEditRelation }: RelationsSectionProps) => {
+export const RelationsSection = ({ relations, onEditRelation, onDeleteRelation }: RelationsSectionProps) => {
   if (!relations?.length) return null;
   
   return (
@@ -19,7 +20,7 @@ export const RelationsSection = ({ relations, onEditRelation }: RelationsSection
       </h3>
       <div className="space-y-2">
         {relations.map((relation, index) => (
-          <div key={index} className="text-sm text-white flex items-center gap-2">
+          <div key={index} className="text-sm text-white flex items-center justify-between gap-2 pr-2">
             <Button
               variant="ghost"
               size="sm"
@@ -31,6 +32,14 @@ export const RelationsSection = ({ relations, onEditRelation }: RelationsSection
               <span className="text-gray-500">→</span>
               <span className="text-[var(--primary-color)]">{relation.foreign_table}</span>
               <span className="text-gray-500">({relation.foreign_column})</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-gray-400 hover:text-red-500"
+              onClick={() => onDeleteRelation(relation)}
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         ))}

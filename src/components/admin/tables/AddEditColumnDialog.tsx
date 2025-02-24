@@ -55,7 +55,6 @@ export const AddEditColumnDialog = ({
         return;
       }
 
-      // Validazione del nome della colonna
       if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(columnName)) {
         toast.error("Il nome della colonna può contenere solo lettere, numeri e underscore, e deve iniziare con una lettera");
         return;
@@ -137,7 +136,7 @@ export const AddEditColumnDialog = ({
               <SelectTrigger className="col-span-3 bg-[#2A2F3C] border-[#4F46E5] text-white">
                 <SelectValue placeholder="Seleziona un tipo" />
               </SelectTrigger>
-              <SelectContent className="bg-[#2A2F3C] border-[#4F46E5]">
+              <SelectContent>
                 {dataTypes.map((type) => (
                   <SelectItem 
                     key={type.value} 

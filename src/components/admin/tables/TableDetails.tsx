@@ -19,11 +19,17 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
   const [isAddColumnOpen, setIsAddColumnOpen] = useState(false);
   const [isEditColumnOpen, setIsEditColumnOpen] = useState(false);
   const [isAddRelationOpen, setIsAddRelationOpen] = useState(false);
+  const [isEditRelationOpen, setIsEditRelationOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState<{
     name: string;
     type: string;
     isNullable: boolean;
     defaultValue: string | null;
+  } | null>(null);
+  const [selectedRelation, setSelectedRelation] = useState<{
+    column: string;
+    foreign_table: string;
+    foreign_column: string;
   } | null>(null);
 
   const handleCopyColumnName = (columnName: string) => {
@@ -99,6 +105,11 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
     }
   };
 
+  const handleEditRelation = (relation: any) => {
+    setSelectedRelation(relation);
+    setIsEditRelationOpen(true);
+  };
+
   const renderRelations = () => {
     if (!table.foreign_keys?.length) return null;
     
@@ -111,10 +122,18 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
         <div className="space-y-2">
           {table.foreign_keys.map((fk, index) => (
             <div key={index} className="text-sm text-white flex items-center gap-2">
-              <span className="text-gray-400">{fk.column}</span>
-              <span className="text-gray-500">→</span>
-              <span className="text-[var(--primary-color)]">{fk.foreign_table}</span>
-              <span className="text-gray-500">({fk.foreign_column})</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:text-[var(--primary-color)]"
+                onClick={() => handleEditRelation(fk)}
+              >
+                <Pencil className="h-4 w-4 mr-2" />
+                <span className="text-gray-400">{fk.column}</span>
+                <span className="text-gray-500">→</span>
+                <span className="text-[var(--primary-color)]">{fk.foreign_table}</span>
+                <span className="text-gray-500">({fk.foreign_column})</span>
+              </Button>
             </div>
           ))}
         </div>
@@ -231,6 +250,7 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
           open={isAddColumnOpen}
           onClose={() => setIsAddColumnOpen(false)}
           tableName={table.table_name}
+          onColumnModified={onTableDeleted}
         />
 
         <AddEditColumnDialog
@@ -241,6 +261,7 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
           }}
           tableName={table.table_name}
           columnToEdit={selectedColumn || undefined}
+          onColumnModified={onTableDeleted}
         />
 
         <RelationDialog
@@ -248,6 +269,19 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
           onClose={() => setIsAddRelationOpen(false)}
           currentTable={table}
           tables={tables}
+          onRelationModified={onTableDeleted}
+        />
+
+        <RelationDialog
+          open={isEditRelationOpen}
+          onClose={() => {
+            setIsEditRelationOpen(false);
+            setSelectedRelation(null);
+          }}
+          currentTable={table}
+          tables={tables}
+          relationToEdit={selectedRelation || undefined}
+          onRelationModified={onTableDeleted}
         />
       </div>
     </TooltipProvider>

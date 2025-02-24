@@ -71,10 +71,10 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         {messages.length === 0 && !isProcessing && (
           <div className="space-y-6 animate-fade-in px-4">
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 mx-auto bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
-                <MessageCircle className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 mx-auto bg-[#8B5CF6] rounded-lg flex items-center justify-center">
+                <MessageCircle className="w-5 h-5 text-white" />
               </div>
-              <h2 className="text-2xl font-semibold">Come posso aiutarti?</h2>
+              <h2 className="text-lg font-semibold">Come posso aiutarti?</h2>
               <p className="text-sm text-gray-400">Usa /test-model per verificare il modello AI in uso</p>
             </div>
             <SuggestedQuestions onSelect={onQuestionSelect} />
@@ -85,29 +85,29 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
           <div key={index} data-message-index={index} className="animate-fade-in px-2">
             {message.type === 'query' && (
               <div className="flex justify-end">
-                <div className="max-w-[95%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-4 border border-[var(--primary-color)]/30 backdrop-blur-sm">
-                  <p className="text-gray-100 whitespace-pre-wrap">{message.content}</p>
+                <div className="max-w-[95%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-3 border border-[var(--primary-color)]/30 backdrop-blur-sm">
+                  <p className="text-sm text-gray-100 whitespace-pre-wrap">{message.content}</p>
                 </div>
               </div>
             )}
             
             {message.type === 'response' && (
-              <div className="space-y-4 max-w-[95%]">
+              <div className="space-y-3 max-w-[95%]">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
-                    <MessageCircle className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 bg-[#8B5CF6] rounded-lg flex items-center justify-center">
+                    <MessageCircle className="w-4 h-4 text-white" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-gray-200">Assistente AI</span>
+                    <span className="text-sm font-medium text-gray-200">Assistente AI</span>
                     <span className="text-xs text-gray-400">
-                      {message.timestamp ? format(message.timestamp, "d MMMM yyyy, HH:mm", { locale: it }) : ''}
+                      {format(message.timestamp || new Date(), "d MMMM yyyy, HH:mm", { locale: it })}
                     </span>
                   </div>
                 </div>
                 
                 <div className="relative group">
                   <div 
-                    className="text-gray-200 leading-relaxed whitespace-pre-wrap break-words"
+                    className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap break-words"
                     onMouseDown={() => handleMouseDown(index)}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
@@ -130,13 +130,13 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="bg-[#1A1F2C] border border-white/10 text-white">
                       <DropdownMenuItem 
-                        className="hover:bg-white/5 cursor-pointer"
+                        className="hover:bg-white/5 cursor-pointer text-sm"
                         onClick={() => handleCopyMessage(message.content)}
                       >
                         Copia testo
                       </DropdownMenuItem>
                       <DropdownMenuItem 
-                        className="hover:bg-white/5 cursor-pointer"
+                        className="hover:bg-white/5 cursor-pointer text-sm"
                         onClick={() => onQuestionSelect(message.content)}
                       >
                         Ripeti domanda
@@ -147,7 +147,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
 
                 {message.data && (
                   <div className="bg-[#2A2F3C]/80 rounded-lg p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg">
-                    <h3 className="text-lg font-semibold mb-4 text-gray-100">Risultati</h3>
+                    <h3 className="text-sm font-semibold mb-3 text-gray-100">Risultati</h3>
                     <ResultsList 
                       data={message.data}
                       type={determineResultType(message.content)}
@@ -161,14 +161,14 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
 
         {isProcessing && (
           <div className="flex items-start space-x-3 px-2">
-            <div className="w-10 h-10 bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
-              <MessageCircle className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-[#8B5CF6] rounded-lg flex items-center justify-center">
+              <MessageCircle className="w-4 h-4 text-white" />
             </div>
             <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
             </div>
           </div>

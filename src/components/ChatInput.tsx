@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Globe, Paperclip, Settings, Mic, SendHorizonal } from "lucide-react";
 import { toast } from "sonner";
+import TextareaAutosize from "react-textarea-autosize";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -47,15 +48,15 @@ export const ChatInput = ({
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ position: "sticky" }}>
+    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4">
       <div className="max-w-3xl mx-auto space-y-3">
         {/* Input Bar */}
-        <div className="relative flex items-center">
-          <textarea
+        <div className="relative flex items-start">
+          <TextareaAutosize
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Chiedi qualcosa..."
-            className="w-full bg-[#333333] text-white placeholder-gray-400 focus:outline-none resize-none min-h-[24px] max-h-[120px] overflow-y-auto"
+            className="w-full bg-[#333333] text-white placeholder-gray-400 focus:outline-none resize-none pr-12 transition-all duration-200 ease-in-out"
             style={{ textAlign: 'left' }}
             disabled={isProcessing}
             onKeyDown={(e) => {
@@ -64,14 +65,15 @@ export const ChatInput = ({
                 handleSubmit(e);
               }
             }}
-            rows={1}
+            minRows={1}
+            maxRows={5}
           />
           {query.trim() && (
             <Button 
               type="submit" 
               size="sm"
               onClick={handleSubmit}
-              className="absolute right-0 text-[#9b87f5] hover:text-[#7E69AB] h-8 w-8 p-0"
+              className="absolute right-0 top-0 h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
               disabled={isProcessing}
               variant="ghost"
             >

@@ -1,11 +1,13 @@
 
-import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell } from "lucide-react";
+import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetTrigger,
   SheetClose,
+  SheetHeader,
+  SheetTitle,
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
@@ -28,6 +30,15 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/auth");
+  };
+
+  const deleteNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  };
+
+  const clearAllNotifications = () => {
+    setNotifications([]);
+    toast.success("Tutte le notifiche sono state cancellate");
   };
 
   return (
@@ -131,13 +142,29 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-80 bg-black border-l border-[#2A2F3C]/40">
-                <div className="mt-4 space-y-4">
-                  <h2 className="text-lg font-semibold text-white">Notifiche</h2>
-                  <div className="space-y-2">
-                    {notifications.map((notification) => (
+                <SheetHeader className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <SheetTitle className="text-lg font-semibold text-white">Notifiche</SheetTitle>
+                    {notifications.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearAllNotifications}
+                        className="h-8 w-8 p-0 rounded-full text-gray-400 hover:text-red-500"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </SheetHeader>
+                <div className="mt-4 space-y-2">
+                  {notifications.length === 0 ? (
+                    <p className="text-sm text-gray-400 text-center py-4">Nessuna notifica</p>
+                  ) : (
+                    notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className={`p-3 rounded-lg border ${
+                        className={`relative p-3 rounded-lg border group ${
                           notification.type === 'error' 
                             ? 'bg-red-500/10 border-red-500/20' 
                             : 'bg-[#2A2F3C] border-white/10'
@@ -145,9 +172,17 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
                       >
                         <h3 className="font-medium text-sm text-white">{notification.title}</h3>
                         <p className="text-sm text-gray-400 mt-1">{notification.message}</p>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => deleteNotification(notification.id)}
+                          className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
-                    ))}
-                  </div>
+                    ))
+                  )}
                 </div>
               </SheetContent>
             </Sheet>

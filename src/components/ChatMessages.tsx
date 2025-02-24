@@ -1,4 +1,4 @@
-import { Skull, Copy, MoreHorizontal } from "lucide-react";
+import { Skull, Copy, MoreHorizontal, MessageCircle } from "lucide-react";
 import { SuggestedQuestions } from "./SuggestedQuestions";
 import { ResultsList } from "./ResultsList";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -71,7 +71,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
           <div className="space-y-6 animate-fade-in">
             <div className="text-center space-y-2">
               <div className="w-12 h-12 mx-auto bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
-                <Skull className="w-6 h-6 text-white" />
+                <MessageCircle className="w-6 h-6 text-white" />
               </div>
               <h2 className="text-2xl font-semibold">Come posso aiutarti?</h2>
               <p className="text-sm text-gray-400">Usa /test-model per verificare il modello AI in uso</p>
@@ -93,8 +93,8 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
             {message.type === 'response' && (
               <div className="space-y-4 max-w-full">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm transform hover:scale-105 transition-all duration-200">
-                    <Skull className="w-5 h-5 text-white" />
+                  <div className="w-10 h-10 bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm transform hover:scale-105 transition-all duration-200">
+                    <MessageCircle className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold text-gray-200">Assistente AI</span>
@@ -160,8 +160,8 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
 
         {isProcessing && (
           <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
-              <Skull className="w-5 h-5 text-white" />
+            <div className="w-10 h-10 bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
+              <MessageCircle className="w-5 h-5 text-white" />
             </div>
             <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm">
               <div className="flex items-center space-x-2">

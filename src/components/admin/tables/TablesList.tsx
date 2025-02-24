@@ -1,15 +1,33 @@
 
+import { useState } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { TableInfo } from "@/types/database";
 import TableDetails from "./TableDetails";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { CreateTableDialog } from "./CreateTableDialog";
 
 interface TablesListProps {
   tables: TableInfo[];
+  onTableChange: () => void;
 }
 
-export const TablesList = ({ tables }: TablesListProps) => {
+export const TablesList = ({ tables, onTableChange }: TablesListProps) => {
+  const [isCreateTableOpen, setIsCreateTableOpen] = useState(false);
+
   return (
     <div className="space-y-4">
+      <div className="flex justify-end">
+        <Button
+          variant="default"
+          onClick={() => setIsCreateTableOpen(true)}
+          className="bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Nuova Tabella
+        </Button>
+      </div>
+
       {tables.map((table) => (
         <Accordion type="single" collapsible key={table.table_name}>
           <AccordionItem value={table.table_name} className="bg-[#1A1F2C] rounded-lg border border-[#2A2F3C]/40">
@@ -27,11 +45,20 @@ export const TablesList = ({ tables }: TablesListProps) => {
               </div>
             </AccordionTrigger>
             <AccordionContent className="px-4 pb-4">
-              <TableDetails table={table} />
+              <TableDetails 
+                table={table} 
+                tables={tables} 
+                onTableDeleted={onTableChange}
+              />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
       ))}
+
+      <CreateTableDialog
+        open={isCreateTableOpen}
+        onClose={() => setIsCreateTableOpen(false)}
+      />
     </div>
   );
 };

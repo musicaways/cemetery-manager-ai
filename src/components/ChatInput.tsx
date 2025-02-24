@@ -20,6 +20,7 @@ interface ChatInputProps {
   onMediaUploadClick: () => void;
   onVoiceRecord: (text: string) => void;
   onWebSearchToggle: () => void;
+  onFunctionsClick: () => void;
 }
 
 export const ChatInput = ({
@@ -30,7 +31,8 @@ export const ChatInput = ({
   onSubmit,
   onMediaUploadClick,
   onVoiceRecord,
-  onWebSearchToggle
+  onWebSearchToggle,
+  onFunctionsClick
 }: ChatInputProps) => {
   const handleCommandSelect = (command: string) => {
     onQueryChange(command);
@@ -115,6 +117,7 @@ export const ChatInput = ({
                   variant="ghost"
                   size="sm"
                   className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+                  onClick={onFunctionsClick}
                 >
                   <Settings className="h-4 w-4" />
                 </Button>

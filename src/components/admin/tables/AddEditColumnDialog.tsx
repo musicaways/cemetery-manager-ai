@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -20,6 +19,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 interface AddEditColumnDialogProps {
   open: boolean;
@@ -51,13 +51,26 @@ export const AddEditColumnDialog = ({
         return;
       }
 
-      // Costruisci la query SQL
-      const operation = columnToEdit ? "ALTER" : "ADD";
-      const query = columnToEdit
-        ? `ALTER TABLE "${tableName}" ALTER COLUMN "${columnName}" TYPE ${columnType};
-           ALTER TABLE "${tableName}" ${isNullable ? 'DROP NOT NULL' : 'SET NOT NULL'};
-           ALTER TABLE "${tableName}" ALTER COLUMN "${columnName}" ${defaultValue ? `SET DEFAULT ${defaultValue}` : 'DROP DEFAULT'};`
-        : `ALTER TABLE "${tableName}" ADD COLUMN "${columnName}" ${columnType}${isNullable ? '' : ' NOT NULL'}${defaultValue ? ` DEFAULT ${defaultValue}` : ''};`;
+      let sql = '';
+      if (columnToEdit) {
+        sql = `
+          ALTER TABLE "${tableName}" 
+          ALTER COLUMN "${columnName}" TYPE ${columnType} USING "${columnName}"::${columnType},
+          ALTER COLUMN "${columnName}" ${isNullable ? 'DROP NOT NULL' : 'SET NOT NULL'},
+          ALTER COLUMN "${columnName}" ${defaultValue ? `SET DEFAULT ${defaultValue}` : 'DROP DEFAULT'};
+        `;
+      } else {
+        sql = `
+          ALTER TABLE "${tableName}" 
+          ADD COLUMN "${columnName}" ${columnType}
+          ${isNullable ? '' : 'NOT NULL'}
+          ${defaultValue ? `DEFAULT ${defaultValue}` : ''};
+        `;
+      }
+
+      const { error } = await supabase.rpc('execute_sql', { sql });
+
+      if (error) throw error;
 
       toast.success(`Colonna ${columnToEdit ? 'modificata' : 'aggiunta'} con successo`);
       onClose();

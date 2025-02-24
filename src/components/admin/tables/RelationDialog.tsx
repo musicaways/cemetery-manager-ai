@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
 import { TableInfo } from "@/types/database";
+import { supabase } from "@/lib/supabase";
 
 interface RelationDialogProps {
   open: boolean;
@@ -44,11 +44,17 @@ export const RelationDialog = ({
         return;
       }
 
-      // Costruisci la query SQL
-      const query = `ALTER TABLE "${currentTable.table_name}"
-        ADD CONSTRAINT "fk_${currentTable.table_name}_${selectedTable}_${selectedColumn}"
-        FOREIGN KEY ("${selectedColumn}")
-        REFERENCES "${selectedTable}"("${selectedForeignColumn}");`;
+      const { error } = await supabase.rpc('execute_sql', {
+        sql: `
+          ALTER TABLE "${currentTable.table_name}"
+          ADD CONSTRAINT "fk_${currentTable.table_name}_${selectedTable}_${selectedColumn}"
+          FOREIGN KEY ("${selectedColumn}")
+          REFERENCES "${selectedTable}"("${selectedForeignColumn}")
+          ON DELETE CASCADE;
+        `
+      });
+
+      if (error) throw error;
 
       toast.success("Relazione creata con successo");
       onClose();

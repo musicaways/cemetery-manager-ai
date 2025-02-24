@@ -19,12 +19,12 @@ export const TablesList = ({ tables, onTableChange }: TablesListProps) => {
     <div className="space-y-4">
       <div className="flex justify-end">
         <Button
-          variant="default"
+          variant="ghost"
           onClick={() => setIsCreateTableOpen(true)}
-          className="bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90"
+          className="text-[var(--primary-color)] hover:bg-[var(--primary-color)]/10 hover:text-[var(--primary-color)] transition-all duration-200 rounded-full h-8 px-3"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Nuova Tabella
+          <Plus className="h-3.5 w-3.5 mr-1.5" />
+          <span className="text-sm font-medium">Nuova tabella</span>
         </Button>
       </div>
 

@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -58,7 +57,12 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
   const handleDeleteTable = async () => {
     if (window.confirm(`Sei sicuro di voler eliminare la tabella ${table.table_name}?`)) {
       try {
-        const query = `DROP TABLE "${table.table_name}";`;
+        const { error } = await supabase.rpc('execute_sql', {
+          sql: `DROP TABLE IF EXISTS "${table.table_name}" CASCADE;`
+        });
+
+        if (error) throw error;
+
         toast.success("Tabella eliminata con successo");
         onTableDeleted();
       } catch (error: any) {
@@ -80,7 +84,12 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
   const handleDeleteColumn = async (columnName: string) => {
     if (window.confirm(`Sei sicuro di voler eliminare la colonna ${columnName}?`)) {
       try {
-        const query = `ALTER TABLE "${table.table_name}" DROP COLUMN "${columnName}";`;
+        const { error } = await supabase.rpc('execute_sql', {
+          sql: `ALTER TABLE "${table.table_name}" DROP COLUMN IF EXISTS "${columnName}";`
+        });
+
+        if (error) throw error;
+
         toast.success("Colonna eliminata con successo");
         onTableDeleted();
       } catch (error: any) {

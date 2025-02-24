@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 interface CreateTableDialogProps {
   open: boolean;
@@ -28,12 +28,20 @@ export const CreateTableDialog = ({ open, onClose }: CreateTableDialogProps) => 
         return;
       }
 
-      // Costruisci la query SQL
-      const query = `CREATE TABLE "${tableName}" (
-        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      );`;
+      const { error } = await supabase.rpc('execute_sql', {
+        sql: `CREATE TABLE "${tableName}" (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        CREATE TRIGGER update_${tableName}_updated_at
+          BEFORE UPDATE ON "${tableName}"
+          FOR EACH ROW
+          EXECUTE FUNCTION update_updated_at_column();`
+      });
+
+      if (error) throw error;
 
       toast.success("Tabella creata con successo");
       onClose();

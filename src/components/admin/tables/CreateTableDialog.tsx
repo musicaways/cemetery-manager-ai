@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -16,10 +17,12 @@ import { supabase } from "@/integrations/supabase/client";
 interface CreateTableDialogProps {
   open: boolean;
   onClose: () => void;
+  onTableCreated?: () => void;
 }
 
-export const CreateTableDialog = ({ open, onClose }: CreateTableDialogProps) => {
+export const CreateTableDialog = ({ open, onClose, onTableCreated }: CreateTableDialogProps) => {
   const [tableName, setTableName] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     try {
@@ -28,6 +31,14 @@ export const CreateTableDialog = ({ open, onClose }: CreateTableDialogProps) => 
         return;
       }
 
+      // Validazione del nome della tabella
+      if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tableName)) {
+        toast.error("Il nome della tabella può contenere solo lettere, numeri e underscore, e deve iniziare con una lettera");
+        return;
+      }
+
+      setLoading(true);
+      
       const { error } = await supabase.rpc('execute_sql', {
         sql: `CREATE TABLE "${tableName}" (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -44,9 +55,13 @@ export const CreateTableDialog = ({ open, onClose }: CreateTableDialogProps) => 
       if (error) throw error;
 
       toast.success("Tabella creata con successo");
+      setTableName("");
+      onTableCreated?.();
       onClose();
     } catch (error: any) {
       toast.error(`Errore: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,30 +71,31 @@ export const CreateTableDialog = ({ open, onClose }: CreateTableDialogProps) => 
         <DialogHeader>
           <DialogTitle>Crea Nuova Tabella</DialogTitle>
           <DialogDescription>
-            Crea una nuova tabella nel database. Verranno automaticamente aggiunti
+            Inserisci il nome della nuova tabella. Verranno automaticamente aggiunti
             i campi id, created_at e updated_at.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right">
-              Nome
+              Nome Tabella
             </Label>
             <Input
               id="name"
               value={tableName}
-              onChange={(e) => setTableName(e.target.value)}
+              onChange={(e) => setTableName(e.target.value.toLowerCase())}
               className="col-span-3"
               placeholder="nome_tabella"
+              disabled={loading}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
             Annulla
           </Button>
-          <Button type="button" onClick={handleSubmit}>
-            Crea
+          <Button type="button" onClick={handleSubmit} disabled={loading}>
+            {loading ? "Creazione..." : "Crea"}
           </Button>
         </DialogFooter>
       </DialogContent>

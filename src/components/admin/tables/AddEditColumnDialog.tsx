@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,6 +26,7 @@ interface AddEditColumnDialogProps {
   open: boolean;
   onClose: () => void;
   tableName: string;
+  onColumnModified?: () => void;
   columnToEdit?: {
     name: string;
     type: string;
@@ -38,11 +40,13 @@ export const AddEditColumnDialog = ({
   onClose,
   tableName,
   columnToEdit,
+  onColumnModified,
 }: AddEditColumnDialogProps) => {
   const [columnName, setColumnName] = useState(columnToEdit?.name || "");
   const [columnType, setColumnType] = useState(columnToEdit?.type || "text");
   const [isNullable, setIsNullable] = useState(columnToEdit?.isNullable || false);
   const [defaultValue, setDefaultValue] = useState(columnToEdit?.defaultValue || "");
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
     try {
@@ -50,6 +54,14 @@ export const AddEditColumnDialog = ({
         toast.error("Il nome della colonna è obbligatorio");
         return;
       }
+
+      // Validazione del nome della colonna
+      if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(columnName)) {
+        toast.error("Il nome della colonna può contenere solo lettere, numeri e underscore, e deve iniziare con una lettera");
+        return;
+      }
+
+      setLoading(true);
 
       let sql = '';
       if (columnToEdit) {
@@ -73,11 +85,25 @@ export const AddEditColumnDialog = ({
       if (error) throw error;
 
       toast.success(`Colonna ${columnToEdit ? 'modificata' : 'aggiunta'} con successo`);
+      onColumnModified?.();
       onClose();
     } catch (error: any) {
       toast.error(`Errore: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
+
+  const dataTypes = [
+    { value: "text", label: "Testo" },
+    { value: "integer", label: "Numero intero" },
+    { value: "decimal", label: "Numero decimale" },
+    { value: "boolean", label: "Booleano" },
+    { value: "date", label: "Data" },
+    { value: "timestamp", label: "Data e ora" },
+    { value: "jsonb", label: "JSON" },
+    { value: "uuid", label: "UUID" },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -98,25 +124,25 @@ export const AddEditColumnDialog = ({
             <Input
               id="name"
               value={columnName}
-              onChange={(e) => setColumnName(e.target.value)}
+              onChange={(e) => setColumnName(e.target.value.toLowerCase())}
               className="col-span-3"
+              disabled={loading}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="type" className="text-right">
               Tipo
             </Label>
-            <Select value={columnType} onValueChange={setColumnType}>
+            <Select value={columnType} onValueChange={setColumnType} disabled={loading}>
               <SelectTrigger className="col-span-3">
                 <SelectValue placeholder="Seleziona un tipo" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="text">Text</SelectItem>
-                <SelectItem value="integer">Integer</SelectItem>
-                <SelectItem value="boolean">Boolean</SelectItem>
-                <SelectItem value="timestamp">Timestamp</SelectItem>
-                <SelectItem value="uuid">UUID</SelectItem>
-                <SelectItem value="jsonb">JSONB</SelectItem>
+                {dataTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -124,11 +150,14 @@ export const AddEditColumnDialog = ({
             <Label htmlFor="nullable" className="text-right">
               Nullable
             </Label>
-            <Switch
-              id="nullable"
-              checked={isNullable}
-              onCheckedChange={setIsNullable}
-            />
+            <div className="col-span-3">
+              <Switch
+                id="nullable"
+                checked={isNullable}
+                onCheckedChange={setIsNullable}
+                disabled={loading}
+              />
+            </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="default" className="text-right">
@@ -140,15 +169,16 @@ export const AddEditColumnDialog = ({
               onChange={(e) => setDefaultValue(e.target.value)}
               className="col-span-3"
               placeholder="Valore di default"
+              disabled={loading}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={onClose}>
+          <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
             Annulla
           </Button>
-          <Button type="button" onClick={handleSubmit}>
-            {columnToEdit ? "Salva" : "Aggiungi"}
+          <Button type="button" onClick={handleSubmit} disabled={loading}>
+            {loading ? (columnToEdit ? "Salvataggio..." : "Aggiunta...") : (columnToEdit ? "Salva" : "Aggiungi")}
           </Button>
         </DialogFooter>
       </DialogContent>

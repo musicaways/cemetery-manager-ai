@@ -252,19 +252,37 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          numero: string
+          numero: number
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
-          numero: string
+          numero: number
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
-          numero?: string
+          numero?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      provaelenco: {
+        Row: {
+          created_at: string | null
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
           updated_at?: string | null
         }
         Relationships: []

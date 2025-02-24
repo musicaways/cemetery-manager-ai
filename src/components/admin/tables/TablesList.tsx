@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { TableInfo } from "@/types/database";
 import TableDetails from "./TableDetails";
@@ -12,23 +12,14 @@ interface TablesListProps {
   onTableChange: () => void;
 }
 
+// Ottimizziamo il rendering del componente AccordionContent
+const MemoizedTableDetails = memo(TableDetails);
+
 export const TablesList = ({ tables, onTableChange }: TablesListProps) => {
   const [isCreateTableOpen, setIsCreateTableOpen] = useState(false);
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Button
-          onClick={() => setIsCreateTableOpen(true)}
-          variant="default"
-          size="sm"
-          className="bg-[#4F46E5] hover:bg-[#4F46E5]/90"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Nuova Tabella
-        </Button>
-      </div>
-
+    <div className="space-y-4 relative pb-20">
       <div className="grid gap-4">
         {tables.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
@@ -52,7 +43,7 @@ export const TablesList = ({ tables, onTableChange }: TablesListProps) => {
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
-                  <TableDetails 
+                  <MemoizedTableDetails 
                     table={table} 
                     tables={tables} 
                     onTableDeleted={onTableChange}
@@ -64,6 +55,17 @@ export const TablesList = ({ tables, onTableChange }: TablesListProps) => {
         )}
       </div>
 
+      <div className="fixed bottom-8 right-8">
+        <Button
+          onClick={() => setIsCreateTableOpen(true)}
+          size="sm"
+          className="bg-[#4F46E5] hover:bg-[#4F46E5]/90 shadow-lg rounded-full w-12 h-12 p-0 transition-transform hover:scale-105"
+        >
+          <Plus className="h-5 w-5" />
+          <span className="sr-only">Aggiungi tabella</span>
+        </Button>
+      </div>
+
       <CreateTableDialog
         open={isCreateTableOpen}
         onClose={() => setIsCreateTableOpen(false)}
@@ -73,4 +75,4 @@ export const TablesList = ({ tables, onTableChange }: TablesListProps) => {
   );
 };
 
-export default TablesList;
+export default memo(TablesList);

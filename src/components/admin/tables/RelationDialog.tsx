@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { TableInfo } from "@/types/database";
 import { supabase } from "@/integrations/supabase/client";
@@ -47,6 +47,20 @@ export const RelationDialog = ({
   const [selectedForeignColumn, setSelectedForeignColumn] = useState(relationToEdit?.foreign_column || "");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    if (!open) {
+      setSelectedColumn("");
+      setSelectedTable("");
+      setSelectedForeignColumn("");
+    }
+  }, [open]);
+
+  const isPrimaryKey = (column: any) => {
+    return column.is_pk || 
+           (column.column_default?.includes('nextval') && column.is_nullable === false) ||
+           column.column_name === 'id'; // Consideriamo anche le colonne chiamate "id" come potenziali chiavi primarie
+  };
+
   const handleSubmit = async () => {
     try {
       if (!selectedColumn || !selectedTable || !selectedForeignColumn) {
@@ -56,32 +70,46 @@ export const RelationDialog = ({
 
       setLoading(true);
 
-      // Prima verifichiamo se la colonna di riferimento è una chiave primaria
+      // Verifichiamo se la colonna di riferimento è una chiave primaria
       const foreignTable = tables.find(t => t.table_name === selectedTable);
       const foreignColumn = foreignTable?.columns.find(c => c.column_name === selectedForeignColumn);
       
-      if (!foreignColumn?.column_default?.includes('nextval') && !foreignColumn?.is_nullable === false) {
+      if (!foreignColumn || !isPrimaryKey(foreignColumn)) {
         toast.error("La colonna di riferimento deve essere una chiave primaria");
+        setLoading(false);
         return;
       }
 
-      if (relationToEdit) {
-        // Prima rimuoviamo la vecchia relazione
-        await supabase.rpc('execute_sql', {
-          sql: `
-            ALTER TABLE "${currentTable.table_name}"
-            DROP CONSTRAINT IF EXISTS "fk_${currentTable.table_name}_${relationToEdit.foreign_table}_${relationToEdit.column}";
-          `
-        });
-      }
-
-      // Ci assicuriamo che la colonna locale sia dello stesso tipo della colonna di riferimento
-      const columnTypeSQL = `
-        ALTER TABLE "${currentTable.table_name}"
-        ALTER COLUMN "${selectedColumn}" TYPE ${foreignColumn?.data_type} USING "${selectedColumn}"::${foreignColumn?.data_type};
+      // Prima rimuoviamo eventuali relazioni esistenti sulla colonna
+      const dropExistingConstraintSQL = `
+        DO $$
+        BEGIN
+          EXECUTE (
+            SELECT 'ALTER TABLE "' || '${currentTable.table_name}' || '" DROP CONSTRAINT "' || conname || '"'
+            FROM pg_constraint
+            WHERE conrelid = '"${currentTable.table_name}"'::regclass
+            AND conkey = ARRAY[(
+              SELECT attnum
+              FROM pg_attribute
+              WHERE attrelid = '"${currentTable.table_name}"'::regclass
+              AND attname = '${selectedColumn}'
+            )]
+            AND contype = 'f'
+            LIMIT 1
+          );
+        EXCEPTION WHEN OTHERS THEN
+          -- Ignoriamo eventuali errori se il constraint non esiste
+        END $$;
       `;
 
-      // Creiamo la relazione
+      // Modifichiamo il tipo della colonna se necessario
+      const columnTypeSQL = `
+        ALTER TABLE "${currentTable.table_name}"
+        ALTER COLUMN "${selectedColumn}" TYPE ${foreignColumn.data_type} 
+        USING "${selectedColumn}"::${foreignColumn.data_type};
+      `;
+
+      // Creiamo la nuova relazione
       const relationSQL = `
         ALTER TABLE "${currentTable.table_name}"
         ADD CONSTRAINT "fk_${currentTable.table_name}_${selectedTable}_${selectedColumn}"
@@ -90,42 +118,27 @@ export const RelationDialog = ({
         ON DELETE CASCADE;
       `;
 
-      // Eseguiamo entrambe le operazioni
-      const { error } = await supabase.rpc('execute_sql', {
-        sql: `${columnTypeSQL} ${relationSQL}`
+      // Eseguiamo le operazioni in sequenza
+      const { error: error1 } = await supabase.rpc('execute_sql', {
+        sql: dropExistingConstraintSQL
       });
+      if (error1) throw error1;
 
-      if (error) throw error;
+      const { error: error2 } = await supabase.rpc('execute_sql', {
+        sql: columnTypeSQL
+      });
+      if (error2) throw error2;
 
-      toast.success(relationToEdit ? "Relazione modificata con successo" : "Relazione creata con successo");
+      const { error: error3 } = await supabase.rpc('execute_sql', {
+        sql: relationSQL
+      });
+      if (error3) throw error3;
+
+      toast.success("Relazione creata con successo");
       onRelationModified?.();
       onClose();
     } catch (error: any) {
       console.error("Error creating relation:", error);
-      toast.error(`Errore: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!relationToEdit) return;
-
-    try {
-      setLoading(true);
-      const { error } = await supabase.rpc('execute_sql', {
-        sql: `
-          ALTER TABLE "${currentTable.table_name}"
-          DROP CONSTRAINT IF EXISTS "fk_${currentTable.table_name}_${relationToEdit.foreign_table}_${relationToEdit.column}";
-        `
-      });
-
-      if (error) throw error;
-
-      toast.success("Relazione eliminata con successo");
-      onRelationModified?.();
-      onClose();
-    } catch (error: any) {
       toast.error(`Errore: ${error.message}`);
     } finally {
       setLoading(false);
@@ -140,27 +153,36 @@ export const RelationDialog = ({
     (table) => table.table_name === selectedTable
   );
 
+  // Filtriamo solo le colonne che sono chiavi primarie per la tabella di riferimento
+  const primaryKeyColumns = selectedTableInfo?.columns.filter(isPrimaryKey) || [];
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px] w-[95%] mx-auto bg-[#1A1F2C] border-[#2A2F3C] p-4 sm:p-6">
+      <DialogContent className="w-[95vw] max-w-[95vw] sm:max-w-[500px] max-h-[90vh] overflow-y-auto bg-[#1A1F2C] border-[#2A2F3C] p-4 sm:p-6">
         <DialogHeader className="space-y-3">
           <DialogTitle className="text-xl font-semibold text-white">
             {relationToEdit ? "Modifica" : "Aggiungi"} Relazione
           </DialogTitle>
           <DialogDescription className="text-gray-400">
-            {relationToEdit ? "Modifica una relazione esistente" : `Crea una relazione tra ${currentTable.table_name} e un'altra tabella`}
+            {relationToEdit 
+              ? "Modifica una relazione esistente"
+              : `Crea una relazione tra ${currentTable.table_name} e un'altra tabella`}
           </DialogDescription>
         </DialogHeader>
+
         <div className="grid gap-6 py-4">
           <div className="grid gap-2">
             <Label htmlFor="column" className="text-white">
-              Colonna
+              Colonna locale
             </Label>
             <Select value={selectedColumn} onValueChange={setSelectedColumn}>
-              <SelectTrigger className="bg-[#2A2F3C] border-[#4F46E5] text-white">
+              <SelectTrigger 
+                id="column"
+                className="bg-[#2A2F3C] border-[#4F46E5] text-white min-h-[2.5rem]"
+              >
                 <SelectValue placeholder="Seleziona una colonna" />
               </SelectTrigger>
-              <SelectContent className="bg-[#2A2F3C] border-[#4F46E5]">
+              <SelectContent className="bg-[#2A2F3C] border-[#4F46E5] max-h-[200px]">
                 {currentTable.columns.map((column) => (
                   <SelectItem 
                     key={column.column_name} 
@@ -173,15 +195,22 @@ export const RelationDialog = ({
               </SelectContent>
             </Select>
           </div>
+
           <div className="grid gap-2">
             <Label htmlFor="table" className="text-white">
-              Tabella
+              Tabella di riferimento
             </Label>
-            <Select value={selectedTable} onValueChange={setSelectedTable}>
-              <SelectTrigger className="bg-[#2A2F3C] border-[#4F46E5] text-white">
+            <Select value={selectedTable} onValueChange={(value) => {
+              setSelectedTable(value);
+              setSelectedForeignColumn(""); // Reset della colonna selezionata
+            }}>
+              <SelectTrigger 
+                id="table"
+                className="bg-[#2A2F3C] border-[#4F46E5] text-white min-h-[2.5rem]"
+              >
                 <SelectValue placeholder="Seleziona una tabella" />
               </SelectTrigger>
-              <SelectContent className="bg-[#2A2F3C] border-[#4F46E5]">
+              <SelectContent className="bg-[#2A2F3C] border-[#4F46E5] max-h-[200px]">
                 {otherTables.map((table) => (
                   <SelectItem 
                     key={table.table_name} 
@@ -194,17 +223,21 @@ export const RelationDialog = ({
               </SelectContent>
             </Select>
           </div>
+
           {selectedTable && (
             <div className="grid gap-2">
               <Label htmlFor="foreignColumn" className="text-white">
-                Colonna di Riferimento
+                Colonna di riferimento (chiave primaria)
               </Label>
               <Select value={selectedForeignColumn} onValueChange={setSelectedForeignColumn}>
-                <SelectTrigger className="bg-[#2A2F3C] border-[#4F46E5] text-white">
+                <SelectTrigger 
+                  id="foreignColumn"
+                  className="bg-[#2A2F3C] border-[#4F46E5] text-white min-h-[2.5rem]"
+                >
                   <SelectValue placeholder="Seleziona una colonna" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#2A2F3C] border-[#4F46E5]">
-                  {selectedTableInfo?.columns.map((column) => (
+                <SelectContent className="bg-[#2A2F3C] border-[#4F46E5] max-h-[200px]">
+                  {primaryKeyColumns.map((column) => (
                     <SelectItem 
                       key={column.column_name} 
                       value={column.column_name}
@@ -215,28 +248,23 @@ export const RelationDialog = ({
                   ))}
                 </SelectContent>
               </Select>
+              {primaryKeyColumns.length === 0 && selectedTable && (
+                <p className="text-yellow-400 text-sm mt-1">
+                  Attenzione: questa tabella non ha colonne chiave primaria disponibili
+                </p>
+              )}
             </div>
           )}
         </div>
-        <DialogFooter className="flex-col space-y-2 sm:space-y-0 sm:flex-row sm:justify-between">
-          {relationToEdit && (
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={handleDelete}
-              disabled={loading}
-              className="w-full sm:w-auto"
-            >
-              Elimina Relazione
-            </Button>
-          )}
-          <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:space-x-2">
+
+        <DialogFooter className="mt-6 flex-col space-y-2 sm:space-y-0">
+          <div className="flex flex-col sm:flex-row gap-2 w-full">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onClose} 
               disabled={loading}
-              className="w-full sm:w-auto border-gray-600 text-gray-300 hover:bg-[#2A2F3C] hover:text-white"
+              className="w-full sm:w-auto order-2 sm:order-1 border-gray-600 text-gray-300 hover:bg-[#2A2F3C] hover:text-white"
             >
               Annulla
             </Button>
@@ -244,9 +272,9 @@ export const RelationDialog = ({
               type="button" 
               onClick={handleSubmit} 
               disabled={loading}
-              className="w-full sm:w-auto bg-[#4F46E5] hover:bg-[#4F46E5]/90 text-white"
+              className="w-full sm:w-auto order-1 sm:order-2 bg-[#4F46E5] hover:bg-[#4F46E5]/90 text-white"
             >
-              {loading ? "Salvataggio..." : (relationToEdit ? "Salva" : "Crea Relazione")}
+              {loading ? "Salvataggio..." : "Crea Relazione"}
             </Button>
           </div>
         </DialogFooter>

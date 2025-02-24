@@ -1,9 +1,11 @@
+
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import type { AIResponse, QueryRequest } from "@/utils/types";
 import { AISettings } from "@/components/AISettings";
 import { MediaUpload } from "@/components/MediaUpload";
+import { Header } from "@/components/Header";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
 
@@ -154,8 +156,12 @@ const Index = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[var(--chat-bg)] text-gray-100 overflow-hidden flex flex-col">
-      <main className="flex-1 pb-20">
+    <div className="min-h-screen bg-[var(--chat-bg)] text-gray-100 overflow-hidden">
+      <Header 
+        onSettingsClick={() => setIsSettingsOpen(true)} 
+        onSearch={handleSearch}
+      />
+      <main className="container mx-auto px-4 py-4 mb-20">
         <ChatMessages
           messages={messages}
           isProcessing={isProcessing}

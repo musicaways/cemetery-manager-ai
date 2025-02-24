@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Globe, Paperclip, Settings, Mic, SendHorizonal } from "lucide-react";
 import { toast } from "sonner";
@@ -31,22 +32,25 @@ export const ChatInput = ({
   onVoiceRecord,
   onWebSearchToggle
 }: ChatInputProps) => {
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault();
-    if (query.trim()) {
-      onSubmit(e);
-    }
+  const handleCommandSelect = (command: string) => {
+    onQueryChange(command);
+    const submitEvent = new Event('submit', {
+      bubbles: true,
+      cancelable: true,
+    }) as unknown as React.FormEvent;
+    onSubmit(submitEvent);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    onSubmit(e);
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ 
-      bottom: 0,
-      position: 'fixed',
-      width: '100%',
-      zIndex: 50,
-      paddingBottom: 'env(safe-area-inset-bottom)'
-    }}>
-      <form onSubmit={handleSubmit} className="max-w-5xl mx-auto space-y-3">
+    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ bottom: 0, position: 'fixed', width: '100%' }}>
+      <div className="max-w-5xl mx-auto space-y-3">
+        {/* Input Bar */}
         <div className="relative flex items-start">
           <TextareaAutosize
             value={query}
@@ -68,7 +72,7 @@ export const ChatInput = ({
             <Button 
               type="submit" 
               size="sm"
-              onClick={(e) => handleSubmit(e)}
+              onClick={handleSubmit}
               className="absolute right-0 top-0 h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
               disabled={isProcessing}
               variant="ghost"
@@ -78,36 +82,66 @@ export const ChatInput = ({
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-2">
+        {/* Action Buttons */}
+        <div className="flex items-center justify-between w-full">
+          {/* Left-aligned buttons */}
           <div className="flex items-center gap-2">
             <Button
-              type="button"
-              size="sm"
-              onClick={onMediaUploadClick}
-              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
               variant="ghost"
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
-            
-            <VoiceRecorder onRecordingComplete={onVoiceRecord} />
-
-            <Button
-              type="button"
               size="sm"
-              onClick={onWebSearchToggle}
               className={`h-8 w-8 p-0 rounded-full border-2 transition-all duration-200 ${
                 webSearchEnabled 
-                  ? 'border-[#9b87f5] text-[#9b87f5] bg-[#9b87f5]/10' 
-                  : 'border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10'
+                  ? "text-[#9b87f5] border-[#9b87f5] bg-[#9b87f5]/10" 
+                  : "text-gray-400 border-white/20 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
               }`}
-              variant="ghost"
+              onClick={onWebSearchToggle}
+              title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
             >
               <Globe className="h-4 w-4" />
             </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+              onClick={onMediaUploadClick}
+            >
+              <Paperclip className="h-4 w-4" />
+            </Button>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="bg-black border-white/10 text-white">
+                <DropdownMenuItem 
+                  className="hover:bg-white/5 cursor-pointer"
+                  onClick={() => handleCommandSelect("/test-model")}
+                >
+                  Test Modello AI
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
+
+          {/* Right-aligned voice recorder */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 [&_svg]:h-4 [&_svg]:w-4 [&_.recording]:bg-[#9b87f5]/10 [&_.recording]:text-[#9b87f5] [&_.recording]:border-[#9b87f5]"
+          >
+            <VoiceRecorder 
+              onRecordingComplete={onVoiceRecord}
+            />
+          </Button>
         </div>
-      </form>
+      </div>
     </footer>
   );
 };

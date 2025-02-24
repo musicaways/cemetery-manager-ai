@@ -12,7 +12,6 @@ import { SectorsTab } from "./Tabs/SectorsTab";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 import { Dialog } from "@/components/ui/dialog";
-import { MediaUpload } from "@/components/MediaUpload";
 
 interface CimiteroDetailsProps {
   cimitero: Cimitero | null;
@@ -35,9 +34,8 @@ export const CimiteroDetails = ({
   onInputChange,
   selectedFile
 }: CimiteroDetailsProps) => {
+  // 1. Sposta tutti gli hooks all'inizio del componente
   const [activeTab, setActiveTab] = useState<'gallery' | 'documents' | 'maps' | null>(null);
-
-  if (!cimitero) return null;
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -60,6 +58,9 @@ export const CimiteroDetails = ({
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
   }, []);
+
+  // 2. Sposta il controllo null dopo gli hooks
+  if (!cimitero) return null;
 
   return (
     <DialogContent className="max-w-5xl bg-[#1A1F2C] border-gray-800 p-0 overflow-hidden">

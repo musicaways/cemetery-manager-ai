@@ -107,7 +107,7 @@ export const AddEditColumnDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="bg-[#1A1F2C]">
         <DialogHeader>
           <DialogTitle>{columnToEdit ? "Modifica" : "Aggiungi"} Colonna</DialogTitle>
           <DialogDescription>
@@ -118,28 +118,32 @@ export const AddEditColumnDialog = ({
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
+            <Label htmlFor="name" className="text-right text-white">
               Nome
             </Label>
             <Input
               id="name"
               value={columnName}
               onChange={(e) => setColumnName(e.target.value.toLowerCase())}
-              className="col-span-3"
+              className="col-span-3 bg-[#2A2F3C] border-[#4F46E5] text-white"
               disabled={loading}
             />
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="type" className="text-right">
+            <Label htmlFor="type" className="text-right text-white">
               Tipo
             </Label>
             <Select value={columnType} onValueChange={setColumnType} disabled={loading}>
-              <SelectTrigger className="col-span-3">
+              <SelectTrigger className="col-span-3 bg-[#2A2F3C] border-[#4F46E5] text-white">
                 <SelectValue placeholder="Seleziona un tipo" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-[#2A2F3C] border-[#4F46E5]">
                 {dataTypes.map((type) => (
-                  <SelectItem key={type.value} value={type.value}>
+                  <SelectItem 
+                    key={type.value} 
+                    value={type.value}
+                    className="text-white hover:bg-[#4F46E5] focus:bg-[#4F46E5]"
+                  >
                     {type.label}
                   </SelectItem>
                 ))}
@@ -147,7 +151,7 @@ export const AddEditColumnDialog = ({
             </Select>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="nullable" className="text-right">
+            <Label htmlFor="nullable" className="text-right text-white">
               Nullable
             </Label>
             <div className="col-span-3">
@@ -156,28 +160,40 @@ export const AddEditColumnDialog = ({
                 checked={isNullable}
                 onCheckedChange={setIsNullable}
                 disabled={loading}
+                className="data-[state=checked]:bg-[#4F46E5]"
               />
             </div>
           </div>
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="default" className="text-right">
+            <Label htmlFor="default" className="text-right text-white">
               Default
             </Label>
             <Input
               id="default"
               value={defaultValue}
               onChange={(e) => setDefaultValue(e.target.value)}
-              className="col-span-3"
+              className="col-span-3 bg-[#2A2F3C] border-[#4F46E5] text-white"
               placeholder="Valore di default"
               disabled={loading}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={loading}
+            className="border-gray-600 text-gray-300 hover:bg-[#2A2F3C] hover:text-white"
+          >
             Annulla
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={loading}>
+          <Button 
+            type="button" 
+            onClick={handleSubmit} 
+            disabled={loading}
+            className="bg-[#4F46E5] hover:bg-[#4F46E5]/90 text-white"
+          >
             {loading ? (columnToEdit ? "Salvataggio..." : "Aggiunta...") : (columnToEdit ? "Salva" : "Aggiungi")}
           </Button>
         </DialogFooter>

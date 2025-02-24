@@ -67,7 +67,7 @@ export const CreateTableDialog = ({ open, onClose, onTableCreated }: CreateTable
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Crea Nuova Tabella</DialogTitle>
           <DialogDescription>
@@ -77,24 +77,35 @@ export const CreateTableDialog = ({ open, onClose, onTableCreated }: CreateTable
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">
+            <Label htmlFor="name" className="text-right text-white">
               Nome Tabella
             </Label>
             <Input
               id="name"
               value={tableName}
               onChange={(e) => setTableName(e.target.value.toLowerCase())}
-              className="col-span-3"
+              className="col-span-3 bg-[#2A2F3C] border-[#4F46E5] text-white"
               placeholder="nome_tabella"
               disabled={loading}
             />
           </div>
         </div>
         <DialogFooter>
-          <Button type="button" variant="ghost" onClick={onClose} disabled={loading}>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={loading}
+            className="border-gray-600 text-gray-300 hover:bg-[#2A2F3C] hover:text-white"
+          >
             Annulla
           </Button>
-          <Button type="button" onClick={handleSubmit} disabled={loading}>
+          <Button 
+            type="button" 
+            onClick={handleSubmit} 
+            disabled={loading}
+            className="bg-[#4F46E5] hover:bg-[#4F46E5]/90 text-white"
+          >
             {loading ? "Creazione..." : "Crea"}
           </Button>
         </DialogFooter>

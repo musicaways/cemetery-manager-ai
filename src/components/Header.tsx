@@ -1,4 +1,4 @@
-import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle } from "lucide-react";
+import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -9,9 +9,14 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -41,10 +46,12 @@ const notificationTypes = {
 
 export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [currentMatch, setCurrentMatch] = useState(0);
   const [totalMatches, setTotalMatches] = useState(0);
+  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [notifications, setNotifications] = useState([
     { id: 1, title: "Nuovo messaggio", message: "Hai ricevuto una nuova risposta", read: false, type: "info" },
     { id: 2, title: "Errore", message: "Si è verificato un errore durante l'elaborazione", read: false, type: "error" },
@@ -128,6 +135,10 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
     });
   };
 
+  useEffect(() => {
+    setIsAdminOpen(location.pathname.startsWith('/admin'));
+  }, [location.pathname]);
+
   return (
     <header className="border-b border-[#2A2F3C]/40 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -168,16 +179,43 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                       Impostazioni
                     </Button>
                   </SheetClose>
-                  <SheetClose asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
-                      onClick={() => navigate("/admin/users")}
-                    >
-                      <Users className="mr-2 h-4 w-4" />
-                      Amministrazione
-                    </Button>
-                  </SheetClose>
+                  
+                  <Collapsible open={isAdminOpen} onOpenChange={setIsAdminOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className={`w-full justify-start text-gray-400 hover:text-[var(--primary-color)] ${
+                          isAdminOpen ? 'text-[var(--primary-color)]' : ''
+                        }`}
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        Amministrazione
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="ml-6 space-y-2 mt-2">
+                      <SheetClose asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
+                          onClick={() => navigate("/admin/tables")}
+                        >
+                          <Database className="mr-2 h-4 w-4" />
+                          Tabelle
+                        </Button>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
+                          onClick={() => navigate("/admin/users")}
+                        >
+                          <Users className="mr-2 h-4 w-4" />
+                          Utenti
+                        </Button>
+                      </SheetClose>
+                    </CollapsibleContent>
+                  </Collapsible>
+
                   <SheetClose asChild>
                     <Button
                       variant="ghost"

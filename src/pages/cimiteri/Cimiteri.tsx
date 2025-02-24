@@ -16,6 +16,7 @@ export const Cimiteri = () => {
   const [editedData, setEditedData] = useState<Partial<Cimitero>>({});
   const [searchTerm, setSearchTerm] = useState("");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const loadCimiteri = async () => {
     try {
@@ -31,16 +32,21 @@ export const Cimiteri = () => {
 
       if (cimiteriError) throw cimiteriError;
       
-      console.log("Dati caricati:", cimiteriData);
-      
       setCimiteri(cimiteriData || []);
       if (selectedCimitero) {
         const updatedSelected = cimiteriData?.find(c => c.Id === selectedCimitero.Id);
-        console.log("Aggiornamento cimitero selezionato:", updatedSelected);
-        setSelectedCimitero(updatedSelected || null);
+        if (updatedSelected) {
+          setSelectedCimitero(updatedSelected);
+          setEditedData({
+            Descrizione: updatedSelected.Descrizione || "",
+            Indirizzo: updatedSelected.Indirizzo || "",
+            Latitudine: updatedSelected.Latitudine,
+            Longitudine: updatedSelected.Longitudine,
+            FotoCopertina: updatedSelected.FotoCopertina,
+          });
+        }
       }
     } catch (error: any) {
-      console.error("Errore caricamento:", error);
       toast.error("Errore nel caricamento dei cimiteri: " + error.message);
     } finally {
       setLoading(false);
@@ -62,63 +68,46 @@ export const Cimiteri = () => {
 
   const handleEdit = () => {
     if (!selectedCimitero) return;
-    
-    console.log("Inizio editing con dati:", selectedCimitero);
-    
+    setEditMode(true);
     setEditedData({
       Descrizione: selectedCimitero.Descrizione || "",
       Indirizzo: selectedCimitero.Indirizzo || "",
-      Latitudine: selectedCimitero.Latitudine || null,
-      Longitudine: selectedCimitero.Longitudine || null,
-      FotoCopertina: selectedCimitero.FotoCopertina || null,
+      Latitudine: selectedCimitero.Latitudine,
+      Longitudine: selectedCimitero.Longitudine,
+      FotoCopertina: selectedCimitero.FotoCopertina,
     });
-    
-    setEditMode(true);
   };
 
   const handleSave = async () => {
-    if (!selectedCimitero || !editedData) return;
+    if (!selectedCimitero || !editedData || saving) return;
 
     try {
-      console.log("Salvataggio dati:", editedData);
+      setSaving(true);
       
-      // Rimuovi i campi undefined o null
-      const updateData = Object.fromEntries(
-        Object.entries({
+      const { error } = await supabase
+        .from("Cimitero")
+        .update({
           Descrizione: editedData.Descrizione,
           Indirizzo: editedData.Indirizzo,
           Latitudine: editedData.Latitudine,
           Longitudine: editedData.Longitudine,
           FotoCopertina: editedData.FotoCopertina,
-        }).filter(([_, value]) => value !== undefined && value !== null)
-      );
+        })
+        .eq("Id", selectedCimitero.Id);
 
-      console.log("Dati da salvare dopo pulizia:", updateData);
-
-      const { data, error } = await supabase
-        .from("Cimitero")
-        .update(updateData)
-        .eq("Id", selectedCimitero.Id)
-        .select();
-
-      if (error) {
-        console.error("Errore salvataggio:", error);
-        throw error;
-      }
-
-      console.log("Risposta salvataggio:", data);
+      if (error) throw error;
 
       toast.success("Modifiche salvate con successo");
       setEditMode(false);
       await loadCimiteri();
     } catch (error: any) {
-      console.error("Errore durante il salvataggio:", error);
       toast.error("Errore durante il salvataggio: " + error.message);
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleInputChange = (field: string, value: string | number | null) => {
-    console.log("Aggiornamento campo:", field, "con valore:", value);
     setEditedData(prev => ({
       ...prev,
       [field]: value
@@ -126,30 +115,25 @@ export const Cimiteri = () => {
   };
 
   const handleUploadComplete = async (url: string) => {
-    if (!selectedCimitero) return;
-    
+    if (!selectedCimitero || saving) return;
+
     try {
-      console.log("Aggiornamento foto copertina con URL:", url);
+      setSaving(true);
       
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("Cimitero")
         .update({ FotoCopertina: url })
-        .eq("Id", selectedCimitero.Id)
-        .select();
+        .eq("Id", selectedCimitero.Id);
 
-      if (error) {
-        console.error("Errore upload:", error);
-        throw error;
-      }
-
-      console.log("Risposta upload:", data);
+      if (error) throw error;
 
       toast.success("Foto di copertina aggiornata");
       setIsUploadOpen(false);
       await loadCimiteri();
     } catch (error: any) {
-      console.error("Errore durante l'upload:", error);
       toast.error("Errore durante l'aggiornamento della foto: " + error.message);
+    } finally {
+      setSaving(false);
     }
   };
 

@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -42,11 +42,25 @@ export const AddEditColumnDialog = ({
   columnToEdit,
   onColumnModified,
 }: AddEditColumnDialogProps) => {
-  const [columnName, setColumnName] = useState(columnToEdit?.name || "");
-  const [columnType, setColumnType] = useState(columnToEdit?.type || "text");
-  const [isNullable, setIsNullable] = useState(columnToEdit?.isNullable || false);
-  const [defaultValue, setDefaultValue] = useState(columnToEdit?.defaultValue || "");
+  const [columnName, setColumnName] = useState("");
+  const [columnType, setColumnType] = useState("text");
+  const [isNullable, setIsNullable] = useState(false);
+  const [defaultValue, setDefaultValue] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (columnToEdit && open) {
+      setColumnName(columnToEdit.name);
+      setColumnType(columnToEdit.type);
+      setIsNullable(columnToEdit.isNullable);
+      setDefaultValue(columnToEdit.defaultValue || "");
+    } else if (!open) {
+      setColumnName("");
+      setColumnType("text");
+      setIsNullable(false);
+      setDefaultValue("");
+    }
+  }, [columnToEdit, open]);
 
   const handleSubmit = async () => {
     try {
@@ -84,9 +98,12 @@ export const AddEditColumnDialog = ({
       if (error) throw error;
 
       toast.success(`Colonna ${columnToEdit ? 'modificata' : 'aggiunta'} con successo`);
-      onColumnModified?.();
+      if (onColumnModified) {
+        await onColumnModified();
+      }
       onClose();
     } catch (error: any) {
+      console.error("Error modifying column:", error);
       toast.error(`Errore: ${error.message}`);
     } finally {
       setLoading(false);
@@ -106,7 +123,7 @@ export const AddEditColumnDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="bg-[#1A1F2C]">
+      <DialogContent className="bg-[#1A1F2C] border-0">
         <DialogHeader>
           <DialogTitle>{columnToEdit ? "Modifica" : "Aggiungi"} Colonna</DialogTitle>
           <DialogDescription>
@@ -133,7 +150,7 @@ export const AddEditColumnDialog = ({
               Tipo
             </Label>
             <Select value={columnType} onValueChange={setColumnType} disabled={loading}>
-              <SelectTrigger className="col-span-3 bg-[#2A2F3C] border-[#4F46E5] text-white">
+              <SelectTrigger id="type" className="col-span-3 bg-[#2A2F3C] border-[#4F46E5] text-white">
                 <SelectValue placeholder="Seleziona un tipo" />
               </SelectTrigger>
               <SelectContent>
@@ -141,7 +158,7 @@ export const AddEditColumnDialog = ({
                   <SelectItem 
                     key={type.value} 
                     value={type.value}
-                    className="text-white hover:bg-[#4F46E5] focus:bg-[#4F46E5]"
+                    className="text-white"
                   >
                     {type.label}
                   </SelectItem>

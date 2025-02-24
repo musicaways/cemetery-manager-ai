@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TableInfo, SchemaResponse } from "@/types/database";
@@ -11,7 +11,7 @@ export const TablesAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const loadTables = async () => {
+  const loadTables = useCallback(async () => {
     try {
       const { data: schemaData, error } = await supabase
         .rpc('get_complete_schema')
@@ -33,15 +33,16 @@ export const TablesAdmin = () => {
         setTables(formattedTables);
       }
     } catch (error: any) {
+      console.error("Error loading tables:", error);
       toast.error("Errore nel caricamento delle tabelle: " + error.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadTables();
-  }, []);
+  }, [loadTables]);
 
   useEffect(() => {
     const handleSearch = (e: CustomEvent<string>) => {

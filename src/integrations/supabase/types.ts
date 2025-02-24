@@ -161,6 +161,24 @@ export type Database = {
           },
         ]
       }
+      execute_sql: {
+        Row: {
+          executed_at: string | null
+          id: string
+          sql: string
+        }
+        Insert: {
+          executed_at?: string | null
+          id?: string
+          sql: string
+        }
+        Update: {
+          executed_at?: string | null
+          id?: string
+          sql?: string
+        }
+        Relationships: []
+      }
       Loculo: {
         Row: {
           Annotazioni: string | null
@@ -388,6 +406,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      execute_sql: {
+        Args: {
+          sql: string
+        }
+        Returns: undefined
+      }
       get_complete_schema: {
         Args: Record<PropertyKey, never>
         Returns: Json

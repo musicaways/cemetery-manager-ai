@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Check, Ban } from "lucide-react";
+import { Check, Ban, Save } from "lucide-react";
 
 type UserProfile = {
   id: string;
@@ -30,9 +30,16 @@ type UserProfile = {
 
 type UserRole = 'admin' | 'read_write' | 'read_only';
 
+type UserUpdate = {
+  id: string;
+  role?: UserRole;
+  status?: 'active' | 'banned';
+};
+
 export const UsersAdmin = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingUpdates, setPendingUpdates] = useState<UserUpdate[]>([]);
 
   const loadUsers = async () => {
     try {
@@ -55,38 +62,58 @@ export const UsersAdmin = () => {
   }, []);
 
   const updateUserStatus = async (userId: string, status: 'active' | 'banned') => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ status })
-        .eq('id', userId);
-
-      if (error) throw error;
-      
-      await loadUsers();
-      toast.success(`Stato utente aggiornato a: ${status}`);
-    } catch (error: any) {
-      toast.error("Errore nell'aggiornamento dello stato: " + error.message);
-    }
+    setPendingUpdates(current => {
+      const existing = current.find(u => u.id === userId);
+      if (existing) {
+        return current.map(u => u.id === userId ? { ...u, status } : u);
+      }
+      return [...current, { id: userId, status }];
+    });
   };
 
   const updateUserRole = async (userId: string, role: UserRole) => {
-    try {
-      const { error } = await supabase
-        .from('table_permissions')
-        .upsert({
-          role,
-          user_id: userId,
-          table_name: '*'
-        })
-        .select();
+    setPendingUpdates(current => {
+      const existing = current.find(u => u.id === userId);
+      if (existing) {
+        return current.map(u => u.id === userId ? { ...u, role } : u);
+      }
+      return [...current, { id: userId, role }];
+    });
+  };
 
-      if (error) throw error;
-      toast.success("Ruolo utente aggiornato");
+  const saveChanges = async () => {
+    try {
+      for (const update of pendingUpdates) {
+        if (update.status) {
+          const { error } = await supabase
+            .from('profiles')
+            .update({ status: update.status })
+            .eq('id', update.id);
+          if (error) throw error;
+        }
+
+        if (update.role) {
+          const { error } = await supabase
+            .from('table_permissions')
+            .upsert({
+              role: update.role,
+              user_id: update.id,
+              table_name: '*'
+            })
+            .select();
+          if (error) throw error;
+        }
+      }
+
+      toast.success("Modifiche salvate con successo");
+      setPendingUpdates([]);
+      await loadUsers();
     } catch (error: any) {
-      toast.error("Errore nell'aggiornamento del ruolo: " + error.message);
+      toast.error("Errore nel salvataggio delle modifiche: " + error.message);
     }
   };
+
+  const hasChanges = pendingUpdates.length > 0;
 
   if (loading) {
     return (
@@ -97,8 +124,19 @@ export const UsersAdmin = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold text-white mb-6">Gestione Utenti</h1>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-white">Gestione Utenti</h1>
+        {hasChanges && (
+          <Button
+            onClick={saveChanges}
+            className="bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
+          >
+            <Save className="w-4 h-4 mr-2" />
+            Salva Modifiche
+          </Button>
+        )}
+      </div>
       
       <div className="bg-[#1A1F2C] rounded-lg border border-[#2A2F3C]/40 overflow-hidden">
         <Table>

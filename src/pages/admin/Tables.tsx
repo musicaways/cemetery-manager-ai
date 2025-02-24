@@ -44,6 +44,7 @@ type SchemaResponse = {
 export const TablesAdmin = () => {
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const loadTables = async () => {
     try {
@@ -76,6 +77,10 @@ export const TablesAdmin = () => {
     loadTables();
   }, []);
 
+  const filteredTables = tables.filter(table =>
+    table.table_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -85,11 +90,20 @@ export const TablesAdmin = () => {
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
-      <h1 className="text-2xl font-bold text-white mb-6">Gestione Tabelle</h1>
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold text-white">Gestione Tabelle</h1>
+        <input
+          type="text"
+          placeholder="Cerca tabella..."
+          className="px-4 py-2 bg-[#2A2F3C] border border-[#3A3F4C] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-color)]"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
       
       <div className="space-y-4">
-        {tables.map((table) => (
+        {filteredTables.map((table) => (
           <Accordion type="single" collapsible key={table.table_name}>
             <AccordionItem value={table.table_name} className="bg-[#1A1F2C] rounded-lg border border-[#2A2F3C]/40">
               <AccordionTrigger className="px-4 py-2 text-white hover:text-[var(--primary-color)]">
@@ -108,9 +122,14 @@ export const TablesAdmin = () => {
                   <TableBody>
                     {table.columns.map((column) => (
                       <TableRow key={column.column_name}>
-                        <TableCell className="text-white">{column.column_name}</TableCell>
+                        <TableCell className="text-white font-medium">{column.column_name}</TableCell>
                         <TableCell className="text-white">{column.data_type}</TableCell>
-                        <TableCell className="text-white">{column.is_nullable}</TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                            ${column.is_nullable === 'YES' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
+                            {column.is_nullable}
+                          </span>
+                        </TableCell>
                         <TableCell className="text-white">{column.column_default || '-'}</TableCell>
                       </TableRow>
                     ))}

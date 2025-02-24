@@ -11,6 +11,7 @@ import NotFound from "./pages/NotFound";
 import UsersAdmin from "./pages/admin/Users";
 import TablesAdmin from "./pages/admin/Tables";
 import { ThemeProvider } from '@/lib/themeContext';
+import { Layout } from "@/components/Layout";
 import './styles/chat.css';
 
 const queryClient = new QueryClient();
@@ -29,7 +30,7 @@ function App() {
   }, []);
 
   if (isAuthenticated === null) {
-    return null; // Loading state
+    return null;
   }
 
   return (
@@ -39,16 +40,6 @@ function App() {
           <Toaster />
           <BrowserRouter>
             <Routes>
-              <Route
-                path="/"
-                element={
-                  isAuthenticated ? (
-                    <Index />
-                  ) : (
-                    <Navigate to="/auth" replace />
-                  )
-                }
-              />
               <Route
                 path="/auth"
                 element={
@@ -60,10 +51,24 @@ function App() {
                 }
               />
               <Route
+                path="/"
+                element={
+                  isAuthenticated ? (
+                    <Layout>
+                      <Index />
+                    </Layout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
                 path="/admin/users"
                 element={
                   isAuthenticated ? (
-                    <UsersAdmin />
+                    <Layout>
+                      <UsersAdmin />
+                    </Layout>
                   ) : (
                     <Navigate to="/auth" replace />
                   )
@@ -73,7 +78,9 @@ function App() {
                 path="/admin/tables"
                 element={
                   isAuthenticated ? (
-                    <TablesAdmin />
+                    <Layout>
+                      <TablesAdmin />
+                    </Layout>
                   ) : (
                     <Navigate to="/auth" replace />
                   )

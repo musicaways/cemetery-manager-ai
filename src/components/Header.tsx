@@ -1,4 +1,3 @@
-
 import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +11,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { toast } from "sonner";
 
 interface HeaderProps {
   onSettingsClick: () => void;

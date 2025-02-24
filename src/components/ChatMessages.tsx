@@ -5,6 +5,8 @@ import { ResultsList } from "./ResultsList";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { forwardRef, useState } from "react";
 import { toast } from "sonner";
+import { format } from "date-fns";
+import { it } from "date-fns/locale";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +17,7 @@ import {
 interface ChatMessage {
   type: 'query' | 'response';
   content: string;
+  timestamp?: Date;
   data?: any;
 }
 
@@ -64,7 +67,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
       ref={scrollAreaRef}
       className="h-[calc(100vh-8.5rem)] rounded-lg"
     >
-      <div className="max-w-4xl mx-auto px-4 space-y-6">
+      <div className="max-w-4xl mx-auto px-4 space-y-8">
         {messages.length === 0 && !isProcessing && (
           <div className="space-y-6 animate-fade-in">
             <div className="text-center space-y-2">
@@ -79,7 +82,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         )}
 
         {messages.map((message, index) => (
-          <div key={index} className="animate-fade-in space-y-4">
+          <div key={index} className="animate-fade-in space-y-6">
             {message.type === 'query' && (
               <div className="flex justify-end">
                 <div className="max-w-[80%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-4 border border-[var(--primary-color)]/30 backdrop-blur-sm">
@@ -89,17 +92,22 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
             )}
             
             {message.type === 'response' && (
-              <div className="space-y-4">
+              <div className="space-y-4 max-w-full">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-hover)] flex items-center justify-center flex-shrink-0">
-                    <Skull className="w-4 h-4 text-white" />
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-hover)] flex items-center justify-center flex-shrink-0 border-2 border-white/10 shadow-lg">
+                    <Skull className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-gray-300">Assistente</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-gray-200">Assistente AI</span>
+                    <span className="text-xs text-gray-400">
+                      {format(message.timestamp || new Date(), "d MMMM yyyy, HH:mm", { locale: it })}
+                    </span>
+                  </div>
                 </div>
                 
                 <div className="relative group">
                   <div 
-                    className="pl-11 pr-12 text-gray-200 leading-relaxed whitespace-pre-wrap break-words"
+                    className="text-gray-200 leading-relaxed whitespace-pre-wrap break-words"
                     onMouseDown={() => handleMouseDown(index)}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
@@ -138,7 +146,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                 </div>
 
                 {message.data && (
-                  <div className="bg-[#2A2F3C]/80 rounded-lg p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg ml-11">
+                  <div className="bg-[#2A2F3C]/80 rounded-lg p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg">
                     <h3 className="text-lg font-semibold mb-4 text-gray-100">Risultati</h3>
                     <ResultsList 
                       data={message.data}
@@ -153,8 +161,8 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
 
         {isProcessing && (
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#9b87f5] to-[#6E59A5] flex items-center justify-center">
-              <Skull className="w-4 h-4 text-white" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#9b87f5] to-[#6E59A5] flex items-center justify-center border-2 border-white/10 shadow-lg">
+              <Skull className="w-5 h-5 text-white" />
             </div>
             <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm">
               <div className="flex items-center space-x-2">

@@ -1,15 +1,15 @@
 
-import { Menu, LogOut, Settings, Users, Database, MessageCircle } from "lucide-react";
+import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
-  SheetHeader,
   SheetTrigger,
   SheetClose,
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -17,6 +17,7 @@ interface HeaderProps {
 
 export const Header = ({ onSettingsClick }: HeaderProps) => {
   const navigate = useNavigate();
+  const [showSearch, setShowSearch] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -91,6 +92,31 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
           <div className="flex-1 ml-3">
             <h1 className="text-sm font-semibold text-gray-100">Assistente Cimiteriale</h1>
             <p className="text-xs text-[#8E9196]">AI Assistant</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {showSearch && (
+              <input
+                type="text"
+                placeholder="Cerca nella chat..."
+                className="bg-[#1A1F2C] text-white text-sm rounded-full px-4 py-1.5 border-2 border-white/20 focus:border-[#9b87f5] focus:outline-none w-48 transition-all duration-200"
+              />
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowSearch(!showSearch)}
+              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+            >
+              <Search className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+            >
+              <Bell className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </div>

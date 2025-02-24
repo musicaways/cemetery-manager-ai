@@ -50,15 +50,12 @@ export const ChatInput = ({
     <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4">
       <div className="max-w-3xl mx-auto space-y-3">
         {/* Input Bar */}
-        <div className="relative">
+        <div className="relative flex items-center">
           <input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder={webSearchEnabled 
-              ? "Fammi qualsiasi domanda..." 
-              : "Cerca informazioni su cimiteri, blocchi, loculi o defunti..."
-            }
-            className="w-full bg-[#333333] rounded-lg pl-4 pr-10 py-2.5 text-white placeholder-gray-400 focus:outline-none"
+            placeholder="Chiedi qualcosa..."
+            className="w-full bg-[#333333] text-white placeholder-gray-400 focus:outline-none"
             style={{ textAlign: 'left' }}
             disabled={isProcessing}
             onKeyDown={(e) => {
@@ -73,7 +70,7 @@ export const ChatInput = ({
               type="submit" 
               size="sm"
               onClick={handleSubmit}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-[#9b87f5] hover:text-[#7E69AB] h-8 w-8 p-0"
+              className="absolute right-0 text-[#9b87f5] hover:text-[#7E69AB] h-8 w-8 p-0"
               disabled={isProcessing}
               variant="ghost"
             >

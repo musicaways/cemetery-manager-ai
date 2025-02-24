@@ -11,13 +11,15 @@ const Toaster = ({ ...props }: ToasterProps) => {
     <Sonner
       theme={theme as ToasterProps["theme"]}
       position="top-center"
-      expand={true}
+      expand={false}
       closeButton={true}
       richColors={true}
-      className="toaster group fixed top-4"
+      className="toaster group"
+      offset={50}
+      gap={8}
       toastOptions={{
         classNames: {
-          toast: "group toast group-[.toaster]:bg-[var(--message-bg)] group-[.toaster]:bg-opacity-95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:shadow-lg group-[.toaster]:rounded-xl group-[.toaster]:border-none group-[.toaster]:min-h-[60px] group-[.toaster]:max-w-[420px] group-[.toaster]:mb-4",
+          toast: "group toast group-[.toaster]:bg-[var(--message-bg)] group-[.toaster]:bg-opacity-95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:shadow-lg group-[.toaster]:rounded-xl group-[.toaster]:border-none group-[.toaster]:min-h-[60px] group-[.toaster]:max-w-[420px]",
           title: "group-[.toast]:text-white group-[.toast]:font-medium group-[.toast]:text-sm",
           description: "group-[.toast]:text-gray-200 group-[.toast]:text-sm group-[.toast]:leading-relaxed",
           actionButton: "group-[.toast]:bg-[var(--primary-color)] group-[.toast]:text-primary-foreground",

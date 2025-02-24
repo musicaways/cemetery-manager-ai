@@ -1,36 +1,22 @@
-import { Skull, Copy, MoreHorizontal, MessageCircle, Bot } from "lucide-react";
-import { SuggestedQuestions } from "./SuggestedQuestions";
-import { ResultsList } from "./ResultsList";
+import { forwardRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { forwardRef, useState } from "react";
-import { toast } from "sonner";
-import { format } from "date-fns";
-import { it } from "date-fns/locale";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
-interface ChatMessage {
-  type: 'query' | 'response';
-  content: string;
-  timestamp?: Date;
-  data?: any;
-}
+import { Bot } from "lucide-react";
+import { format } from 'date-fns';
+import { it } from 'date-fns/locale';
+import { SuggestedQuestions } from "./SuggestedQuestions";
 
 interface ChatMessagesProps {
-  messages: ChatMessage[];
+  messages: {
+    type: 'query' | 'response';
+    content: string;
+    data?: any;
+    timestamp?: Date;
+  }[];
   isProcessing: boolean;
-  onQuestionSelect: (q: string) => void;
+  onQuestionSelect: (question: string) => void;
   scrollAreaRef: React.RefObject<HTMLDivElement>;
   messagesEndRef: React.RefObject<HTMLDivElement>;
 }
-
-export const determineResultType = (content: string) => {
-  return 'cemetery' as const;
-};
 
 export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
   messages,
@@ -39,28 +25,6 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
   scrollAreaRef,
   messagesEndRef
 }, ref) => {
-  const [longPressTimer, setLongPressTimer] = useState<NodeJS.Timeout | null>(null);
-  const [showOptionsFor, setShowOptionsFor] = useState<number | null>(null);
-
-  const handleCopyMessage = (content: string) => {
-    navigator.clipboard.writeText(content);
-    toast.success("Testo copiato negli appunti");
-  };
-
-  const handleMouseDown = (index: number) => {
-    const timer = setTimeout(() => {
-      setShowOptionsFor(index);
-    }, 500);
-    setLongPressTimer(timer);
-  };
-
-  const handleMouseUp = () => {
-    if (longPressTimer) {
-      clearTimeout(longPressTimer);
-      setLongPressTimer(null);
-    }
-  };
-
   return (
     <ScrollArea 
       ref={scrollAreaRef}
@@ -68,15 +32,10 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
     >
       <div className="space-y-6">
         {messages.length === 0 && !isProcessing && (
-          <div className="space-y-6 animate-fade-in px-4">
-            <div className="text-center space-y-2">
-              <div className="w-10 h-10 mx-auto bg-[#8B5CF6] rounded-lg flex items-center justify-center">
-                <MessageCircle className="w-5 h-5 text-white" />
-              </div>
-              <h2 className="text-lg font-semibold">Come posso aiutarti?</h2>
-              <p className="text-sm text-gray-400">Usa /test-model per verificare il modello AI in uso</p>
-            </div>
-            <SuggestedQuestions onSelect={onQuestionSelect} />
+          <div className="flex flex-col items-center justify-center h-full">
+            <p className="text-gray-400 text-sm">
+              Inizia una nuova conversazione.
+            </p>
           </div>
         )}
 
@@ -104,57 +63,17 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                   </div>
                 </div>
                 
-                <div className="relative group">
-                  <div 
-                    className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap break-words"
-                    onMouseDown={() => handleMouseDown(index)}
-                    onMouseUp={handleMouseUp}
-                    onMouseLeave={handleMouseUp}
-                  >
-                    {message.content}
-                  </div>
-                  
-                  <div className="flex justify-end gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button
-                      onClick={() => handleCopyMessage(message.content)}
-                      className="p-1.5 text-gray-400 hover:text-white rounded bg-[#2A2F3C]/80"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </button>
-
-                    <DropdownMenu open={showOptionsFor === index} onOpenChange={() => setShowOptionsFor(null)}>
-                      <DropdownMenuTrigger asChild>
-                        <button className="p-1.5 text-gray-400 hover:text-white rounded bg-[#2A2F3C]/80">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="bg-[#1A1F2C] border border-white/10 text-white">
-                        <DropdownMenuItem 
-                          className="hover:bg-white/5 cursor-pointer text-sm"
-                          onClick={() => handleCopyMessage(message.content)}
-                        >
-                          Copia testo
-                        </DropdownMenuItem>
-                        <DropdownMenuItem 
-                          className="hover:bg-white/5 cursor-pointer text-sm"
-                          onClick={() => onQuestionSelect(message.content)}
-                        >
-                          Ripeti domanda
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm ml-9">
+                  <div className="prose prose-invert max-w-none">
+                    <p className="text-sm text-gray-100 whitespace-pre-wrap">{message.content}</p>
+                    {message.data?.suggestions && (
+                      <SuggestedQuestions 
+                        suggestions={message.data.suggestions} 
+                        onQuestionSelect={onQuestionSelect}
+                      />
+                    )}
                   </div>
                 </div>
-
-                {message.data && (
-                  <div className="bg-[#2A2F3C]/80 rounded-lg p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg">
-                    <h3 className="text-sm font-semibold mb-3 text-gray-100">Risultati</h3>
-                    <ResultsList 
-                      data={message.data}
-                      type={determineResultType(message.content)}
-                    />
-                  </div>
-                )}
               </div>
             )}
           </div>

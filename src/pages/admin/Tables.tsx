@@ -77,6 +77,16 @@ export const TablesAdmin = () => {
     loadTables();
   }, []);
 
+  // Aggiorna searchTerm quando la ricerca globale viene utilizzata
+  useEffect(() => {
+    const handleSearch = (e: CustomEvent<string>) => {
+      setSearchTerm(e.detail);
+    };
+    
+    window.addEventListener('global-search', handleSearch as EventListener);
+    return () => window.removeEventListener('global-search', handleSearch as EventListener);
+  }, []);
+
   const filteredTables = tables.filter(table =>
     table.table_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -93,13 +103,6 @@ export const TablesAdmin = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-white">Gestione Tabelle</h1>
-        <input
-          type="text"
-          placeholder="Cerca tabella..."
-          className="px-4 py-2 bg-[#2A2F3C] border border-[#3A3F4C] rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[var(--primary-color)]"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
       </div>
       
       <div className="space-y-4">

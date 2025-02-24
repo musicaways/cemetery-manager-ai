@@ -1,3 +1,4 @@
+
 import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle, Database } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -88,6 +89,11 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
 
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
+      // Dispatch custom event for global search
+      const searchEvent = new CustomEvent('global-search', { detail: searchText });
+      window.dispatchEvent(searchEvent);
+      
+      // Also call the original onSearch for chat functionality
       onSearch(searchText);
       handleSearchNavigation('down');
     }

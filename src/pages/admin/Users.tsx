@@ -17,8 +17,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { Check, Ban, Save } from "lucide-react";
+import { Check, Ban, Save, Edit2, X } from "lucide-react";
 
 type UserProfile = {
   id: string;
@@ -34,18 +35,26 @@ type UserUpdate = {
   id: string;
   role?: UserRole;
   status?: 'active' | 'banned';
+  full_name?: string;
 };
 
 export const UsersAdmin = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingUpdates, setPendingUpdates] = useState<UserUpdate[]>([]);
+  const [editingUser, setEditingUser] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const loadUsers = async () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select(`
+          *,
+          table_permissions (
+            role
+          )
+        `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -61,7 +70,7 @@ export const UsersAdmin = () => {
     loadUsers();
   }, []);
 
-  const updateUserStatus = async (userId: string, status: 'active' | 'banned') => {
+  const updateUserStatus = (userId: string, status: 'active' | 'banned') => {
     setPendingUpdates(current => {
       const existing = current.find(u => u.id === userId);
       if (existing) {
@@ -71,7 +80,7 @@ export const UsersAdmin = () => {
     });
   };
 
-  const updateUserRole = async (userId: string, role: UserRole) => {
+  const updateUserRole = (userId: string, role: UserRole) => {
     setPendingUpdates(current => {
       const existing = current.find(u => u.id === userId);
       if (existing) {
@@ -81,19 +90,34 @@ export const UsersAdmin = () => {
     });
   };
 
+  const updateUserName = (userId: string, full_name: string) => {
+    setPendingUpdates(current => {
+      const existing = current.find(u => u.id === userId);
+      if (existing) {
+        return current.map(u => u.id === userId ? { ...u, full_name } : u);
+      }
+      return [...current, { id: userId, full_name }];
+    });
+  };
+
   const saveChanges = async () => {
     try {
       for (const update of pendingUpdates) {
-        if (update.status) {
-          const { error } = await supabase
+        if (update.status || update.full_name) {
+          const updateData: Partial<UserProfile> = {};
+          if (update.status) updateData.status = update.status;
+          if (update.full_name) updateData.full_name = update.full_name;
+
+          const { error: profileError } = await supabase
             .from('profiles')
-            .update({ status: update.status })
+            .update(updateData)
             .eq('id', update.id);
-          if (error) throw error;
+          
+          if (profileError) throw profileError;
         }
 
         if (update.role) {
-          const { error } = await supabase
+          const { error: permissionError } = await supabase
             .from('table_permissions')
             .upsert({
               role: update.role,
@@ -101,12 +125,14 @@ export const UsersAdmin = () => {
               table_name: '*'
             })
             .select();
-          if (error) throw error;
+          
+          if (permissionError) throw permissionError;
         }
       }
 
       toast.success("Modifiche salvate con successo");
       setPendingUpdates([]);
+      setEditingUser(null);
       await loadUsers();
     } catch (error: any) {
       toast.error("Errore nel salvataggio delle modifiche: " + error.message);
@@ -114,6 +140,11 @@ export const UsersAdmin = () => {
   };
 
   const hasChanges = pendingUpdates.length > 0;
+
+  const filteredUsers = users.filter(user =>
+    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -127,15 +158,24 @@ export const UsersAdmin = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold text-white">Gestione Utenti</h1>
-        {hasChanges && (
-          <Button
-            onClick={saveChanges}
-            className="bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
-          >
-            <Save className="w-4 h-4 mr-2" />
-            Salva Modifiche
-          </Button>
-        )}
+        <div className="flex gap-4">
+          <Input
+            type="text"
+            placeholder="Cerca utente..."
+            className="w-64 bg-[#2A2F3C] border-[#3A3F4C] text-white"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          {hasChanges && (
+            <Button
+              onClick={saveChanges}
+              className="bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              Salva Modifiche
+            </Button>
+          )}
+        </div>
       </div>
       
       <div className="bg-[#1A1F2C] rounded-lg border border-[#2A2F3C]/40 overflow-hidden">
@@ -150,10 +190,40 @@ export const UsersAdmin = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((user) => (
+            {filteredUsers.map((user) => (
               <TableRow key={user.id}>
                 <TableCell className="text-white">{user.email}</TableCell>
-                <TableCell className="text-white">{user.full_name}</TableCell>
+                <TableCell className="text-white">
+                  {editingUser === user.id ? (
+                    <div className="flex items-center gap-2">
+                      <Input
+                        defaultValue={user.full_name || ''}
+                        onChange={(e) => updateUserName(user.id, e.target.value)}
+                        className="h-8 bg-[#2A2F3C] border-[#3A3F4C] text-white"
+                      />
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditingUser(null)}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      {user.full_name}
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setEditingUser(user.id)}
+                        className="text-gray-400 hover:text-white"
+                      >
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell>
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
                     ${user.status === 'active' ? 'bg-green-100 text-green-800' :
@@ -163,7 +233,10 @@ export const UsersAdmin = () => {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Select onValueChange={(value: UserRole) => updateUserRole(user.id, value)}>
+                  <Select 
+                    defaultValue={user.table_permissions?.[0]?.role}
+                    onValueChange={(value: UserRole) => updateUserRole(user.id, value)}
+                  >
                     <SelectTrigger className="w-32">
                       <SelectValue placeholder="Seleziona ruolo" />
                     </SelectTrigger>

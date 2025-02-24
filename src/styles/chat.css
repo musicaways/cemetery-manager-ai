@@ -26,3 +26,25 @@
 .avatar-hexagon {
   clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
 }
+
+/* Animazioni messaggi */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stili per il testo formattato */
+.whitespace-pre-wrap {
+  white-space: pre-wrap;
+  word-break: break-word;
+}

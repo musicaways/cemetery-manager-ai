@@ -56,9 +56,15 @@ export const RelationDialog = ({
   }, [open]);
 
   const isPrimaryKey = (column: any) => {
+    // Una colonna è considerata chiave primaria se:
+    // 1. Ha il flag is_pk impostato a true
+    // 2. O ha una sequenza come default value (nextval) ed è NOT NULL
+    // 3. O si chiama "id"
+    // 4. O è di tipo uuid ed è NOT NULL
     return column.is_pk || 
-           (column.column_default?.includes('nextval') && column.is_nullable === false) ||
-           column.column_name === 'id'; // Consideriamo anche le colonne chiamate "id" come potenziali chiavi primarie
+           (column.column_default?.includes('nextval') && column.is_nullable === 'NO') ||
+           column.column_name === 'id' ||
+           (column.data_type === 'uuid' && column.is_nullable === 'NO');
   };
 
   const handleSubmit = async () => {

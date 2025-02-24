@@ -1,14 +1,14 @@
 
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { TableInfo } from "@/types/database";
-import { Copy, Download, Link2, Pencil, Plus, Trash } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { TableActions } from "./components/TableActions";
+import { ColumnsTable } from "./components/ColumnsTable";
+import { RelationsSection } from "./components/RelationsSection";
 import { AddEditColumnDialog } from "./AddEditColumnDialog";
 import { RelationDialog } from "./RelationDialog";
-import { supabase } from "@/integrations/supabase/client";
 
 interface TableDetailsProps {
   table: TableInfo;
@@ -111,154 +111,27 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
     setIsEditRelationOpen(true);
   };
 
-  const renderRelations = () => {
-    if (!table.foreign_keys?.length) return null;
-    
-    return (
-      <div className="mt-4 p-4 bg-[#2A2F3C]/20 rounded-lg">
-        <h3 className="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
-          <Link2 className="h-4 w-4" />
-          Relazioni
-        </h3>
-        <div className="space-y-2">
-          {table.foreign_keys.map((fk, index) => (
-            <div key={index} className="text-sm text-white flex items-center gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-gray-400 hover:text-[var(--primary-color)]"
-                onClick={() => handleEditRelation(fk)}
-              >
-                <Pencil className="h-4 w-4 mr-2" />
-                <span className="text-gray-400">{fk.column}</span>
-                <span className="text-gray-500">→</span>
-                <span className="text-[var(--primary-color)]">{fk.foreign_table}</span>
-                <span className="text-gray-500">({fk.foreign_column})</span>
-              </Button>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <TooltipProvider>
       <div className="space-y-4">
-        <div className="flex flex-col sm:flex-row gap-2 sm:justify-between sm:items-center">
-          <div className="flex flex-col sm:flex-row gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddColumnOpen(true)}
-              className="w-full sm:w-auto"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Aggiungi Colonna
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsAddRelationOpen(true)}
-              className="w-full sm:w-auto"
-            >
-              <Link2 className="h-4 w-4 mr-2" />
-              Aggiungi Relazione
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full sm:w-auto text-gray-400 hover:text-red-500"
-              onClick={handleDeleteTable}
-            >
-              <Trash className="h-4 w-4 mr-2" />
-              Elimina Tabella
-            </Button>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full sm:w-auto text-gray-400 hover:text-[var(--primary-color)]"
-            onClick={handleExportTable}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Esporta Schema
-          </Button>
-        </div>
+        <TableActions
+          onAddColumn={() => setIsAddColumnOpen(true)}
+          onAddRelation={() => setIsAddRelationOpen(true)}
+          onDeleteTable={handleDeleteTable}
+          onExportTable={handleExportTable}
+        />
         
-        <div className="overflow-x-auto -mx-4 sm:mx-0">
-          <div className="inline-block min-w-full align-middle">
-            <div className="overflow-hidden shadow-sm rounded-lg border border-[#2A2F3C]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="text-gray-400 bg-[#1A1F2C]">Colonna</TableHead>
-                    <TableHead className="text-gray-400 bg-[#1A1F2C]">Tipo</TableHead>
-                    <TableHead className="text-gray-400 bg-[#1A1F2C]">Nullable</TableHead>
-                    <TableHead className="text-gray-400 bg-[#1A1F2C]">Default</TableHead>
-                    <TableHead className="text-gray-400 bg-[#1A1F2C] w-[100px]"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {table.columns.map((column) => (
-                    <TableRow key={column.column_name} className="hover:bg-[#2A2F3C]/50">
-                      <TableCell className="text-white font-medium">
-                        <Tooltip>
-                          <TooltipTrigger className="cursor-pointer hover:text-[var(--primary-color)]">
-                            {column.column_name}
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Clicca per copiare il nome
-                          </TooltipContent>
-                        </Tooltip>
-                      </TableCell>
-                      <TableCell className="text-white">{column.data_type}</TableCell>
-                      <TableCell>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                          ${column.is_nullable === 'YES' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>
-                          {column.is_nullable === 'YES' ? 'SI' : 'NO'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-white max-w-[200px] truncate">
-                        {column.column_default || '-'}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-[var(--primary-color)]"
-                            onClick={() => handleCopyColumnName(column.column_name)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-[var(--primary-color)]"
-                            onClick={() => handleEditColumn(column)}
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 text-gray-400 hover:text-red-500"
-                            onClick={() => handleDeleteColumn(column.column_name)}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </div>
+        <ColumnsTable
+          columns={table.columns}
+          onCopyColumn={handleCopyColumnName}
+          onEditColumn={handleEditColumn}
+          onDeleteColumn={handleDeleteColumn}
+        />
 
-        {renderRelations()}
+        <RelationsSection
+          relations={table.foreign_keys || []}
+          onEditRelation={handleEditRelation}
+        />
 
         <AddEditColumnDialog
           open={isAddColumnOpen}

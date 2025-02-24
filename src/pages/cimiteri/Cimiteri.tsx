@@ -30,7 +30,13 @@ export const Cimiteri = () => {
         `);
 
       if (cimiteriError) throw cimiteriError;
+      
+      // Aggiorna sia la lista che il cimitero selezionato se presente
       setCimiteri(cimiteriData || []);
+      if (selectedCimitero) {
+        const updatedSelected = cimiteriData?.find(c => c.Id === selectedCimitero.Id) || null;
+        setSelectedCimitero(updatedSelected);
+      }
     } catch (error: any) {
       toast.error("Errore nel caricamento dei cimiteri: " + error.message);
     } finally {
@@ -53,35 +59,50 @@ export const Cimiteri = () => {
 
   const handleEdit = () => {
     setEditMode(true);
-    setEditedData(selectedCimitero || {});
+    // Inizializza editedData con i valori attuali del cimitero selezionato
+    if (selectedCimitero) {
+      setEditedData({
+        Descrizione: selectedCimitero.Descrizione,
+        Indirizzo: selectedCimitero.Indirizzo,
+        Latitudine: selectedCimitero.Latitudine,
+        Longitudine: selectedCimitero.Longitudine,
+        FotoCopertina: selectedCimitero.FotoCopertina,
+      });
+    }
   };
 
   const handleSave = async () => {
     if (!selectedCimitero) return;
 
     try {
+      console.log("Saving changes:", editedData);
+      
+      const updateData = {
+        Descrizione: editedData.Descrizione,
+        Indirizzo: editedData.Indirizzo,
+        Latitudine: editedData.Latitudine,
+        Longitudine: editedData.Longitudine,
+        FotoCopertina: editedData.FotoCopertina,
+      };
+
       const { error } = await supabase
         .from("Cimitero")
-        .update({
-          Descrizione: editedData.Descrizione,
-          Indirizzo: editedData.Indirizzo,
-          Latitudine: editedData.Latitudine,
-          Longitudine: editedData.Longitudine,
-          FotoCopertina: editedData.FotoCopertina,
-        })
+        .update(updateData)
         .eq("Id", selectedCimitero.Id);
 
       if (error) throw error;
 
       toast.success("Modifiche salvate con successo");
       setEditMode(false);
-      loadCimiteri();
+      await loadCimiteri(); // Ricarica i dati dopo il salvataggio
     } catch (error: any) {
+      console.error("Error saving changes:", error);
       toast.error("Errore durante il salvataggio: " + error.message);
     }
   };
 
   const handleInputChange = (field: string, value: string | number | null) => {
+    console.log("Updating field:", field, "with value:", value);
     setEditedData(prev => ({
       ...prev,
       [field]: value
@@ -100,7 +121,8 @@ export const Cimiteri = () => {
       if (error) throw error;
 
       toast.success("Foto di copertina aggiornata");
-      loadCimiteri();
+      await loadCimiteri(); // Ricarica i dati dopo l'upload
+      setIsUploadOpen(false);
     } catch (error: any) {
       toast.error("Errore durante l'aggiornamento della foto: " + error.message);
     }
@@ -133,9 +155,12 @@ export const Cimiteri = () => {
 
       <Dialog 
         open={!!selectedCimitero} 
-        onOpenChange={() => {
-          setSelectedCimitero(null);
-          setEditMode(false);
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedCimitero(null);
+            setEditMode(false);
+            setEditedData({});
+          }
         }}
       >
         <CimiteroDetails

@@ -1,4 +1,4 @@
-import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown } from "lucide-react";
+import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -17,6 +17,27 @@ interface HeaderProps {
   onSettingsClick: () => void;
   onSearch: (text: string) => void;
 }
+
+const notificationTypes = {
+  info: {
+    bgColor: 'bg-gradient-to-br from-blue-500/10 to-indigo-500/10',
+    borderColor: 'border-blue-500/20',
+    iconColor: 'text-blue-400',
+    icon: Info
+  },
+  error: {
+    bgColor: 'bg-gradient-to-br from-red-500/10 to-pink-500/10',
+    borderColor: 'border-red-500/20',
+    iconColor: 'text-red-400',
+    icon: AlertCircle
+  },
+  success: {
+    bgColor: 'bg-gradient-to-br from-green-500/10 to-emerald-500/10',
+    borderColor: 'border-green-500/20',
+    iconColor: 'text-green-400',
+    icon: CheckCircle
+  }
+} as const;
 
 export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
   const navigate = useNavigate();
@@ -245,10 +266,10 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80 bg-black border-l border-[#2A2F3C]/40">
+              <SheetContent side="right" className="w-80 bg-black/95 border-l border-[#2A2F3C]/40">
                 <SheetHeader className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <SheetTitle className="text-lg font-semibold text-white">Notifiche</SheetTitle>
+                    <SheetTitle className="text-lg font-semibold text-gradient">Notifiche</SheetTitle>
                     {notifications.length > 0 && (
                       <Button
                         variant="ghost"
@@ -261,61 +282,74 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                     )}
                   </div>
                 </SheetHeader>
-                <div className="mt-4 space-y-2">
+                <div className="mt-4 space-y-3">
                   {notifications.length === 0 ? (
-                    <p className="text-sm text-gray-400 text-center py-4">Nessuna notifica</p>
+                    <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+                      <Bell className="h-12 w-12 mb-3 opacity-20" />
+                      <p className="text-sm">Nessuna notifica</p>
+                    </div>
                   ) : (
-                    notifications.map((notification) => (
-                      <div
-                        key={notification.id}
-                        className={`relative p-3 rounded-lg border group touch-pan-x transform transition-transform will-change-transform ${
-                          notification.type === 'error' 
-                            ? 'bg-red-500/10 border-red-500/20' 
-                            : 'bg-[#2A2F3C] border-white/10'
-                        } ${!notification.read && 'bg-opacity-50'}`}
-                        onTouchStart={(e) => {
-                          const touch = e.touches[0];
-                          const div = e.currentTarget;
-                          const startX = touch.clientX;
-                          
-                          const handleTouchMove = (e: TouchEvent) => {
-                            const currentX = e.touches[0].clientX;
-                            const diff = currentX - startX;
-                            if (diff > 0) {
-                              div.style.transform = `translateX(${diff}px)`;
-                            }
-                          };
-                          
-                          const handleTouchEnd = (e: TouchEvent) => {
-                            const currentX = e.changedTouches[0].clientX;
-                            const diff = currentX - startX;
+                    notifications.map((notification) => {
+                      const type = notification.type as keyof typeof notificationTypes;
+                      const NotificationIcon = notificationTypes[type].icon;
+                      
+                      return (
+                        <div
+                          key={notification.id}
+                          className={`relative p-4 rounded-xl border backdrop-blur-xl group touch-pan-x transform transition-all duration-200 will-change-transform hover:scale-[0.98] ${
+                            notificationTypes[type].bgColor
+                          } ${notificationTypes[type].borderColor}`}
+                          onTouchStart={(e) => {
+                            const touch = e.touches[0];
+                            const div = e.currentTarget;
+                            const startX = touch.clientX;
                             
-                            if (diff > 100) {
-                              deleteNotification(notification.id);
-                            } else {
-                              div.style.transform = '';
-                            }
+                            const handleTouchMove = (e: TouchEvent) => {
+                              const currentX = e.touches[0].clientX;
+                              const diff = currentX - startX;
+                              if (diff > 0) {
+                                div.style.transform = `translateX(${diff}px)`;
+                              }
+                            };
                             
-                            div.removeEventListener('touchmove', handleTouchMove);
-                            div.removeEventListener('touchend', handleTouchEnd);
-                          };
-                          
-                          div.addEventListener('touchmove', handleTouchMove);
-                          div.addEventListener('touchend', handleTouchEnd);
-                        }}
-                      >
-                        <h3 className="font-medium text-sm text-white">{notification.title}</h3>
-                        <p className="text-sm text-gray-400 mt-1">{notification.message}</p>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => deleteNotification(notification.id)}
-                          className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500"
+                            const handleTouchEnd = (e: TouchEvent) => {
+                              const currentX = e.changedTouches[0].clientX;
+                              const diff = currentX - startX;
+                              
+                              if (diff > 100) {
+                                deleteNotification(notification.id);
+                              } else {
+                                div.style.transform = '';
+                              }
+                              
+                              div.removeEventListener('touchmove', handleTouchMove);
+                              div.removeEventListener('touchend', handleTouchEnd);
+                            };
+                            
+                            div.addEventListener('touchmove', handleTouchMove);
+                            div.addEventListener('touchend', handleTouchEnd);
+                          }}
                         >
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    ))
+                          <div className="flex items-start gap-3">
+                            <div className={`p-2 rounded-lg ${notificationTypes[type].bgColor} ${notificationTypes[type].borderColor}`}>
+                              <NotificationIcon className={`h-4 w-4 ${notificationTypes[type].iconColor}`} />
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-medium text-sm text-white/90">{notification.title}</h3>
+                              <p className="text-sm text-gray-400 mt-1">{notification.message}</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteNotification(notification.id)}
+                            className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-gray-400 hover:text-red-500"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      );
+                    })
                   )}
                 </div>
               </SheetContent>

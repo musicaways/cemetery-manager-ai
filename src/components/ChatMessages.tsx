@@ -1,4 +1,4 @@
-import { Skull, Copy, MoreHorizontal, MessageCircle } from "lucide-react";
+import { Skull, Copy, MoreHorizontal, MessageCircle, Bot } from "lucide-react";
 import { SuggestedQuestions } from "./SuggestedQuestions";
 import { ResultsList } from "./ResultsList";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -92,15 +92,17 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
             
             {message.type === 'response' && (
               <div className="space-y-3 max-w-[98%] pl-1">
-                <div className="flex items-center gap-2 px-1">
-                  <div className="w-8 h-8 bg-[#8B5CF6] rounded-lg flex items-center justify-center">
-                    <MessageCircle className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-200">Assistente AI</span>
-                    <span className="text-xs text-gray-400">
-                      {format(message.timestamp || new Date(), "d MMMM yyyy, HH:mm", { locale: it })}
-                    </span>
+                <div className="flex items-center justify-between px-1">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 bg-[#8B5CF6] rounded-lg flex items-center justify-center">
+                      <Bot className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex flex-col">
+                      <span className="text-sm font-medium text-gray-200">Assistente AI</span>
+                      <span className="text-xs text-gray-400">
+                        {format(message.timestamp || new Date(), "d MMMM yyyy, HH:mm", { locale: it })}
+                      </span>
+                    </div>
                   </div>
                 </div>
                 
@@ -163,7 +165,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         {isProcessing && (
           <div className="flex items-start space-x-3 px-2">
             <div className="w-8 h-8 bg-[#8B5CF6] rounded-lg flex items-center justify-center">
-              <MessageCircle className="w-4 h-4 text-white" />
+              <Bot className="w-4 h-4 text-white" />
             </div>
             <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm">
               <div className="flex items-center space-x-2">

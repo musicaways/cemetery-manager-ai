@@ -20,6 +20,7 @@ interface CimiteroDetailsProps {
   onSave: () => void;
   onUpload: () => void;
   onInputChange: (field: string, value: string | number | null) => void;
+  selectedFile?: File | null;
 }
 
 export const CimiteroDetails = ({
@@ -30,6 +31,7 @@ export const CimiteroDetails = ({
   onSave,
   onUpload,
   onInputChange,
+  selectedFile
 }: CimiteroDetailsProps) => {
   if (!cimitero) return null;
 
@@ -75,10 +77,10 @@ export const CimiteroDetails = ({
         onDrop={handleDrop}
         onDragOver={handleDragOver}
       >
-        {(cimitero.FotoCopertina || cimitero.foto?.[0]?.Url) ? (
+        {(selectedFile || cimitero.FotoCopertina || cimitero.foto?.[0]?.Url) ? (
           <>
             <img
-              src={cimitero.FotoCopertina || cimitero.foto[0].Url}
+              src={selectedFile ? URL.createObjectURL(selectedFile) : (cimitero.FotoCopertina || cimitero.foto[0].Url)}
               alt={cimitero.Descrizione || "Foto cimitero"}
               className="w-full h-full object-cover"
             />
@@ -95,7 +97,7 @@ export const CimiteroDetails = ({
           </div>
         )}
         
-        {editMode && cimitero.FotoCopertina && (
+        {editMode && (cimitero.FotoCopertina || selectedFile) && (
           <Button
             onClick={(e) => {
               e.stopPropagation();

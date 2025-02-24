@@ -17,11 +17,12 @@ export const TablesList = ({ tables, onTableChange }: TablesListProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Tabelle del Database</h2>
+      <div className="flex justify-end">
         <Button
           onClick={() => setIsCreateTableOpen(true)}
-          className="bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90"
+          variant="default"
+          size="sm"
+          className="bg-[#4F46E5] hover:bg-[#4F46E5]/90"
         >
           <Plus className="h-4 w-4 mr-2" />
           Nuova Tabella

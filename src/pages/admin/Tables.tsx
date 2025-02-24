@@ -23,26 +23,33 @@ export const TablesAdmin = () => {
         throw error;
       }
 
-      console.log("Schema data received:", schemaData);
+      console.log("Raw schema data:", schemaData);
 
       if (schemaData?.tables) {
         const formattedTables: TableInfo[] = schemaData.tables
           .filter(table => !table.name.startsWith('_')) // Escludiamo le tabelle di sistema
-          .map(table => ({
-            table_name: table.name,
-            columns: table.columns.map(col => ({
-              column_name: col.name,
-              data_type: col.type,
-              is_nullable: !col.is_nullable ? 'YES' : 'NO', // Invertiamo la logica per allinearla con il tipo
-              column_default: col.default_value
-            })),
-            foreign_keys: (table.foreign_keys || []).map(fk => ({
-              name: fk.column, // Usiamo la colonna come nome della foreign key
-              column: fk.column,
-              foreign_table: fk.foreign_table,
-              foreign_column: fk.foreign_column
-            }))
-          }));
+          .map(table => {
+            console.log(`Processing table ${table.name}:`, table);
+            return {
+              table_name: table.name,
+              columns: table.columns.map(col => {
+                console.log(`Processing column ${col.name} in table ${table.name}:`, col);
+                return {
+                  column_name: col.name,
+                  data_type: col.type,
+                  is_nullable: !col.is_nullable ? 'YES' : 'NO',
+                  column_default: col.default_value,
+                  is_pk: col.is_pk // Assicuriamoci di propagare l'informazione sulla chiave primaria
+                };
+              }),
+              foreign_keys: (table.foreign_keys || []).map(fk => ({
+                name: fk.column,
+                column: fk.column,
+                foreign_table: fk.foreign_table,
+                foreign_column: fk.foreign_column
+              }))
+            };
+          });
 
         console.log("Formatted tables:", formattedTables);
         setTables(formattedTables);

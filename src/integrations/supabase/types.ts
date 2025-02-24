@@ -103,17 +103,29 @@ export type Database = {
         Row: {
           Codice: string | null
           Descrizione: string | null
+          FotoCopertina: string | null
           Id: number
+          Indirizzo: string | null
+          Latitudine: number | null
+          Longitudine: number | null
         }
         Insert: {
           Codice?: string | null
           Descrizione?: string | null
+          FotoCopertina?: string | null
           Id: number
+          Indirizzo?: string | null
+          Latitudine?: number | null
+          Longitudine?: number | null
         }
         Update: {
           Codice?: string | null
           Descrizione?: string | null
+          FotoCopertina?: string | null
           Id?: number
+          Indirizzo?: string | null
+          Latitudine?: number | null
+          Longitudine?: number | null
         }
         Relationships: []
       }

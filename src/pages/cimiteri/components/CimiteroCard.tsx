@@ -29,27 +29,28 @@ export const CimiteroCard = ({ cimitero, onClick }: CimiteroCardProps) => {
       </div>
 
       <div className="p-4">
-        <h3 className="text-xl font-semibold text-white mb-2 line-clamp-1">
-          {cimitero.Descrizione || "Nome non specificato"}
-        </h3>
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-xl font-semibold text-white line-clamp-1">
+            {cimitero.Descrizione || "Nome non specificato"}
+          </h3>
+          <div className="flex items-center gap-2 text-gray-400">
+            <div className="flex items-center">
+              <Image className="w-4 h-4" />
+              <span className="ml-1">{cimitero.foto?.length || 0}</span>
+            </div>
+            <div className="flex items-center">
+              <MapPinned className="w-4 h-4" />
+              <span className="ml-1">{cimitero.settori?.length || 0}</span>
+            </div>
+            <div className="flex items-center">
+              <FileText className="w-4 h-4" />
+              <span className="ml-1">{cimitero.documenti?.length || 0}</span>
+            </div>
+          </div>
+        </div>
         <div className="flex items-center text-sm text-gray-400">
           <MapPin className="w-4 h-4 mr-1" />
           <span className="line-clamp-1">{cimitero.Indirizzo || cimitero.Codice || "Indirizzo non specificato"}</span>
-        </div>
-
-        <div className="flex items-center gap-4 mt-4">
-          <div className="flex items-center text-gray-400">
-            <Image className="w-4 h-4 mr-1" />
-            <span>{cimitero.foto?.length || 0}</span>
-          </div>
-          <div className="flex items-center text-gray-400">
-            <MapPinned className="w-4 h-4 mr-1" />
-            <span>{cimitero.settori?.length || 0}</span>
-          </div>
-          <div className="flex items-center text-gray-400">
-            <FileText className="w-4 h-4 mr-1" />
-            <span>{cimitero.documenti?.length || 0}</span>
-          </div>
         </div>
       </div>
     </div>

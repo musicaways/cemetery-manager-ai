@@ -112,20 +112,6 @@ export const CimiteroDetails = ({
       <ScrollArea className="h-[60vh]">
         <div className="p-6">
           <div className="space-y-6">
-            <div className="flex justify-end space-x-2">
-              {editMode ? (
-                <Button onClick={onSave} className="bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90">
-                  <Save className="w-4 h-4 mr-2" />
-                  Salva
-                </Button>
-              ) : (
-                <Button onClick={onEdit} variant="outline" className="border-gray-700">
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  Modifica
-                </Button>
-              )}
-            </div>
-
             <InfoTab
               cimitero={cimitero}
               editMode={editMode}
@@ -140,6 +126,25 @@ export const CimiteroDetails = ({
           </div>
         </div>
       </ScrollArea>
+
+      <div className="absolute bottom-6 right-6">
+        {editMode ? (
+          <Button 
+            onClick={onSave} 
+            className="h-12 w-12 rounded-full bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90 shadow-lg"
+          >
+            <Save className="w-5 h-5" />
+          </Button>
+        ) : (
+          <Button 
+            onClick={onEdit} 
+            variant="outline" 
+            className="h-12 w-12 rounded-full border-gray-700 shadow-lg"
+          >
+            <Edit2 className="w-5 h-5" />
+          </Button>
+        )}
+      </div>
     </DialogContent>
   );
 };

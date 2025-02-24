@@ -38,8 +38,7 @@ export const TablesAdmin = () => {
                   column_name: col.name,
                   data_type: col.type,
                   is_nullable: !col.is_nullable ? 'YES' : 'NO',
-                  column_default: col.default_value,
-                  is_pk: col.is_pk // Assicuriamoci di propagare l'informazione sulla chiave primaria
+                  column_default: col.default_value
                 };
               }),
               foreign_keys: (table.foreign_keys || []).map(fk => ({

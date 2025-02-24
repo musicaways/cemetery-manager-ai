@@ -33,11 +33,11 @@ export const TablesAdmin = () => {
             columns: table.columns.map(col => ({
               column_name: col.name,
               data_type: col.type,
-              is_nullable: col.notnull ? 'NO' : 'YES',
-              column_default: col.default || null
+              is_nullable: !col.is_nullable ? 'YES' : 'NO', // Invertiamo la logica per allinearla con il tipo
+              column_default: col.default_value
             })),
             foreign_keys: (table.foreign_keys || []).map(fk => ({
-              name: fk.name,
+              name: fk.column, // Usiamo la colonna come nome della foreign key
               column: fk.column,
               foreign_table: fk.foreign_table,
               foreign_column: fk.foreign_column

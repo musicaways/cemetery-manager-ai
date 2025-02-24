@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { Check, Ban, UserX } from "lucide-react";
+import { Check, Ban } from "lucide-react";
 
 type UserProfile = {
   id: string;
@@ -27,6 +27,8 @@ type UserProfile = {
   status: 'pending' | 'active' | 'banned';
   created_at: string;
 };
+
+type UserRole = 'admin' | 'read_write' | 'read_only';
 
 export const UsersAdmin = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -68,15 +70,16 @@ export const UsersAdmin = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, role: string) => {
+  const updateUserRole = async (userId: string, role: UserRole) => {
     try {
       const { error } = await supabase
         .from('table_permissions')
         .upsert({
+          role,
           user_id: userId,
-          role: role,
           table_name: '*'
-        });
+        })
+        .select();
 
       if (error) throw error;
       toast.success("Ruolo utente aggiornato");
@@ -122,7 +125,7 @@ export const UsersAdmin = () => {
                   </span>
                 </TableCell>
                 <TableCell>
-                  <Select onValueChange={(value) => updateUserRole(user.id, value)}>
+                  <Select onValueChange={(value: UserRole) => updateUserRole(user.id, value)}>
                     <SelectTrigger className="w-32">
                       <SelectValue placeholder="Seleziona ruolo" />
                     </SelectTrigger>

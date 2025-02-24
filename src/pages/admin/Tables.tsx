@@ -29,37 +29,42 @@ type ColumnInfo = {
   column_default: string | null;
 };
 
+type SchemaResponse = {
+  tables: Array<{
+    name: string;
+    columns: Array<{
+      name: string;
+      type: string;
+      is_nullable: boolean;
+      default_value: string | null;
+    }>;
+  }>;
+};
+
 export const TablesAdmin = () => {
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadTables = async () => {
     try {
-      // Carica tutte le tabelle del database
-      const { data: tablesData, error: tablesError } = await supabase
-        .from('information_schema.tables')
-        .select('table_name')
-        .eq('table_schema', 'public');
+      const { data: schemaData, error } = await supabase
+        .rpc('get_complete_schema')
+        .single<SchemaResponse>();
 
-      if (tablesError) throw tablesError;
+      if (error) throw error;
 
-      const tableInfoPromises = tablesData.map(async (table) => {
-        const { data: columnsData, error: columnsError } = await supabase
-          .from('information_schema.columns')
-          .select('column_name, data_type, is_nullable, column_default')
-          .eq('table_schema', 'public')
-          .eq('table_name', table.table_name);
-
-        if (columnsError) throw columnsError;
-
-        return {
-          table_name: table.table_name,
-          columns: columnsData
-        };
-      });
-
-      const tableInfo = await Promise.all(tableInfoPromises);
-      setTables(tableInfo);
+      if (schemaData?.tables) {
+        const formattedTables: TableInfo[] = schemaData.tables.map(table => ({
+          table_name: table.name,
+          columns: table.columns.map(col => ({
+            column_name: col.name,
+            data_type: col.type,
+            is_nullable: col.is_nullable ? 'YES' : 'NO',
+            column_default: col.default_value
+          }))
+        }));
+        setTables(formattedTables);
+      }
     } catch (error: any) {
       toast.error("Errore nel caricamento delle tabelle: " + error.message);
     } finally {

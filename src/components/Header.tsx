@@ -1,5 +1,5 @@
 
-import { Menu, LogOut, Settings, Users, Database } from "lucide-react";
+import { Menu, LogOut, Settings, Users, Database, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -80,6 +80,19 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
+
+                <div className="space-y-2">
+                  <SheetClose asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
+                      onClick={() => navigate("/")}
+                    >
+                      <MessageCircle className="mr-2 h-4 w-4" />
+                      Assistente
+                    </Button>
+                  </SheetClose>
+                </div>
 
                 <div className="absolute bottom-4 left-4 right-4 space-y-2">
                   <SheetClose asChild>

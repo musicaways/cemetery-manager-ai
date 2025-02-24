@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -135,8 +134,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[var(--chat-bg)] text-gray-100 overflow-hidden">
-      <Header onSettingsClick={() => setIsSettingsOpen(true)} />
-
       <main className="container mx-auto px-4 py-4 mb-20">
         <ChatMessages
           messages={messages}

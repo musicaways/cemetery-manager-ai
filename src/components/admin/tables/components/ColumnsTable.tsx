@@ -23,8 +23,8 @@ export const ColumnsTable = ({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-gray-400 bg-[#1A1F2C] min-w-[120px]">Colonna</TableHead>
-            <TableHead className="text-gray-400 bg-[#1A1F2C] min-w-[100px] hidden sm:table-cell">Tipo</TableHead>
+            <TableHead className="text-gray-400 bg-[#1A1F2C] text-left min-w-[120px]">Colonna</TableHead>
+            <TableHead className="text-gray-400 bg-[#1A1F2C] text-left min-w-[100px] hidden sm:table-cell">Tipo</TableHead>
             <TableHead className="text-gray-400 bg-[#1A1F2C] w-[80px]">Null</TableHead>
             <TableHead className="text-gray-400 bg-[#1A1F2C] hidden sm:table-cell">Default</TableHead>
             <TableHead className="text-gray-400 bg-[#1A1F2C] w-[100px]"></TableHead>
@@ -33,10 +33,10 @@ export const ColumnsTable = ({
         <TableBody>
           {columns.map((column) => (
             <TableRow key={column.column_name} className="hover:bg-[#2A2F3C]/50">
-              <TableCell className="text-white font-medium">
+              <TableCell className="text-white font-medium text-left">
                 <div className="flex flex-col">
                   <Tooltip>
-                    <TooltipTrigger className="cursor-pointer hover:text-[var(--primary-color)] truncate">
+                    <TooltipTrigger className="cursor-pointer hover:text-[var(--primary-color)] truncate text-left">
                       {column.column_name}
                     </TooltipTrigger>
                     <TooltipContent>
@@ -46,7 +46,7 @@ export const ColumnsTable = ({
                   <span className="text-xs text-gray-400 sm:hidden">{column.data_type}</span>
                 </div>
               </TableCell>
-              <TableCell className="text-white hidden sm:table-cell">{column.data_type}</TableCell>
+              <TableCell className="text-white text-left hidden sm:table-cell">{column.data_type}</TableCell>
               <TableCell>
                 <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
                   ${column.is_nullable === 'YES' ? 'bg-yellow-100 text-yellow-800' : 'bg-red-100 text-red-800'}`}>

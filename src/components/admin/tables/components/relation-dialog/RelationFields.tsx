@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ColumnInfo, TableInfo } from "@/types/database";
+import { isPrimaryKey } from "../../utils/relationQueries";
 
 interface RelationFieldsProps {
   currentTable: TableInfo;
@@ -32,6 +33,11 @@ export const RelationFields = ({
   onTableChange,
   onForeignColumnChange,
 }: RelationFieldsProps) => {
+  const availableTables = otherTables.map(table => ({
+    ...table,
+    hasPrimaryKey: table.columns.some(isPrimaryKey)
+  }));
+
   return (
     <div className="grid gap-6 py-4">
       <div className="grid gap-2">
@@ -70,14 +76,19 @@ export const RelationFields = ({
           >
             <SelectValue placeholder="Seleziona una tabella" />
           </SelectTrigger>
-          <SelectContent className="bg-[#2A2F3C] border-[#4F46E5] max-h-[200px]">
-            {otherTables.map((table) => (
+          <SelectContent className="bg-[#2A2F3C] border-[#4F46E5] max-h-[300px]">
+            {availableTables.map((table) => (
               <SelectItem 
                 key={table.table_name} 
                 value={table.table_name}
                 className="text-white hover:bg-[#4F46E5] focus:bg-[#4F46E5]"
               >
-                {table.table_name}
+                <div className="flex items-center justify-between w-full">
+                  <span>{table.table_name}</span>
+                  {!table.hasPrimaryKey && (
+                    <span className="text-yellow-400 text-xs">(no PK)</span>
+                  )}
+                </div>
               </SelectItem>
             ))}
           </SelectContent>
@@ -104,6 +115,7 @@ export const RelationFields = ({
                   className="text-white hover:bg-[#4F46E5] focus:bg-[#4F46E5]"
                 >
                   {column.column_name}
+                  <span className="text-gray-400 text-xs ml-2">({column.data_type})</span>
                 </SelectItem>
               ))}
             </SelectContent>

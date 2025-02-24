@@ -9,6 +9,8 @@ import { GalleryTab } from "./Tabs/GalleryTab";
 import { DocumentsTab } from "./Tabs/DocumentsTab";
 import { MapsTab } from "./Tabs/MapsTab";
 import { SectorsTab } from "./Tabs/SectorsTab";
+import { useCallback } from "react";
+import { toast } from "sonner";
 
 interface CimiteroDetailsProps {
   cimitero: Cimitero | null;
@@ -31,6 +33,30 @@ export const CimiteroDetails = ({
 }: CimiteroDetailsProps) => {
   if (!cimitero) return null;
 
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      if (!editMode) return;
+
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+
+      // Verifica che sia un'immagine
+      if (!file.type.startsWith('image/')) {
+        toast.error('Per favore carica solo immagini');
+        return;
+      }
+
+      // Simula il click sul pulsante di upload
+      onUpload();
+    },
+    [editMode, onUpload]
+  );
+
+  const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  }, []);
+
   return (
     <DialogContent className="max-w-4xl bg-[#1A1F2C] border-gray-800 p-0">
       <DialogHeader className="p-6 pb-0">
@@ -39,23 +65,43 @@ export const CimiteroDetails = ({
         </DialogTitle>
       </DialogHeader>
       
-      <div className="relative aspect-[21/9] overflow-hidden group">
+      <div 
+        className={`relative aspect-[21/9] overflow-hidden group ${editMode && !cimitero.FotoCopertina ? 'cursor-pointer' : ''}`}
+        onClick={() => {
+          if (editMode && !cimitero.FotoCopertina) {
+            onUpload();
+          }
+        }}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+      >
         {(cimitero.FotoCopertina || cimitero.foto?.[0]?.Url) ? (
-          <img
-            src={cimitero.FotoCopertina || cimitero.foto[0].Url}
-            alt={cimitero.Descrizione || "Foto cimitero"}
-            className="w-full h-full object-cover"
-          />
+          <>
+            <img
+              src={cimitero.FotoCopertina || cimitero.foto[0].Url}
+              alt={cimitero.Descrizione || "Foto cimitero"}
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] via-transparent to-transparent" />
+          </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-black/20">
-            <ImagePlus className="w-12 h-12 text-gray-400" />
+          <div className={`w-full h-full flex flex-col items-center justify-center ${editMode ? 'bg-black/40 hover:bg-black/50' : 'bg-black/20'} transition-colors`}>
+            <ImagePlus className="w-12 h-12 text-white mb-2" />
+            {editMode && (
+              <p className="text-white text-sm">
+                Clicca o trascina un'immagine qui per caricarla
+              </p>
+            )}
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] to-transparent" />
-        {editMode && (
+        
+        {editMode && cimitero.FotoCopertina && (
           <Button
-            onClick={onUpload}
-            className="absolute top-4 right-4 bg-black/60 hover:bg-black/80"
+            onClick={(e) => {
+              e.stopPropagation();
+              onUpload();
+            }}
+            className="absolute top-4 right-4 bg-white/90 hover:bg-white text-black hover:text-black"
           >
             <ImagePlus className="w-4 h-4 mr-2" />
             Cambia foto

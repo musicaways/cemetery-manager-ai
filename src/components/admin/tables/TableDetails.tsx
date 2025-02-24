@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useState } from "react";
 import { AddEditColumnDialog } from "./AddEditColumnDialog";
 import { RelationDialog } from "./RelationDialog";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TableDetailsProps {
   table: TableInfo;

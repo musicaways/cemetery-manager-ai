@@ -16,6 +16,7 @@ interface ChatMessage {
 
 const Index = () => {
   const [query, setQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -23,10 +24,27 @@ const Index = () => {
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  let scrollTimeout: NodeJS.Timeout;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const handleSearch = (searchText: string) => {
+    if (!searchText.trim()) return;
+    setSearchQuery(searchText);
+    
+    const foundElement = messages.findIndex(message => 
+      message.content.toLowerCase().includes(searchText.toLowerCase())
+    );
+
+    if (foundElement !== -1) {
+      const element = document.querySelector(`[data-message-index="${foundElement}"]`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+        element.classList.add("bg-[#9b87f5]/10");
+        setTimeout(() => {
+          element.classList.remove("bg-[#9b87f5]/10");
+        }, 2000);
+      }
+    } else {
+      toast.error("Nessun risultato trovato");
+    }
   };
 
   const processTestQuery = async (aiProvider: string, aiModel: string) => {
@@ -113,6 +131,10 @@ const Index = () => {
     }
   };
 
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
   useEffect(() => {
     const scrollArea = scrollAreaRef.current?.querySelector('.scroll-area-viewport');
     if (!scrollArea) return;
@@ -134,6 +156,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[var(--chat-bg)] text-gray-100 overflow-hidden">
+      <Header 
+        onSettingsClick={() => setIsSettingsOpen(true)} 
+        onSearch={handleSearch}
+      />
       <main className="container mx-auto px-4 py-4 mb-20">
         <ChatMessages
           messages={messages}
@@ -141,6 +167,7 @@ const Index = () => {
           onQuestionSelect={(q) => handleSubmit(undefined, q)}
           scrollAreaRef={scrollAreaRef}
           messagesEndRef={messagesEndRef}
+          searchQuery={searchQuery}
         />
       </main>
 

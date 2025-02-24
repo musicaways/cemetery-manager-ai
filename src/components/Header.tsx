@@ -15,17 +15,25 @@ import { toast } from "sonner";
 
 interface HeaderProps {
   onSettingsClick: () => void;
+  onSearch: (text: string) => void;
 }
 
-export const Header = ({ onSettingsClick }: HeaderProps) => {
+export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
+  const [searchText, setSearchText] = useState("");
   const [notifications, setNotifications] = useState([
     { id: 1, title: "Nuovo messaggio", message: "Hai ricevuto una nuova risposta", read: false, type: "info" },
     { id: 2, title: "Errore", message: "Si è verificato un errore durante l'elaborazione", read: false, type: "error" },
   ]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      onSearch(searchText);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -114,14 +122,23 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
             {showSearch && (
               <input
                 type="text"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onKeyDown={handleSearch}
                 placeholder="Cerca nella chat..."
                 className="bg-[#1A1F2C] text-white text-sm rounded-full px-4 py-1.5 border-2 border-white/20 focus:border-[#9b87f5] focus:outline-none w-48 transition-all duration-200"
+                autoFocus
               />
             )}
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowSearch(!showSearch)}
+              onClick={() => {
+                setShowSearch(!showSearch);
+                if (!showSearch) {
+                  setSearchText("");
+                }
+              }}
               className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
             >
               <Search className="h-4 w-4" />

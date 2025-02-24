@@ -66,7 +66,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
       ref={scrollAreaRef}
       className="h-[calc(100vh-8.5rem)] rounded-lg"
     >
-      <div className="max-w-4xl mx-auto px-4 space-y-8">
+      <div className="max-w-5xl mx-auto px-2 sm:px-4 space-y-8">
         {messages.length === 0 && !isProcessing && (
           <div className="space-y-6 animate-fade-in">
             <div className="text-center space-y-2">
@@ -84,7 +84,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
           <div key={index} className="animate-fade-in space-y-6">
             {message.type === 'query' && (
               <div className="flex justify-end">
-                <div className="max-w-[80%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-4 border border-[var(--primary-color)]/30 backdrop-blur-sm">
+                <div className="max-w-[85%] sm:max-w-[80%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-4 border border-[var(--primary-color)]/30 backdrop-blur-sm">
                   <p className="text-gray-100 whitespace-pre-wrap">{message.content}</p>
                 </div>
               </div>

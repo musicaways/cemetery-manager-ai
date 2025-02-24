@@ -48,8 +48,8 @@ export const ChatInput = ({
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4">
-      <div className="max-w-3xl mx-auto space-y-3">
+    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ bottom: 0, position: 'fixed', width: '100%' }}>
+      <div className="max-w-5xl mx-auto space-y-3">
         {/* Input Bar */}
         <div className="relative flex items-start">
           <TextareaAutosize

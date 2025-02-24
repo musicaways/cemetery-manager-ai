@@ -172,6 +172,17 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                       Assistente
                     </Button>
                   </SheetClose>
+
+                  <SheetClose asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
+                      onClick={() => navigate("/cimiteri")}
+                    >
+                      <Database className="mr-2 h-4 w-4" />
+                      Cimiteri
+                    </Button>
+                  </SheetClose>
                 </div>
 
                 <div className="absolute bottom-4 left-4 right-4 space-y-2">

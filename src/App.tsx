@@ -10,6 +10,7 @@ import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import UsersAdmin from "./pages/admin/Users";
 import TablesAdmin from "./pages/admin/Tables";
+import Cimiteri from "./pages/cimiteri/Cimiteri";
 import { ThemeProvider } from '@/lib/themeContext';
 import { Layout } from "@/components/Layout";
 import './styles/chat.css';
@@ -80,6 +81,18 @@ function App() {
                   isAuthenticated ? (
                     <Layout>
                       <TablesAdmin />
+                    </Layout>
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/cimiteri"
+                element={
+                  isAuthenticated ? (
+                    <Layout>
+                      <Cimiteri />
                     </Layout>
                   ) : (
                     <Navigate to="/auth" replace />

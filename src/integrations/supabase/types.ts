@@ -267,7 +267,15 @@ export type Database = {
           testo?: string
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_prova_roles_id"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       provaelenco: {
         Row: {

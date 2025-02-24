@@ -1,4 +1,3 @@
-
 import { TableInfo } from "@/types/database";
 import { toast } from "sonner";
 import { useState } from "react";
@@ -46,7 +45,8 @@ export const TableDetails = ({ table, tables, onTableDeleted }: TableDetailsProp
         type: col.data_type,
         nullable: col.is_nullable,
         default: col.column_default
-      }))
+      })),
+      relations: table.foreign_keys
     };
     
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });

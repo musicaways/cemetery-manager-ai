@@ -15,7 +15,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Database, Copy, Download, SortAsc, SortDesc } from "lucide-react";
+import { Database, Copy, Download, SortAsc, SortDesc, Link2, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import {
@@ -24,10 +24,17 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type TableInfo = {
   table_name: string;
   columns: ColumnInfo[];
+  foreign_keys?: ForeignKeyInfo[];
 };
 
 type ColumnInfo = {
@@ -35,6 +42,12 @@ type ColumnInfo = {
   data_type: string;
   is_nullable: string;
   column_default: string | null;
+};
+
+type ForeignKeyInfo = {
+  column: string;
+  foreign_table: string;
+  foreign_column: string;
 };
 
 type SchemaResponse = {
@@ -46,6 +59,11 @@ type SchemaResponse = {
       is_nullable: boolean;
       default_value: string | null;
     }>;
+    foreign_keys?: Array<{
+      column: string;
+      foreign_table: string;
+      foreign_column: string;
+    }>;
   }>;
 };
 
@@ -54,6 +72,7 @@ export const TablesAdmin = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [selectedDataType, setSelectedDataType] = useState<string | null>(null);
 
   const loadTables = async () => {
     try {
@@ -71,7 +90,8 @@ export const TablesAdmin = () => {
             data_type: col.type,
             is_nullable: col.is_nullable ? 'YES' : 'NO',
             column_default: col.default_value
-          }))
+          })),
+          foreign_keys: table.foreign_keys
         }));
         setTables(formattedTables);
       }
@@ -128,8 +148,42 @@ export const TablesAdmin = () => {
     setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
   };
 
+  const getAllDataTypes = () => {
+    const types = new Set<string>();
+    tables.forEach(table => {
+      table.columns.forEach(col => {
+        types.add(col.data_type);
+      });
+    });
+    return Array.from(types).sort();
+  };
+
+  const getRelatedTables = (table: TableInfo) => {
+    if (!table.foreign_keys?.length) return null;
+    
+    return (
+      <div className="mt-4 p-4 bg-[#2A2F3C]/20 rounded-lg">
+        <h3 className="text-sm font-medium text-gray-400 mb-2 flex items-center gap-2">
+          <Link2 className="h-4 w-4" />
+          Relazioni
+        </h3>
+        <div className="space-y-2">
+          {table.foreign_keys.map((fk, index) => (
+            <div key={index} className="text-sm text-white flex items-center gap-2">
+              <span className="text-gray-400">{fk.column}</span>
+              <span className="text-gray-500">→</span>
+              <span className="text-[var(--primary-color)]">{fk.foreign_table}</span>
+              <span className="text-gray-500">({fk.foreign_column})</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const filteredTables = tables
     .filter(table => table.table_name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(table => !selectedDataType || table.columns.some(col => col.data_type === selectedDataType))
     .sort((a, b) => {
       const comparison = a.table_name.localeCompare(b.table_name);
       return sortDirection === 'asc' ? comparison : -comparison;
@@ -154,14 +208,38 @@ export const TablesAdmin = () => {
               {tables.length} tabelle
             </span>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={toggleSort}
-            className="text-gray-400 hover:text-[var(--primary-color)]"
-          >
-            {sortDirection === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
-          </Button>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-[var(--primary-color)]"
+                >
+                  <Filter className="h-4 w-4 mr-2" />
+                  {selectedDataType || 'Filtra per tipo'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={() => setSelectedDataType(null)}>
+                  Tutti i tipi
+                </DropdownMenuItem>
+                {getAllDataTypes().map(type => (
+                  <DropdownMenuItem key={type} onClick={() => setSelectedDataType(type)}>
+                    {type}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={toggleSort}
+              className="text-gray-400 hover:text-[var(--primary-color)]"
+            >
+              {sortDirection === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+            </Button>
+          </div>
         </div>
         
         <div className="space-y-4">
@@ -174,6 +252,11 @@ export const TablesAdmin = () => {
                     <span className="px-2 py-0.5 rounded-full bg-[var(--primary-color)]/10 text-[var(--primary-color)] text-xs">
                       {table.columns.length} colonne
                     </span>
+                    {table.foreign_keys && table.foreign_keys.length > 0 && (
+                      <span className="px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 text-xs">
+                        {table.foreign_keys.length} relazioni
+                      </span>
+                    )}
                   </div>
                 </AccordionTrigger>
                 <AccordionContent className="px-4 pb-4">
@@ -231,6 +314,7 @@ export const TablesAdmin = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  {getRelatedTables(table)}
                 </AccordionContent>
               </AccordionItem>
             </Accordion>

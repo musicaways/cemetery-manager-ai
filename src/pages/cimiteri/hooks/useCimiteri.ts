@@ -22,9 +22,11 @@ export const useCimiteri = () => {
         `);
 
       if (cimiteriError) throw cimiteriError;
+      console.log("Loaded cemeteries:", cimiteriData);
       setCimiteri(cimiteriData || []);
       return cimiteriData;
     } catch (error: any) {
+      console.error("Error loading cemeteries:", error);
       toast.error("Errore nel caricamento dei cimiteri: " + error.message);
       return [];
     } finally {
@@ -37,17 +39,29 @@ export const useCimiteri = () => {
 
     try {
       setSaving(true);
+      console.log("Updating cemetery with ID:", id);
+      console.log("Update data:", data);
+
+      // Verifica che i campi numerici siano effettivamente numeri
+      const cleanedData = {
+        ...data,
+        Latitudine: data.Latitudine ? Number(data.Latitudine) : null,
+        Longitudine: data.Longitudine ? Number(data.Longitudine) : null
+      };
+
       const { error } = await supabase
         .from("Cimitero")
-        .update(data)
+        .update(cleanedData)
         .eq("Id", id);
 
       if (error) throw error;
 
+      console.log("Update successful");
       toast.success("Modifiche salvate con successo");
       await loadCimiteri();
       return true;
     } catch (error: any) {
+      console.error("Error updating cemetery:", error);
       toast.error("Errore durante il salvataggio: " + error.message);
       return false;
     } finally {

@@ -1,4 +1,3 @@
-
 import { Skull, Copy, MoreHorizontal } from "lucide-react";
 import { SuggestedQuestions } from "./SuggestedQuestions";
 import { ResultsList } from "./ResultsList";
@@ -71,7 +70,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         {messages.length === 0 && !isProcessing && (
           <div className="space-y-6 animate-fade-in">
             <div className="text-center space-y-2">
-              <div className="w-12 h-12 mx-auto bg-gradient-to-br from-[#9b87f5] to-[#6E59A5] rounded-xl flex items-center justify-center">
+              <div className="w-12 h-12 mx-auto bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] rounded-xl flex items-center justify-center shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
                 <Skull className="w-6 h-6 text-white" />
               </div>
               <h2 className="text-2xl font-semibold">Come posso aiutarti?</h2>
@@ -94,7 +93,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
             {message.type === 'response' && (
               <div className="space-y-4 max-w-full">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary-color)] to-[var(--primary-hover)] flex items-center justify-center flex-shrink-0 border-2 border-white/10 shadow-lg">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm transform hover:scale-105 transition-all duration-200">
                     <Skull className="w-5 h-5 text-white" />
                   </div>
                   <div className="flex flex-col">
@@ -161,14 +160,14 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
 
         {isProcessing && (
           <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#9b87f5] to-[#6E59A5] flex items-center justify-center border-2 border-white/10 shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E5DEFF] to-[#8B5CF6] flex items-center justify-center flex-shrink-0 shadow-xl shadow-[#8B5CF6]/20 border border-white/20 backdrop-blur-sm">
               <Skull className="w-5 h-5 text-white" />
             </div>
             <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-[#9b87f5] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 bg-[#9b87f5] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 bg-[#9b87f5] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="w-2 h-2 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
               </div>
             </div>
           </div>

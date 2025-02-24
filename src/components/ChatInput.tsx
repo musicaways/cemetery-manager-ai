@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Globe, Paperclip, Settings, Mic, Send } from "lucide-react";
+import { Globe, Paperclip, Settings, Mic, SendHorizonal } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -47,15 +47,15 @@ export const ChatInput = ({
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4">
+    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ position: "sticky" }}>
       <div className="max-w-3xl mx-auto space-y-3">
         {/* Input Bar */}
         <div className="relative flex items-center">
-          <input
+          <textarea
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Chiedi qualcosa..."
-            className="w-full bg-[#333333] text-white placeholder-gray-400 focus:outline-none"
+            className="w-full bg-[#333333] text-white placeholder-gray-400 focus:outline-none resize-none min-h-[24px] max-h-[120px] overflow-y-auto"
             style={{ textAlign: 'left' }}
             disabled={isProcessing}
             onKeyDown={(e) => {
@@ -64,6 +64,7 @@ export const ChatInput = ({
                 handleSubmit(e);
               }
             }}
+            rows={1}
           />
           {query.trim() && (
             <Button 
@@ -74,7 +75,7 @@ export const ChatInput = ({
               disabled={isProcessing}
               variant="ghost"
             >
-              <Send className="h-4 w-4" />
+              <SendHorizonal className="h-4 w-4" />
             </Button>
           )}
         </div>

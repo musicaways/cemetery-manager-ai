@@ -20,7 +20,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       duration={4000}
       toastOptions={{
         classNames: {
-          toast: "group toast group-[.toaster]:bg-[var(--message-bg)] group-[.toaster]:bg-opacity-95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:shadow-lg group-[.toaster]:rounded-full group-[.toaster]:border-2 group-[.toaster]:border-white/10 group-[.toaster]:min-h-[48px] group-[.toaster]:max-w-[420px] group-[.toaster]:px-6 group-[.toaster]:py-3",
+          toast: "group toast group-[.toaster]:bg-[var(--message-bg)] group-[.toaster]:bg-opacity-95 group-[.toaster]:backdrop-blur-sm group-[.toaster]:text-foreground group-[.toaster]:shadow-lg group-[.toaster]:rounded-md group-[.toaster]:border-2 group-[.toaster]:border-white/10 group-[.toaster]:min-h-[48px] group-[.toaster]:max-w-[420px] group-[.toaster]:px-6 group-[.toaster]:py-3",
           title: "group-[.toast]:text-white group-[.toast]:font-medium group-[.toast]:text-sm",
           description: "group-[.toast]:text-gray-200 group-[.toast]:text-sm group-[.toast]:leading-relaxed",
           actionButton: "group-[.toast]:bg-[var(--primary-color)] group-[.toast]:text-primary-foreground",

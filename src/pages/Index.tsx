@@ -6,6 +6,7 @@ import { AISettings } from "@/components/AISettings";
 import { MediaUpload } from "@/components/MediaUpload";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
+import { FunctionsModal } from "@/components/FunctionsModal";
 
 interface ChatMessage {
   type: 'query' | 'response';
@@ -20,6 +21,7 @@ const Index = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isMediaUploadOpen, setIsMediaUploadOpen] = useState(false);
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [isFunctionsOpen, setIsFunctionsOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -132,6 +134,23 @@ const Index = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  const handleFunctionSelect = (functionType: string) => {
+    setIsFunctionsOpen(false);
+    switch (functionType) {
+      case 'search':
+        setWebSearchEnabled(true);
+        toast.success("Modalità ricerca web attivata");
+        break;
+      case 'analyze':
+        setIsMediaUploadOpen(true);
+        break;
+      case 'file':
+        break;
+      case 'code':
+        break;
+    }
+  };
+
   useEffect(() => {
     const scrollArea = scrollAreaRef.current?.querySelector('.scroll-area-viewport');
     if (!scrollArea) return;
@@ -171,6 +190,7 @@ const Index = () => {
         onQueryChange={setQuery}
         onSubmit={handleSubmit}
         onMediaUploadClick={() => setIsMediaUploadOpen(true)}
+        onFunctionsClick={() => setIsFunctionsOpen(true)}
         onVoiceRecord={(text) => handleSubmit(undefined, text)}
         webSearchEnabled={webSearchEnabled}
         onWebSearchToggle={() => {
@@ -188,6 +208,12 @@ const Index = () => {
         isOpen={isMediaUploadOpen}
         onClose={() => setIsMediaUploadOpen(false)}
         onUpload={(url) => handleSubmit(undefined, `Analizza questa immagine: ${url}`)}
+      />
+
+      <FunctionsModal
+        isOpen={isFunctionsOpen}
+        onClose={() => setIsFunctionsOpen(false)}
+        onFunctionSelect={handleFunctionSelect}
       />
 
       <AISettings 

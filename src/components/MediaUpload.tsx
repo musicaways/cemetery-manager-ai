@@ -46,7 +46,7 @@ export const MediaUpload = ({ isOpen, onClose, onUpload }: MediaUploadProps) => 
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-[#1a1a1a] border-gray-800 text-gray-100 sm:max-w-md">
+      <DialogContent className="bg-[#1A1F2C] border-gray-800 text-gray-100 sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Aggiungi contenuto</DialogTitle>
         </DialogHeader>

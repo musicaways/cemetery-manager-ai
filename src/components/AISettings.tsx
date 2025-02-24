@@ -16,7 +16,7 @@ export const AISettings = ({ isOpen, onClose }: SettingsProps) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-[#2A2F3C] rounded-xl p-6 max-w-md w-full mx-4 space-y-6 shadow-lg border border-white/10">
+      <div className="bg-[#1A1F2C] rounded-xl p-6 max-w-md w-full mx-4 space-y-6 shadow-lg border border-white/10">
         <div className="flex justify-between items-center">
           <h2 className="text-xl font-semibold text-white">Impostazioni</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">

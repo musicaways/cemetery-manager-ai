@@ -7,6 +7,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from "@/components/ui/sheet";
 import {
   Accordion,
@@ -30,7 +31,7 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
   };
 
   return (
-    <header className="border-b border-[#2A2F3C]/40 bg-[#1A1F2C]/80 backdrop-blur-xl sticky top-0 z-50">
+    <header className="border-b border-[#2A2F3C]/40 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center h-12">
           <Sheet>
@@ -38,61 +39,69 @@ export const Header = ({ onSettingsClick }: HeaderProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="text-[#9b87f5] hover:text-[#7E69AB] h-8 w-8"
+                className="text-[var(--primary-color)] hover:text-[var(--primary-hover)] h-8 w-8"
               >
                 <Menu className="h-4 w-4" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80 bg-[#1A1F2C] border-r border-[#2A2F3C]/40">
+            <SheetContent side="left" className="w-80 bg-black border-r border-[#2A2F3C]/40">
               <SheetHeader>
                 <SheetTitle className="text-white">Menu</SheetTitle>
               </SheetHeader>
               <div className="mt-4 space-y-4">
                 <Accordion type="single" collapsible className="w-full">
                   <AccordionItem value="admin" className="border-[#2A2F3C]/40">
-                    <AccordionTrigger className="text-white hover:text-[#9b87f5]">
+                    <AccordionTrigger className="text-white hover:text-[var(--primary-color)]">
                       Amministrazione
                     </AccordionTrigger>
                     <AccordionContent>
                       <div className="space-y-2 pl-4">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start text-gray-400 hover:text-[#9b87f5]"
-                          onClick={() => navigate("/admin/tables")}
-                        >
-                          <Database className="mr-2 h-4 w-4" />
-                          Tabelle
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start text-gray-400 hover:text-[#9b87f5]"
-                          onClick={() => navigate("/admin/users")}
-                        >
-                          <Users className="mr-2 h-4 w-4" />
-                          Utenti
-                        </Button>
+                        <SheetClose asChild>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
+                            onClick={() => navigate("/admin/tables")}
+                          >
+                            <Database className="mr-2 h-4 w-4" />
+                            Tabelle
+                          </Button>
+                        </SheetClose>
+                        <SheetClose asChild>
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
+                            onClick={() => navigate("/admin/users")}
+                          >
+                            <Users className="mr-2 h-4 w-4" />
+                            Utenti
+                          </Button>
+                        </SheetClose>
                       </div>
                     </AccordionContent>
                   </AccordionItem>
                 </Accordion>
 
                 <div className="absolute bottom-4 left-4 right-4 space-y-2">
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-gray-400 hover:text-[#9b87f5]"
-                    onClick={onSettingsClick}
-                  >
-                    <Settings className="mr-2 h-4 w-4" />
-                    Impostazioni
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start text-gray-400 hover:text-[#9b87f5]"
-                    onClick={handleLogout}
-                  >
-                    <LogOut className="mr-2 h-4 w-4" />
-                    Logout
-                  </Button>
+                  <SheetClose asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
+                      onClick={onSettingsClick}
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Impostazioni
+                    </Button>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
+                      onClick={handleLogout}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      Logout
+                    </Button>
+                  </SheetClose>
                 </div>
               </div>
             </SheetContent>

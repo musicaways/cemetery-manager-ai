@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -101,10 +102,8 @@ export const RelationDialog = ({
     }
   };
 
-  // Rimuoviamo il filtro delle tabelle per mostrare tutte le tabelle disponibili
-  const availableTables = tables.filter(
-    (table) => table.table_name !== currentTable.table_name
-  );
+  // Mostriamo tutte le tabelle tranne quella corrente
+  const availableTables = tables.filter(table => table.table_name !== currentTable.table_name);
 
   const selectedTableInfo = tables.find(
     (table) => table.table_name === selectedTable
@@ -158,7 +157,7 @@ export const RelationDialog = ({
               disabled={loading}
               className="w-full sm:w-auto order-1 sm:order-2 bg-[#4F46E5] hover:bg-[#4F46E5]/90 text-white"
             >
-              {loading ? "Salvataggio..." : "Crea Relazione"}
+              {loading ? "Salvataggio..." : relationToEdit ? "Salva modifiche" : "Crea Relazione"}
             </Button>
           </div>
         </DialogFooter>

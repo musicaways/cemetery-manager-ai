@@ -93,8 +93,8 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
             {message.type === 'response' && (
               <div className="space-y-3 max-w-[98%] pl-1">
                 <div className="flex items-center justify-between px-1">
-                  <div className="flex items-center gap-3">
-                    <Bot className="w-8 h-8 text-[#8B5CF6]" />
+                  <div className="flex items-start gap-2">
+                    <Bot className="w-8 h-8 text-[#8B5CF6] -ml-0.5" />
                     <div className="flex flex-col">
                       <span className="text-sm font-medium text-gray-200">Assistente AI</span>
                       <span className="text-xs text-gray-400">
@@ -161,8 +161,8 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         ))}
 
         {isProcessing && (
-          <div className="flex items-start space-x-3 px-2">
-            <Bot className="w-8 h-8 text-[#8B5CF6]" />
+          <div className="flex items-start space-x-2 px-2">
+            <Bot className="w-8 h-8 text-[#8B5CF6] -ml-0.5" />
             <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm">
               <div className="flex items-center space-x-2">
                 <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>

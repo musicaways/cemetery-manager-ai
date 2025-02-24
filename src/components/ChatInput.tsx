@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Globe, Paperclip, Settings, Mic, SendHorizonal } from "lucide-react";
 import { toast } from "sonner";
@@ -52,7 +51,6 @@ export const ChatInput = ({
   return (
     <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ bottom: 0, position: 'fixed', width: '100%' }}>
       <div className="max-w-5xl mx-auto space-y-3">
-        {/* Input Bar */}
         <div className="relative flex items-start">
           <TextareaAutosize
             value={query}
@@ -84,9 +82,7 @@ export const ChatInput = ({
           )}
         </div>
 
-        {/* Action Buttons */}
         <div className="flex items-center justify-between w-full">
-          {/* Left-aligned buttons */}
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -111,29 +107,16 @@ export const ChatInput = ({
               <Paperclip className="h-4 w-4" />
             </Button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
-                  onClick={onFunctionsClick}
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="bg-black border-white/10 text-white">
-                <DropdownMenuItem 
-                  className="hover:bg-white/5 cursor-pointer"
-                  onClick={() => handleCommandSelect("/test-model")}
-                >
-                  Test Modello AI
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+              onClick={onFunctionsClick}
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
           </div>
 
-          {/* Right-aligned voice recorder */}
           <Button
             variant="ghost"
             size="sm"

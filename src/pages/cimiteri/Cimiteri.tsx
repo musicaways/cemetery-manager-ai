@@ -1,140 +1,24 @@
 
-import { useState, useEffect } from "react";
-import { Dialog } from "@/components/ui/dialog";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { MediaUpload } from "@/components/MediaUpload";
-import { CimiteroCard } from "./components/CimiteroCard";
-import { CimiteroDetails } from "./components/CimiteroDetails/CimiteroDetails";
+import { useState } from "react";
+import { useCimiteri } from "./hooks/useCimiteri";
+import { useSearch } from "./hooks/useSearch";
+import { CimiteriGrid } from "./components/CimiteriGrid";
+import { CimiteroEditor } from "./components/CimiteroEditor";
 import { Cimitero } from "./types";
 
 export const Cimiteri = () => {
-  const [cimiteri, setCimiteri] = useState<Cimitero[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { cimiteri, loading, updateCimitero, loadCimiteri } = useCimiteri();
+  const { searchTerm } = useSearch();
   const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
-  const [editMode, setEditMode] = useState(false);
-  const [editedData, setEditedData] = useState<Partial<Cimitero>>({});
-  const [searchTerm, setSearchTerm] = useState("");
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
 
-  const loadCimiteri = async () => {
-    try {
-      const { data: cimiteriData, error: cimiteriError } = await supabase
-        .from("Cimitero")
-        .select(`
-          *,
-          settori:Settore(*),
-          foto:CimiteroFoto(*),
-          documenti:CimiteroDocumenti(*),
-          mappe:CimiteroMappe(*)
-        `);
-
-      if (cimiteriError) throw cimiteriError;
-      
-      setCimiteri(cimiteriData || []);
-      if (selectedCimitero) {
-        const updatedSelected = cimiteriData?.find(c => c.Id === selectedCimitero.Id);
-        if (updatedSelected) {
-          setSelectedCimitero(updatedSelected);
-          setEditedData({
-            Descrizione: updatedSelected.Descrizione || "",
-            Indirizzo: updatedSelected.Indirizzo || "",
-            Latitudine: updatedSelected.Latitudine,
-            Longitudine: updatedSelected.Longitudine,
-            FotoCopertina: updatedSelected.FotoCopertina,
-          });
-        }
-      }
-    } catch (error: any) {
-      toast.error("Errore nel caricamento dei cimiteri: " + error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadCimiteri();
-  }, []);
-
-  useEffect(() => {
-    const handleSearch = (e: CustomEvent<string>) => {
-      setSearchTerm(e.detail);
-    };
-    
-    window.addEventListener('global-search', handleSearch as EventListener);
-    return () => window.removeEventListener('global-search', handleSearch as EventListener);
-  }, []);
-
-  const handleEdit = () => {
+  const handleSave = async (editedData: Partial<Cimitero>) => {
     if (!selectedCimitero) return;
-    setEditMode(true);
-    setEditedData({
-      Descrizione: selectedCimitero.Descrizione || "",
-      Indirizzo: selectedCimitero.Indirizzo || "",
-      Latitudine: selectedCimitero.Latitudine,
-      Longitudine: selectedCimitero.Longitudine,
-      FotoCopertina: selectedCimitero.FotoCopertina,
-    });
-  };
-
-  const handleSave = async () => {
-    if (!selectedCimitero || !editedData || saving) return;
-
-    try {
-      setSaving(true);
-      
-      const { error } = await supabase
-        .from("Cimitero")
-        .update({
-          Descrizione: editedData.Descrizione,
-          Indirizzo: editedData.Indirizzo,
-          Latitudine: editedData.Latitudine,
-          Longitudine: editedData.Longitudine,
-          FotoCopertina: editedData.FotoCopertina,
-        })
-        .eq("Id", selectedCimitero.Id);
-
-      if (error) throw error;
-
-      toast.success("Modifiche salvate con successo");
-      setEditMode(false);
-      await loadCimiteri();
-    } catch (error: any) {
-      toast.error("Errore durante il salvataggio: " + error.message);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleInputChange = (field: string, value: string | number | null) => {
-    setEditedData(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    await updateCimitero(selectedCimitero.Id, editedData);
   };
 
   const handleUploadComplete = async (url: string) => {
-    if (!selectedCimitero || saving) return;
-
-    try {
-      setSaving(true);
-      
-      const { error } = await supabase
-        .from("Cimitero")
-        .update({ FotoCopertina: url })
-        .eq("Id", selectedCimitero.Id);
-
-      if (error) throw error;
-
-      toast.success("Foto di copertina aggiornata");
-      setIsUploadOpen(false);
-      await loadCimiteri();
-    } catch (error: any) {
-      toast.error("Errore durante l'aggiornamento della foto: " + error.message);
-    } finally {
-      setSaving(false);
-    }
+    if (!selectedCimitero) return;
+    await updateCimitero(selectedCimitero.Id, { FotoCopertina: url });
   };
 
   const filteredCimiteri = cimiteri.filter(cimitero =>
@@ -152,41 +36,16 @@ export const Cimiteri = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCimiteri.map((cimitero) => (
-          <CimiteroCard
-            key={cimitero.Id}
-            cimitero={cimitero}
-            onClick={() => setSelectedCimitero(cimitero)}
-          />
-        ))}
-      </div>
+      <CimiteriGrid 
+        cimiteri={filteredCimiteri}
+        onSelectCimitero={setSelectedCimitero}
+      />
 
-      <Dialog 
-        open={!!selectedCimitero} 
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedCimitero(null);
-            setEditMode(false);
-            setEditedData({});
-          }
-        }}
-      >
-        <CimiteroDetails
-          cimitero={selectedCimitero}
-          editMode={editMode}
-          editedData={editedData}
-          onEdit={handleEdit}
-          onSave={handleSave}
-          onUpload={() => setIsUploadOpen(true)}
-          onInputChange={handleInputChange}
-        />
-      </Dialog>
-
-      <MediaUpload 
-        isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
-        onUpload={handleUploadComplete}
+      <CimiteroEditor
+        cimitero={selectedCimitero}
+        onClose={() => setSelectedCimitero(null)}
+        onSave={handleSave}
+        onUploadComplete={handleUploadComplete}
       />
     </div>
   );

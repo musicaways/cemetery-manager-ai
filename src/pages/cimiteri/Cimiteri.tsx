@@ -11,9 +11,9 @@ export const Cimiteri = () => {
   const { searchTerm } = useSearch();
   const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
 
-  const handleSave = async (editedData: Partial<Cimitero>) => {
+  const handleSave = async (editedData: Partial<Cimitero>, coverImage?: File) => {
     if (!selectedCimitero) return;
-    await updateCimitero(selectedCimitero.Id, editedData);
+    await updateCimitero(selectedCimitero.Id, editedData, coverImage);
   };
 
   const handleUploadComplete = async (url: string) => {

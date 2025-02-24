@@ -8,7 +8,7 @@ import { Cimitero } from "../types";
 interface CimiteroEditorProps {
   cimitero: Cimitero | null;
   onClose: () => void;
-  onSave: (data: Partial<Cimitero>) => Promise<void>;
+  onSave: (data: Partial<Cimitero>, coverImage?: File) => Promise<void>;
   onUploadComplete: (url: string) => Promise<void>;
 }
 
@@ -21,6 +21,7 @@ export const CimiteroEditor = ({
   const [editMode, setEditMode] = useState(false);
   const [editedData, setEditedData] = useState<Partial<Cimitero>>({});
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const handleEdit = () => {
     if (!cimitero) return;
@@ -36,7 +37,8 @@ export const CimiteroEditor = ({
 
   const handleSave = async () => {
     if (!cimitero || !editedData) return;
-    await onSave(editedData);
+    await onSave(editedData, selectedFile || undefined);
+    setSelectedFile(null);
     setEditMode(false);
   };
 
@@ -45,6 +47,11 @@ export const CimiteroEditor = ({
       ...prev,
       [field]: value
     }));
+  };
+
+  const handleFileSelect = (file: File) => {
+    setSelectedFile(file);
+    setIsUploadOpen(false);
   };
 
   return (
@@ -56,6 +63,7 @@ export const CimiteroEditor = ({
             onClose();
             setEditMode(false);
             setEditedData({});
+            setSelectedFile(null);
           }
         }}
       >
@@ -67,13 +75,14 @@ export const CimiteroEditor = ({
           onSave={handleSave}
           onUpload={() => setIsUploadOpen(true)}
           onInputChange={handleInputChange}
+          selectedFile={selectedFile}
         />
       </Dialog>
 
       <MediaUpload 
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
-        onUpload={onUploadComplete}
+        onUpload={handleFileSelect}
       />
     </>
   );

@@ -34,20 +34,57 @@ export const useCimiteri = () => {
     }
   };
 
-  const updateCimitero = async (id: number, data: Partial<Cimitero>) => {
+  const uploadCoverImage = async (file: File): Promise<string | null> => {
+    try {
+      // Sanificare il nome del file
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('cemetery-covers')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Ottenere l'URL pubblico del file
+      const { data: { publicUrl } } = supabase.storage
+        .from('cemetery-covers')
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (error: any) {
+      console.error("Error uploading image:", error);
+      toast.error("Errore durante l'upload dell'immagine: " + error.message);
+      return null;
+    }
+  };
+
+  const updateCimitero = async (id: number, data: Partial<Cimitero>, coverImage?: File) => {
     if (saving) return;
 
     try {
       setSaving(true);
       console.log("Updating cemetery with ID:", id);
-      console.log("Update data:", data);
+      
+      let updateData = { ...data };
+
+      // Se c'è una nuova immagine di copertina, carichiamola prima
+      if (coverImage) {
+        const imageUrl = await uploadCoverImage(coverImage);
+        if (imageUrl) {
+          updateData.FotoCopertina = imageUrl;
+        }
+      }
 
       // Verifica che i campi numerici siano effettivamente numeri
       const cleanedData = {
-        ...data,
-        Latitudine: data.Latitudine ? Number(data.Latitudine) : null,
-        Longitudine: data.Longitudine ? Number(data.Longitudine) : null
+        ...updateData,
+        Latitudine: updateData.Latitudine ? Number(updateData.Latitudine) : null,
+        Longitudine: updateData.Longitudine ? Number(updateData.Longitudine) : null
       };
+
+      console.log("Update data:", cleanedData);
 
       const { error } = await supabase
         .from("Cimitero")

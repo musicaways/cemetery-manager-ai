@@ -8,6 +8,8 @@ import { supabase } from "@/integrations/supabase/client";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
+import UsersAdmin from "./pages/admin/Users";
+import TablesAdmin from "./pages/admin/Tables";
 import { ThemeProvider } from '@/lib/themeContext';
 import './styles/chat.css';
 
@@ -54,6 +56,26 @@ function App() {
                     <Auth />
                   ) : (
                     <Navigate to="/" replace />
+                  )
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  isAuthenticated ? (
+                    <UsersAdmin />
+                  ) : (
+                    <Navigate to="/auth" replace />
+                  )
+                }
+              />
+              <Route
+                path="/admin/tables"
+                element={
+                  isAuthenticated ? (
+                    <TablesAdmin />
+                  ) : (
+                    <Navigate to="/auth" replace />
                   )
                 }
               />

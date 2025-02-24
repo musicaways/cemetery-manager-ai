@@ -1,4 +1,3 @@
-
 import { Skull, Copy, MoreHorizontal, MessageCircle } from "lucide-react";
 import { SuggestedQuestions } from "./SuggestedQuestions";
 import { ResultsList } from "./ResultsList";
@@ -107,7 +106,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                 
                 <div className="relative group">
                   <div 
-                    className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap break-words"
+                    className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap break-words pr-16"
                     onMouseDown={() => handleMouseDown(index)}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
@@ -115,45 +114,47 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                     {message.content}
                   </div>
                   
-                  <button
-                    onClick={() => handleCopyMessage(message.content)}
-                    className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 text-gray-400 hover:text-white rounded"
-                  >
-                    <Copy className="w-4 h-4" />
-                  </button>
+                  <div className="absolute right-3 top-0 flex flex-col gap-2">
+                    <button
+                      onClick={() => handleCopyMessage(message.content)}
+                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-gray-400 hover:text-white rounded bg-[#2A2F3C]/80"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
 
-                  <DropdownMenu open={showOptionsFor === index} onOpenChange={() => setShowOptionsFor(null)}>
-                    <DropdownMenuTrigger asChild>
-                      <button className="absolute right-2 bottom-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1 text-gray-400 hover:text-white rounded">
-                        <MoreHorizontal className="w-4 h-4" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="bg-[#1A1F2C] border border-white/10 text-white">
-                      <DropdownMenuItem 
-                        className="hover:bg-white/5 cursor-pointer text-sm"
-                        onClick={() => handleCopyMessage(message.content)}
-                      >
-                        Copia testo
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="hover:bg-white/5 cursor-pointer text-sm"
-                        onClick={() => onQuestionSelect(message.content)}
-                      >
-                        Ripeti domanda
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {message.data && (
-                  <div className="bg-[#2A2F3C]/80 rounded-lg p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg">
-                    <h3 className="text-sm font-semibold mb-3 text-gray-100">Risultati</h3>
-                    <ResultsList 
-                      data={message.data}
-                      type={determineResultType(message.content)}
-                    />
+                    <DropdownMenu open={showOptionsFor === index} onOpenChange={() => setShowOptionsFor(null)}>
+                      <DropdownMenuTrigger asChild>
+                        <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-gray-400 hover:text-white rounded bg-[#2A2F3C]/80">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="bg-[#1A1F2C] border border-white/10 text-white">
+                        <DropdownMenuItem 
+                          className="hover:bg-white/5 cursor-pointer text-sm"
+                          onClick={() => handleCopyMessage(message.content)}
+                        >
+                          Copia testo
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="hover:bg-white/5 cursor-pointer text-sm"
+                          onClick={() => onQuestionSelect(message.content)}
+                        >
+                          Ripeti domanda
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
-                )}
+
+                  {message.data && (
+                    <div className="bg-[#2A2F3C]/80 rounded-lg p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg">
+                      <h3 className="text-sm font-semibold mb-3 text-gray-100">Risultati</h3>
+                      <ResultsList 
+                        data={message.data}
+                        type={determineResultType(message.content)}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -1,4 +1,4 @@
-import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X } from "lucide-react";
+import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -22,6 +22,8 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
   const navigate = useNavigate();
   const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState("");
+  const [currentMatch, setCurrentMatch] = useState(0);
+  const [totalMatches, setTotalMatches] = useState(0);
   const [notifications, setNotifications] = useState([
     { id: 1, title: "Nuovo messaggio", message: "Hai ricevuto una nuova risposta", read: false, type: "info" },
     { id: 2, title: "Errore", message: "Si è verificato un errore durante l'elaborazione", read: false, type: "error" },
@@ -29,9 +31,37 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
+  const handleSearchNavigation = (direction: 'up' | 'down') => {
+    const elements = document.querySelectorAll('[data-message-index]');
+    let matches: Element[] = [];
+    
+    elements.forEach(el => {
+      if (el.textContent?.toLowerCase().includes(searchText.toLowerCase())) {
+        matches.push(el);
+      }
+    });
+
+    setTotalMatches(matches.length);
+
+    if (matches.length > 0) {
+      let newMatch = currentMatch;
+      if (direction === 'up') {
+        newMatch = (currentMatch - 1 + matches.length) % matches.length;
+      } else {
+        newMatch = (currentMatch + 1) % matches.length;
+      }
+      setCurrentMatch(newMatch);
+      
+      matches[newMatch].scrollIntoView({ behavior: "smooth", block: "center" });
+      document.querySelectorAll('.search-highlight').forEach(el => el.classList.remove('search-highlight'));
+      matches[newMatch].classList.add('search-highlight');
+    }
+  };
+
   const handleSearch = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       onSearch(searchText);
+      handleSearchNavigation('down');
     }
   };
 
@@ -114,21 +144,38 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
             </SheetContent>
           </Sheet>
 
-          <div className="flex-1 ml-3">
-            <h1 className="text-sm font-semibold text-gray-100">AI Assistant</h1>
-          </div>
-
-          <div className="flex items-center gap-2">
+          <div className="flex-1 ml-3 flex items-center gap-2">
             {showSearch && (
-              <input
-                type="text"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                onKeyDown={handleSearch}
-                placeholder="Cerca nella chat..."
-                className="bg-[#1A1F2C] text-white text-sm rounded-full px-4 py-1.5 border-2 border-white/20 focus:border-[#9b87f5] focus:outline-none w-48 transition-all duration-200"
-                autoFocus
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={searchText}
+                  onChange={(e) => setSearchText(e.target.value)}
+                  onKeyDown={handleSearch}
+                  placeholder="Cerca nella chat..."
+                  className="bg-[#1A1F2C] text-white text-sm rounded-full px-4 py-1.5 border-2 border-white/20 focus:border-[#9b87f5] focus:outline-none w-48 transition-all duration-200"
+                  autoFocus
+                />
+                {totalMatches > 0 && (
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <button
+                      onClick={() => handleSearchNavigation('up')}
+                      className="p-1 text-gray-400 hover:text-[#9b87f5]"
+                    >
+                      <ArrowUp className="h-3 w-3" />
+                    </button>
+                    <button
+                      onClick={() => handleSearchNavigation('down')}
+                      className="p-1 text-gray-400 hover:text-[#9b87f5]"
+                    >
+                      <ArrowDown className="h-3 w-3" />
+                    </button>
+                    <span className="text-xs text-gray-400">
+                      {currentMatch + 1}/{totalMatches}
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
             <Button
               variant="ghost"
@@ -137,6 +184,8 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                 setShowSearch(!showSearch);
                 if (!showSearch) {
                   setSearchText("");
+                  setCurrentMatch(0);
+                  setTotalMatches(0);
                 }
               }}
               className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"

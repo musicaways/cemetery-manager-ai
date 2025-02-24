@@ -81,9 +81,9 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         )}
 
         {messages.map((message, index) => (
-          <div key={index} data-message-index={index} className="animate-fade-in px-2">
+          <div key={index} data-message-index={index} className="animate-fade-in">
             {message.type === 'query' && (
-              <div className="flex justify-end">
+              <div className="flex justify-end px-2">
                 <div className="max-w-[95%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-3 border border-[var(--primary-color)]/30 backdrop-blur-sm">
                   <p className="text-sm text-gray-100 whitespace-pre-wrap">{message.content}</p>
                 </div>
@@ -91,8 +91,8 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
             )}
             
             {message.type === 'response' && (
-              <div className="space-y-3 max-w-[95%]">
-                <div className="flex items-center gap-3">
+              <div className="space-y-3 max-w-[98%] pl-1">
+                <div className="flex items-center gap-2 px-1">
                   <div className="w-8 h-8 bg-[#8B5CF6] rounded-lg flex items-center justify-center">
                     <MessageCircle className="w-4 h-4 text-white" />
                   </div>
@@ -144,17 +144,17 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
-
-                  {message.data && (
-                    <div className="bg-[#2A2F3C]/80 rounded-lg p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg">
-                      <h3 className="text-sm font-semibold mb-3 text-gray-100">Risultati</h3>
-                      <ResultsList 
-                        data={message.data}
-                        type={determineResultType(message.content)}
-                      />
-                    </div>
-                  )}
                 </div>
+
+                {message.data && (
+                  <div className="bg-[#2A2F3C]/80 rounded-lg p-4 border border-[#3A3F4C]/50 backdrop-blur-sm shadow-lg">
+                    <h3 className="text-sm font-semibold mb-3 text-gray-100">Risultati</h3>
+                    <ResultsList 
+                      data={message.data}
+                      type={determineResultType(message.content)}
+                    />
+                  </div>
+                )}
               </div>
             )}
           </div>

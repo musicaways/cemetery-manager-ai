@@ -144,7 +144,7 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
             </SheetContent>
           </Sheet>
 
-          <div className="flex-1 ml-3 flex items-center gap-2">
+          <div className="flex-1 flex items-center justify-end gap-2 pr-0">
             {showSearch && (
               <div className="relative">
                 <input
@@ -230,11 +230,41 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                     notifications.map((notification) => (
                       <div
                         key={notification.id}
-                        className={`relative p-3 rounded-lg border group ${
+                        className={`relative p-3 rounded-lg border group touch-pan-x transform transition-transform will-change-transform ${
                           notification.type === 'error' 
                             ? 'bg-red-500/10 border-red-500/20' 
                             : 'bg-[#2A2F3C] border-white/10'
                         } ${!notification.read && 'bg-opacity-50'}`}
+                        onTouchStart={(e) => {
+                          const touch = e.touches[0];
+                          const div = e.currentTarget;
+                          const startX = touch.clientX;
+                          
+                          const handleTouchMove = (e: TouchEvent) => {
+                            const currentX = e.touches[0].clientX;
+                            const diff = currentX - startX;
+                            if (diff > 0) {
+                              div.style.transform = `translateX(${diff}px)`;
+                            }
+                          };
+                          
+                          const handleTouchEnd = (e: TouchEvent) => {
+                            const currentX = e.changedTouches[0].clientX;
+                            const diff = currentX - startX;
+                            
+                            if (diff > 100) {
+                              deleteNotification(notification.id);
+                            } else {
+                              div.style.transform = '';
+                            }
+                            
+                            div.removeEventListener('touchmove', handleTouchMove);
+                            div.removeEventListener('touchend', handleTouchEnd);
+                          };
+                          
+                          div.addEventListener('touchmove', handleTouchMove);
+                          div.addEventListener('touchend', handleTouchEnd);
+                        }}
                       >
                         <h3 className="font-medium text-sm text-white">{notification.title}</h3>
                         <p className="text-sm text-gray-400 mt-1">{notification.message}</p>

@@ -103,25 +103,121 @@ export type Database = {
         Row: {
           Codice: string | null
           Descrizione: string | null
-          foto: string | null
           Id: number
-          mappa: string | null
         }
         Insert: {
           Codice?: string | null
           Descrizione?: string | null
-          foto?: string | null
           Id: number
-          mappa?: string | null
         }
         Update: {
           Codice?: string | null
           Descrizione?: string | null
-          foto?: string | null
           Id?: number
-          mappa?: string | null
         }
         Relationships: []
+      }
+      CimiteroDocumenti: {
+        Row: {
+          DataInserimento: string | null
+          Descrizione: string | null
+          Id: string
+          IdCimitero: number
+          NomeFile: string
+          TipoFile: string
+          Url: string
+        }
+        Insert: {
+          DataInserimento?: string | null
+          Descrizione?: string | null
+          Id?: string
+          IdCimitero: number
+          NomeFile: string
+          TipoFile: string
+          Url: string
+        }
+        Update: {
+          DataInserimento?: string | null
+          Descrizione?: string | null
+          Id?: string
+          IdCimitero?: number
+          NomeFile?: string
+          TipoFile?: string
+          Url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "CimiteroDocumenti_IdCimitero_fkey"
+            columns: ["IdCimitero"]
+            isOneToOne: false
+            referencedRelation: "Cimitero"
+            referencedColumns: ["Id"]
+          },
+        ]
+      }
+      CimiteroFoto: {
+        Row: {
+          DataInserimento: string | null
+          Descrizione: string | null
+          Id: string
+          IdCimitero: number
+          Url: string
+        }
+        Insert: {
+          DataInserimento?: string | null
+          Descrizione?: string | null
+          Id?: string
+          IdCimitero: number
+          Url: string
+        }
+        Update: {
+          DataInserimento?: string | null
+          Descrizione?: string | null
+          Id?: string
+          IdCimitero?: number
+          Url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "CimiteroFoto_IdCimitero_fkey"
+            columns: ["IdCimitero"]
+            isOneToOne: false
+            referencedRelation: "Cimitero"
+            referencedColumns: ["Id"]
+          },
+        ]
+      }
+      CimiteroMappe: {
+        Row: {
+          DataInserimento: string | null
+          Descrizione: string | null
+          Id: string
+          IdCimitero: number
+          Url: string
+        }
+        Insert: {
+          DataInserimento?: string | null
+          Descrizione?: string | null
+          Id?: string
+          IdCimitero: number
+          Url: string
+        }
+        Update: {
+          DataInserimento?: string | null
+          Descrizione?: string | null
+          Id?: string
+          IdCimitero?: number
+          Url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "CimiteroMappe_IdCimitero_fkey"
+            columns: ["IdCimitero"]
+            isOneToOne: false
+            referencedRelation: "Cimitero"
+            referencedColumns: ["Id"]
+          },
+        ]
       }
       Defunto: {
         Row: {

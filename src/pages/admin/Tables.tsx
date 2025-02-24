@@ -67,7 +67,10 @@ export const TablesAdmin = () => {
   return (
     <div className="space-y-6">
       <Breadcrumb />
-      <TablesList tables={filteredTables} />
+      <TablesList 
+        tables={filteredTables} 
+        onTableChange={loadTables}
+      />
     </div>
   );
 };

@@ -9,8 +9,8 @@ interface MapsTabProps {
 export const MapsTab = ({ mappe }: MapsTabProps) => {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold flex items-center">
-        <MapPin className="w-5 h-5 mr-2" />
+      <h3 className="text-lg font-semibold flex items-center text-white">
+        <MapPin className="w-5 h-5 mr-2 text-[var(--primary-color)]" />
         Mappe
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -20,7 +20,7 @@ export const MapsTab = ({ mappe }: MapsTabProps) => {
             href={mappa.Url}
             target="_blank"
             rel="noopener noreferrer"
-            className="block aspect-[4/3] relative group rounded-lg overflow-hidden"
+            className="block aspect-[4/3] relative group rounded-lg overflow-hidden border border-gray-800 hover:border-[var(--primary-color)] transition-colors"
           >
             <img
               src={mappa.Url}

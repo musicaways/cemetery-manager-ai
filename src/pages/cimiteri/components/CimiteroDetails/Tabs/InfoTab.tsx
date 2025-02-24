@@ -14,7 +14,8 @@ export const InfoTab = ({ cimitero, editMode, editedData, onInputChange }: InfoT
   if (!cimitero) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 bg-black/20 p-4 rounded-lg border border-gray-800">
+      <h3 className="text-lg font-semibold text-white mb-4">Informazioni principali</h3>
       {editMode ? (
         <>
           <div className="space-y-2">
@@ -22,7 +23,7 @@ export const InfoTab = ({ cimitero, editMode, editedData, onInputChange }: InfoT
             <Input
               value={editedData.Descrizione || ""}
               onChange={(e) => onInputChange("Descrizione", e.target.value)}
-              className="bg-black/20 border-gray-700 focus:border-[var(--primary-color)]"
+              className="bg-black/20 border-gray-700 focus:border-[var(--primary-color)] text-white"
             />
           </div>
           <div className="space-y-2">
@@ -30,7 +31,7 @@ export const InfoTab = ({ cimitero, editMode, editedData, onInputChange }: InfoT
             <Input
               value={editedData.Indirizzo || ""}
               onChange={(e) => onInputChange("Indirizzo", e.target.value)}
-              className="bg-black/20 border-gray-700 focus:border-[var(--primary-color)]"
+              className="bg-black/20 border-gray-700 focus:border-[var(--primary-color)] text-white"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -41,7 +42,7 @@ export const InfoTab = ({ cimitero, editMode, editedData, onInputChange }: InfoT
                 step="0.00000001"
                 value={editedData.Latitudine || ""}
                 onChange={(e) => onInputChange("Latitudine", parseFloat(e.target.value))}
-                className="bg-black/20 border-gray-700 focus:border-[var(--primary-color)]"
+                className="bg-black/20 border-gray-700 focus:border-[var(--primary-color)] text-white"
               />
             </div>
             <div className="space-y-2">
@@ -51,27 +52,24 @@ export const InfoTab = ({ cimitero, editMode, editedData, onInputChange }: InfoT
                 step="0.00000001"
                 value={editedData.Longitudine || ""}
                 onChange={(e) => onInputChange("Longitudine", parseFloat(e.target.value))}
-                className="bg-black/20 border-gray-700 focus:border-[var(--primary-color)]"
+                className="bg-black/20 border-gray-700 focus:border-[var(--primary-color)] text-white"
               />
             </div>
           </div>
         </>
       ) : (
-        <>
-          <h2 className="text-2xl font-bold">{cimitero.Descrizione}</h2>
-          <div className="space-y-2">
-            <p className="text-gray-400 flex items-center">
-              <MapPin className="w-4 h-4 mr-2" />
-              {cimitero.Indirizzo || "Indirizzo non specificato"}
+        <div className="space-y-3">
+          <p className="text-gray-200 flex items-center">
+            <MapPin className="w-4 h-4 mr-2 text-[var(--primary-color)]" />
+            {cimitero.Indirizzo || "Indirizzo non specificato"}
+          </p>
+          {(cimitero.Latitudine && cimitero.Longitudine) && (
+            <p className="text-gray-200 flex items-center">
+              <MapPinned className="w-4 h-4 mr-2 text-[var(--primary-color)]" />
+              {cimitero.Latitudine}, {cimitero.Longitudine}
             </p>
-            {(cimitero.Latitudine && cimitero.Longitudine) && (
-              <p className="text-gray-400 flex items-center">
-                <MapPinned className="w-4 h-4 mr-2" />
-                {cimitero.Latitudine}, {cimitero.Longitudine}
-              </p>
-            )}
-          </div>
-        </>
+          )}
+        </div>
       )}
     </div>
   );

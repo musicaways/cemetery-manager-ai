@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { DialogContent } from "@/components/ui/dialog";
+import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ImagePlus, Save, Edit2 } from "lucide-react";
 import { Cimitero } from "../../types";
@@ -33,6 +33,12 @@ export const CimiteroDetails = ({
 
   return (
     <DialogContent className="max-w-4xl bg-[#1A1F2C] border-gray-800 p-0">
+      <DialogHeader className="p-6 pb-0">
+        <DialogTitle className="text-2xl font-semibold text-white">
+          {cimitero.Descrizione}
+        </DialogTitle>
+      </DialogHeader>
+      
       <div className="relative aspect-[21/9] overflow-hidden group">
         {(cimitero.FotoCopertina || cimitero.foto?.[0]?.Url) ? (
           <img

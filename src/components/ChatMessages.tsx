@@ -43,7 +43,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         {messages.map((message, index) => (
           <div key={index} data-message-index={index} className="animate-fade-in">
             {message.type === 'query' && (
-              <div className="flex justify-end px-2">
+              <div className="flex justify-end pr-2">
                 <div className="max-w-[95%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-3 border border-[var(--primary-color)]/30 backdrop-blur-sm">
                   <p className="text-sm text-gray-100 whitespace-pre-wrap">{message.content}</p>
                 </div>
@@ -51,11 +51,11 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
             )}
             
             {message.type === 'response' && (
-              <div className="space-y-3 w-full px-2">
-                <div className="flex items-start gap-2">
-                  <Bot className="w-8 h-8 text-[#8B5CF6] -ml-0.5 flex-shrink-0" />
-                  <div className="flex flex-col w-full">
-                    <div className="flex items-center justify-between">
+              <div className="space-y-3 w-full">
+                <div className="flex items-start pl-1">
+                  <Bot className="w-8 h-8 text-[#8B5CF6] flex-shrink-0" />
+                  <div className="flex flex-col w-full min-w-0">
+                    <div className="flex items-center justify-between pl-2">
                       <div className="flex flex-col">
                         <span className="text-sm font-medium text-gray-200">Assistente AI</span>
                         <span className="text-xs text-gray-400">
@@ -64,12 +64,12 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                       </div>
                     </div>
                     
-                    <div className="mt-2 text-sm text-gray-100 whitespace-pre-wrap">
+                    <div className="mt-2 text-sm text-gray-100 whitespace-pre-wrap pl-2">
                       {message.content}
                     </div>
                     
                     {message.data?.suggestions && (
-                      <div className="mt-4">
+                      <div className="mt-4 pl-2">
                         <SuggestedQuestions 
                           onSelect={onQuestionSelect}
                         />
@@ -83,9 +83,9 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
         ))}
 
         {isProcessing && (
-          <div className="flex items-start gap-2 px-2">
-            <Bot className="w-8 h-8 text-[#8B5CF6] -ml-0.5 flex-shrink-0" />
-            <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm">
+          <div className="flex items-start pl-1">
+            <Bot className="w-8 h-8 text-[#8B5CF6] flex-shrink-0" />
+            <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm ml-2">
               <div className="flex items-center space-x-2">
                 <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
                 <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>

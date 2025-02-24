@@ -106,7 +106,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                 
                 <div className="relative group">
                   <div 
-                    className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap break-words pr-16"
+                    className="text-sm text-gray-200 leading-relaxed whitespace-pre-wrap break-words"
                     onMouseDown={() => handleMouseDown(index)}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
@@ -114,17 +114,17 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                     {message.content}
                   </div>
                   
-                  <div className="absolute right-3 top-0 flex flex-col gap-2">
+                  <div className="flex justify-end gap-2 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <button
                       onClick={() => handleCopyMessage(message.content)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-gray-400 hover:text-white rounded bg-[#2A2F3C]/80"
+                      className="p-1.5 text-gray-400 hover:text-white rounded bg-[#2A2F3C]/80"
                     >
                       <Copy className="w-4 h-4" />
                     </button>
 
                     <DropdownMenu open={showOptionsFor === index} onOpenChange={() => setShowOptionsFor(null)}>
                       <DropdownMenuTrigger asChild>
-                        <button className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-gray-400 hover:text-white rounded bg-[#2A2F3C]/80">
+                        <button className="p-1.5 text-gray-400 hover:text-white rounded bg-[#2A2F3C]/80">
                           <MoreHorizontal className="w-4 h-4" />
                         </button>
                       </DropdownMenuTrigger>

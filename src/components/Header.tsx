@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
 interface HeaderProps {
@@ -77,6 +77,34 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
   const clearAllNotifications = () => {
     setNotifications([]);
     toast.success("Tutte le notifiche sono state cancellate");
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const searchContainer = document.querySelector('.search-container');
+      if (showSearch && searchContainer && !searchContainer.contains(event.target as Node)) {
+        setShowSearch(false);
+        setSearchText("");
+        setCurrentMatch(0);
+        setTotalMatches(0);
+        document.querySelectorAll('.search-highlight').forEach(el => {
+          el.classList.remove('search-highlight');
+        });
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showSearch]);
+
+  const closeSearch = () => {
+    setShowSearch(false);
+    setSearchText("");
+    setCurrentMatch(0);
+    setTotalMatches(0);
+    document.querySelectorAll('.search-highlight').forEach(el => {
+      el.classList.remove('search-highlight');
+    });
   };
 
   return (
@@ -146,7 +174,7 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
 
           <div className="flex-1 flex items-center justify-end gap-2 pr-0">
             {showSearch && (
-              <div className="relative">
+              <div className="search-container relative">
                 <input
                   type="text"
                   value={searchText}
@@ -156,23 +184,33 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                   className="bg-[#1A1F2C] text-white text-sm rounded-full px-4 py-1.5 border-2 border-white/20 focus:border-[#9b87f5] focus:outline-none w-48 transition-all duration-200"
                   autoFocus
                 />
-                {totalMatches > 0 && (
+                {searchText && (
                   <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    {totalMatches > 0 && (
+                      <>
+                        <button
+                          onClick={() => handleSearchNavigation('up')}
+                          className="p-1 text-gray-400 hover:text-[#9b87f5]"
+                        >
+                          <ArrowUp className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={() => handleSearchNavigation('down')}
+                          className="p-1 text-gray-400 hover:text-[#9b87f5]"
+                        >
+                          <ArrowDown className="h-3 w-3" />
+                        </button>
+                        <span className="text-xs text-gray-400">
+                          {currentMatch + 1}/{totalMatches}
+                        </span>
+                      </>
+                    )}
                     <button
-                      onClick={() => handleSearchNavigation('up')}
-                      className="p-1 text-gray-400 hover:text-[#9b87f5]"
+                      onClick={closeSearch}
+                      className="p-1 text-gray-400 hover:text-[#9b87f5] ml-1"
                     >
-                      <ArrowUp className="h-3 w-3" />
+                      <X className="h-3 w-3" />
                     </button>
-                    <button
-                      onClick={() => handleSearchNavigation('down')}
-                      className="p-1 text-gray-400 hover:text-[#9b87f5]"
-                    >
-                      <ArrowDown className="h-3 w-3" />
-                    </button>
-                    <span className="text-xs text-gray-400">
-                      {currentMatch + 1}/{totalMatches}
-                    </span>
                   </div>
                 )}
               </div>

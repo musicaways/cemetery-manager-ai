@@ -1,17 +1,18 @@
 
 import { DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Cimitero } from "../../types";
 import { InfoTab } from "./Tabs/InfoTab";
 import { GalleryTab } from "./Tabs/GalleryTab";
 import { DocumentsTab } from "./Tabs/DocumentsTab";
 import { MapsTab } from "./Tabs/MapsTab";
 import { SectorsTab } from "./Tabs/SectorsTab";
-import { useState } from "react";
-import { Dialog } from "@/components/ui/dialog";
+import { useState, useCallback } from "react";
 import { CoverImage } from "./components/CoverImage";
 import { MediaButtons } from "./components/MediaButtons";
 import { EditButtons } from "./components/EditButtons";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface CimiteroDetailsProps {
   cimitero: Cimitero | null;
@@ -35,8 +36,48 @@ export const CimiteroDetails = ({
   selectedFile
 }: CimiteroDetailsProps) => {
   const [activeTab, setActiveTab] = useState<'gallery' | 'documents' | 'maps' | null>(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
+  const handleRefresh = useCallback(() => {
+    // Implementare il refresh dei dati
+  }, []);
 
   if (!cimitero) return null;
+
+  const MediaContent = () => (
+    <>
+      <DialogHeader>
+        <DialogTitle>
+          {activeTab === 'gallery' && 'Galleria Foto'}
+          {activeTab === 'documents' && 'Documenti'}
+          {activeTab === 'maps' && 'Mappe'}
+        </DialogTitle>
+      </DialogHeader>
+      <div className="mt-4">
+        {activeTab === 'gallery' && (
+          <GalleryTab 
+            foto={cimitero.foto} 
+            onDelete={handleRefresh}
+            canEdit={editMode}
+          />
+        )}
+        {activeTab === 'documents' && (
+          <DocumentsTab 
+            documenti={cimitero.documenti}
+            onDelete={handleRefresh}
+            canEdit={editMode}
+          />
+        )}
+        {activeTab === 'maps' && (
+          <MapsTab 
+            mappe={cimitero.mappe}
+            onDelete={handleRefresh}
+            canEdit={editMode}
+          />
+        )}
+      </div>
+    </>
+  );
 
   return (
     <DialogContent className="max-w-5xl bg-[#1A1F2C] border-gray-800 p-0 overflow-hidden">
@@ -89,23 +130,29 @@ export const CimiteroDetails = ({
         </div>
       </div>
 
-      {/* Media Modal */}
-      <Dialog open={!!activeTab} onOpenChange={() => setActiveTab(null)}>
-        <DialogContent className="max-w-4xl bg-[#1A1F2C] border-gray-800">
-          <DialogHeader>
-            <DialogTitle>
-              {activeTab === 'gallery' && 'Galleria Foto'}
-              {activeTab === 'documents' && 'Documenti'}
-              {activeTab === 'maps' && 'Mappe'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="mt-4">
-            {activeTab === 'gallery' && <GalleryTab foto={cimitero.foto} />}
-            {activeTab === 'documents' && <DocumentsTab documenti={cimitero.documenti} />}
-            {activeTab === 'maps' && <MapsTab mappe={cimitero.mappe} />}
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Media Modal - Responsive */}
+      {isMobile ? (
+        <Sheet open={!!activeTab} onOpenChange={() => setActiveTab(null)}>
+          <SheetContent side="bottom" className="h-[80vh] bg-[#1A1F2C] border-t border-gray-800">
+            <SheetHeader>
+              <SheetTitle className="text-white">
+                {activeTab === 'gallery' && 'Galleria Foto'}
+                {activeTab === 'documents' && 'Documenti'}
+                {activeTab === 'maps' && 'Mappe'}
+              </SheetTitle>
+            </SheetHeader>
+            <div className="mt-4">
+              <MediaContent />
+            </div>
+          </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={!!activeTab} onOpenChange={() => setActiveTab(null)}>
+          <DialogContent className="max-w-4xl bg-[#1A1F2C] border-gray-800">
+            <MediaContent />
+          </DialogContent>
+        </Dialog>
+      )}
     </DialogContent>
   );
 };

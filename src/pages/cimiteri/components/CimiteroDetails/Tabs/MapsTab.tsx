@@ -1,12 +1,38 @@
 
 import { MapPin } from "lucide-react";
+import { useState } from "react";
 import { CimiteroMappe } from "../../../types";
+import { MediaViewer } from "../components/MediaViewer";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface MapsTabProps {
   mappe: CimiteroMappe[];
+  onDelete?: () => void;
+  canEdit?: boolean;
 }
 
-export const MapsTab = ({ mappe }: MapsTabProps) => {
+export const MapsTab = ({ mappe, onDelete, canEdit }: MapsTabProps) => {
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('CimiteroMappe')
+        .delete()
+        .eq('Id', id);
+
+      if (error) throw error;
+      
+      if (onDelete) {
+        onDelete();
+      }
+    } catch (error) {
+      console.error("Error deleting map:", error);
+      throw error;
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold flex items-center text-white">
@@ -14,13 +40,11 @@ export const MapsTab = ({ mappe }: MapsTabProps) => {
         Mappe
       </h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {mappe?.map((mappa) => (
-          <a
+        {mappe?.map((mappa, index) => (
+          <div
             key={mappa.Id}
-            href={mappa.Url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block aspect-[4/3] relative group rounded-lg overflow-hidden border border-gray-800 hover:border-[var(--primary-color)] transition-colors"
+            className="block aspect-[4/3] relative group rounded-lg overflow-hidden border border-gray-800 hover:border-[var(--primary-color)] transition-colors cursor-pointer"
+            onClick={() => setSelectedIndex(index)}
           >
             <img
               src={mappa.Url}
@@ -32,9 +56,18 @@ export const MapsTab = ({ mappe }: MapsTabProps) => {
                 <p className="text-white text-sm text-center">{mappa.Descrizione}</p>
               </div>
             )}
-          </a>
+          </div>
         ))}
       </div>
+
+      <MediaViewer
+        items={mappe}
+        currentIndex={selectedIndex ?? 0}
+        isOpen={selectedIndex !== null}
+        onClose={() => setSelectedIndex(null)}
+        onDelete={canEdit ? handleDelete : undefined}
+        canDelete={canEdit}
+      />
     </div>
   );
 };

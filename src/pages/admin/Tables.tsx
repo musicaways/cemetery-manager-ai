@@ -13,23 +13,38 @@ export const TablesAdmin = () => {
 
   const loadTables = useCallback(async () => {
     try {
+      console.log("Loading tables...");
       const { data: schemaData, error } = await supabase
         .rpc('get_complete_schema')
         .single<SchemaResponse>();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error loading schema:", error);
+        throw error;
+      }
+
+      console.log("Schema data received:", schemaData);
 
       if (schemaData?.tables) {
-        const formattedTables: TableInfo[] = schemaData.tables.map(table => ({
-          table_name: table.name,
-          columns: table.columns.map(col => ({
-            column_name: col.name,
-            data_type: col.type,
-            is_nullable: col.is_nullable ? 'YES' : 'NO',
-            column_default: col.default_value
-          })),
-          foreign_keys: table.foreign_keys
-        }));
+        const formattedTables: TableInfo[] = schemaData.tables
+          .filter(table => !table.name.startsWith('_')) // Escludiamo le tabelle di sistema
+          .map(table => ({
+            table_name: table.name,
+            columns: table.columns.map(col => ({
+              column_name: col.name,
+              data_type: col.type,
+              is_nullable: col.notnull ? 'NO' : 'YES',
+              column_default: col.default || null
+            })),
+            foreign_keys: (table.foreign_keys || []).map(fk => ({
+              name: fk.name,
+              column: fk.column,
+              foreign_table: fk.foreign_table,
+              foreign_column: fk.foreign_column
+            }))
+          }));
+
+        console.log("Formatted tables:", formattedTables);
         setTables(formattedTables);
       }
     } catch (error: any) {

@@ -1,7 +1,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Globe } from 'lucide-react';
+import { Navigation } from 'lucide-react';
 
 interface LocationMapProps {
   latitude: number;
@@ -30,21 +30,22 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
   };
 
   return (
-    <div className="relative w-full aspect-[21/9] rounded-lg overflow-hidden border border-gray-800">
-      <iframe
-        ref={mapContainer}
-        className="absolute inset-0 w-full h-full"
-        src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite`}
-        allowFullScreen
-      />
+    <div className="space-y-4">
+      <div className="w-full aspect-[4/3] rounded-lg overflow-hidden border border-gray-800">
+        <iframe
+          ref={mapContainer}
+          className="absolute inset-0 w-full h-full"
+          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite&language=it&region=IT&scrollwheel=true&disableDefaultUI=true`}
+          allowFullScreen
+        />
+      </div>
       <Button
-        variant="outline"
-        size="sm"
-        className="absolute bottom-4 right-4 z-10 bg-black/60 border-gray-600 hover:bg-black/80 text-white"
+        variant="default"
+        className="w-full bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
         onClick={handleOpenInMaps}
       >
-        <Globe className="h-4 w-4 mr-2" />
-        Naviga su Google Maps
+        <Navigation className="h-4 w-4 mr-2" />
+        Avvia Navigazione
       </Button>
     </div>
   );

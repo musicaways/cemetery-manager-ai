@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -143,20 +142,15 @@ export const CimiteroDetails = ({
                 onOpenChange={() => setOpenSection(openSection === 'maps' ? null : 'maps')}
               >
                 <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg hover:bg-gray-800/30 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">Mappe</span>
-                    {cimitero.mappe?.length > 0 && (
-                      <span className="px-2 py-0.5 text-xs bg-[var(--primary-color)] text-white rounded-full">
-                        {cimitero.mappe.length}
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-sm font-medium text-white">Mappa</span>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pt-2">
                   <MapsTab 
                     mappe={cimitero.mappe}
                     onDelete={handleRefresh}
                     canEdit={editMode}
+                    latitude={cimitero.Latitudine}
+                    longitude={cimitero.Longitudine}
                   />
                 </CollapsibleContent>
               </Collapsible>

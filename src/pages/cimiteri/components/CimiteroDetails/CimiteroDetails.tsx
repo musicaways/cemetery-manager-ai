@@ -164,25 +164,11 @@ export const CimiteroDetails = ({
                 </CollapsibleContent>
               </Collapsible>
 
-              {/* Sectors Section */}
-              <Collapsible 
-                open={openSection === 'sectors'} 
-                onOpenChange={() => setOpenSection(openSection === 'sectors' ? null : 'sectors')}
-              >
-                <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg hover:bg-gray-800/30 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">Settori</span>
-                    {cimitero.settori?.length > 0 && (
-                      <span className="px-2 py-0.5 text-xs bg-[var(--primary-color)] text-white rounded-full">
-                        {cimitero.settori.length}
-                      </span>
-                    )}
-                  </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2">
-                  <SectorsTab settori={cimitero.settori} />
-                </CollapsibleContent>
-              </Collapsible>
+              {/* Sectors Section - Always visible */}
+              <div className="bg-black/20 border border-gray-800 rounded-lg p-4">
+                <h3 className="text-sm font-medium text-white mb-4">Settori</h3>
+                <SectorsTab settori={cimitero.settori} />
+              </div>
 
               {/* Footer */}
               <div className="mt-8 mb-16 px-3 py-4 bg-black/30 rounded-lg border-t border-gray-800/50">

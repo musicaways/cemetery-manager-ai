@@ -15,7 +15,6 @@ export const InfoTab = ({ cimitero, editMode, editedData, onInputChange }: InfoT
 
   return (
     <div className="space-y-4 bg-black/20 p-4 rounded-lg border border-gray-800">
-      <h3 className="text-lg font-semibold text-white mb-4">Informazioni principali</h3>
       {editMode ? (
         <>
           <div className="space-y-2">

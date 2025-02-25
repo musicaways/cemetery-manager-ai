@@ -67,13 +67,21 @@ export const useDocuments = (
   const handleFileSelect = async (file: File) => {
     let toastId: string | number = '';
     try {
+      if (!file) {
+        throw new Error("Nessun file selezionato");
+      }
+
       console.log("Starting file upload:", { name: file.name, type: file.type, size: file.size });
       setIsUploading(true);
       toastId = toast.loading("Caricamento in corso...");
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `${crypto.randomUUID()}.${fileExt}`;
-      const filePath = `${cimiteroId}/${fileName}`;
+      if (!fileExt) {
+        throw new Error("Estensione file non valida");
+      }
+
+      const sanitizedFileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${cimiteroId}/${sanitizedFileName}`;
 
       console.log("Uploading file to path:", filePath);
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -109,6 +117,10 @@ export const useDocuments = (
 
       if (dbError) {
         console.error("Database insert error:", dbError);
+        // Se c'è un errore nel database, eliminiamo il file caricato
+        await supabase.storage
+          .from('cemetery-documents')
+          .remove([filePath]);
         throw dbError;
       }
 

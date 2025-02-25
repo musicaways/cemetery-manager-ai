@@ -6,12 +6,39 @@ import { toast } from "sonner";
 interface FileUploadZoneProps {
   onFileSelect: (file: File) => void;
   accept?: string;
-  maxSize?: number;
+  maxSize?: number; // in MB
   disabled?: boolean;
 }
 
 export const FileUploadZone = ({ onFileSelect, accept = "image/*", maxSize = 5, disabled = false }: FileUploadZoneProps) => {
   const [isDragging, setIsDragging] = useState(false);
+
+  const validateFile = (file: File): boolean => {
+    // Verifica il tipo di file
+    const acceptedTypes = accept.split(',').map(type => type.trim());
+    const isValidType = acceptedTypes.some(type => {
+      if (type.includes('/*')) {
+        const mainType = type.split('/')[0];
+        return file.type.startsWith(mainType);
+      }
+      const extension = `.${file.name.split('.').pop()?.toLowerCase()}`;
+      return type.includes(extension);
+    });
+
+    if (!isValidType) {
+      toast.error(`Tipo di file non supportato. Tipi supportati: ${accept}`);
+      return false;
+    }
+
+    // Verifica la dimensione del file
+    const sizeInMB = file.size / (1024 * 1024);
+    if (sizeInMB > maxSize) {
+      toast.error(`Il file è troppo grande. Dimensione massima: ${maxSize}MB`);
+      return false;
+    }
+
+    return true;
+  };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -47,13 +74,21 @@ export const FileUploadZone = ({ onFileSelect, accept = "image/*", maxSize = 5, 
   };
 
   const handleFile = (file: File) => {
-    if (!file.type.match(accept.replace("*", ".*"))) {
-      toast.error("Formato file non supportato");
-      return;
-    }
+    try {
+      if (!file) {
+        toast.error("Nessun file selezionato");
+        return;
+      }
 
-    // Rimuoviamo il controllo della dimensione qui poiché verrà gestito dalla compressione
-    onFileSelect(file);
+      if (!validateFile(file)) {
+        return;
+      }
+
+      onFileSelect(file);
+    } catch (error) {
+      console.error("Errore nella gestione del file:", error);
+      toast.error("Si è verificato un errore durante la gestione del file");
+    }
   };
 
   return (
@@ -82,7 +117,7 @@ export const FileUploadZone = ({ onFileSelect, accept = "image/*", maxSize = 5, 
           {disabled ? 'Caricamento in corso...' : 'Trascina un file o clicca per selezionarlo'}
         </p>
         <p className={`text-xs ${disabled ? 'text-gray-600' : 'text-gray-500'}`}>
-          I file verranno compressi automaticamente se necessario
+          Dimensione massima: {maxSize}MB
         </p>
       </div>
     </div>

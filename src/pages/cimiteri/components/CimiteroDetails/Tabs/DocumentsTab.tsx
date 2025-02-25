@@ -61,7 +61,7 @@ export const DocumentsTab = ({ documenti, onDelete, canEdit, cimiteroId, onUploa
       const { error: dbError } = await supabase
         .from('CimiteroDocumenti')
         .insert({
-          CimiteroId: cimiteroId,
+          IdCimitero: cimiteroId,
           Url: publicUrl,
           NomeFile: file.name,
           TipoFile: file.type,

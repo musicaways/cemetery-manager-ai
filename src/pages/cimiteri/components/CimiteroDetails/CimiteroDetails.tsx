@@ -1,6 +1,5 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Cimitero } from "../../types";
 import { InfoTab } from "./Tabs/InfoTab";
@@ -10,9 +9,7 @@ import { MapsTab } from "./Tabs/MapsTab";
 import { SectorsTab } from "./Tabs/SectorsTab";
 import { useState, useCallback } from "react";
 import { CoverImage } from "./components/CoverImage";
-import { MediaButtons } from "./components/MediaButtons";
 import { EditButtons } from "./components/EditButtons";
-import { useMediaQuery } from "@/hooks/use-media-query";
 import { ChevronRight, Home, X } from "lucide-react";
 
 interface CimiteroDetailsProps {
@@ -36,8 +33,6 @@ export const CimiteroDetails = ({
   onInputChange,
   selectedFile
 }: CimiteroDetailsProps) => {
-  const [activeTab, setActiveTab] = useState<'gallery' | 'documents' | 'maps' | null>(null);
-  const isMobile = useMediaQuery("(max-width: 768px)");
   const [openSection, setOpenSection] = useState<string | null>(null);
 
   const handleRefresh = useCallback(() => {
@@ -109,6 +104,8 @@ export const CimiteroDetails = ({
                     foto={cimitero.foto} 
                     onDelete={handleRefresh}
                     canEdit={editMode}
+                    cimiteroId={cimitero.Id}
+                    onUploadComplete={handleRefresh}
                   />
                 </CollapsibleContent>
               </Collapsible>
@@ -133,6 +130,8 @@ export const CimiteroDetails = ({
                     documenti={cimitero.documenti}
                     onDelete={handleRefresh}
                     canEdit={editMode}
+                    cimiteroId={cimitero.Id}
+                    onUploadComplete={handleRefresh}
                   />
                 </CollapsibleContent>
               </Collapsible>

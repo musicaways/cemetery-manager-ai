@@ -61,7 +61,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
       const { error: dbError } = await supabase
         .from('CimiteroFoto')
         .insert({
-          CimiteroId: cimiteroId,
+          IdCimitero: cimiteroId,
           Url: publicUrl,
           NomeFile: file.name,
         });

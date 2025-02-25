@@ -35,7 +35,7 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
         <iframe
           ref={mapContainer}
           className="absolute inset-0 w-full h-full"
-          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite&language=it&region=IT&scrollwheel=true&disableDefaultUI=true`}
+          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite&language=it&region=IT&disableDefaultUI=true`}
           allowFullScreen
         />
       </div>

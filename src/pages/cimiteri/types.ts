@@ -17,6 +17,17 @@ export interface Settore {
   Id: number;
   Codice: string;
   Descrizione: string;
+  blocchi?: Blocco[];
+}
+
+export interface Blocco {
+  Id: number;
+  Codice: string | null;
+  Descrizione: string | null;
+  NumeroFile: number | null;
+  NumeroLoculi: number | null;
+  NumeroFileInterrate: number | null;
+  Annotazioni: string | null;
 }
 
 export interface CimiteroFoto {

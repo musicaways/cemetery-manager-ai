@@ -52,11 +52,7 @@ export const FileUploadZone = ({ onFileSelect, accept = "image/*", maxSize = 5, 
       return;
     }
 
-    if (file.size > maxSize * 1024 * 1024) {
-      toast.error(`Il file non può superare ${maxSize}MB`);
-      return;
-    }
-
+    // Rimuoviamo il controllo della dimensione qui poiché verrà gestito dalla compressione
     onFileSelect(file);
   };
 
@@ -86,7 +82,7 @@ export const FileUploadZone = ({ onFileSelect, accept = "image/*", maxSize = 5, 
           {disabled ? 'Caricamento in corso...' : 'Trascina un file o clicca per selezionarlo'}
         </p>
         <p className={`text-xs ${disabled ? 'text-gray-600' : 'text-gray-500'}`}>
-          Max {maxSize}MB
+          I file verranno compressi automaticamente se necessario
         </p>
       </div>
     </div>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -11,14 +10,13 @@ export const useCimiteri = () => {
 
   const loadCimiteri = async () => {
     try {
-      // Carichiamo direttamente i cimiteri con tutte le relazioni nidificate
       const { data: cimiteriData, error: cimiteriError } = await supabase
         .from("Cimitero")
         .select(`
           *,
           settori:Settore(
             *,
-            blocchi:Blocco!inner(*)
+            blocchi:Blocco(*)
           ),
           foto:CimiteroFoto(*),
           documenti:CimiteroDocumenti(*),
@@ -51,7 +49,6 @@ export const useCimiteri = () => {
 
   const uploadCoverImage = async (file: File): Promise<string | null> => {
     try {
-      // Sanificare il nome del file
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${fileName}`;
@@ -62,7 +59,6 @@ export const useCimiteri = () => {
 
       if (uploadError) throw uploadError;
 
-      // Ottenere l'URL pubblico del file
       const { data: { publicUrl } } = supabase.storage
         .from('cemetery-covers')
         .getPublicUrl(filePath);
@@ -84,7 +80,6 @@ export const useCimiteri = () => {
       
       let updateData = { ...data };
 
-      // Se c'è una nuova immagine di copertina, carichiamola prima
       if (coverImage) {
         const imageUrl = await uploadCoverImage(coverImage);
         if (imageUrl) {
@@ -92,7 +87,6 @@ export const useCimiteri = () => {
         }
       }
 
-      // Verifica che i campi numerici siano effettivamente numeri
       const cleanedData = {
         ...updateData,
         Latitudine: updateData.Latitudine ? Number(updateData.Latitudine) : null,

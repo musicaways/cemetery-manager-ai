@@ -55,7 +55,7 @@ export const CimiteroDetails = ({
       p-0 
       overflow-hidden
       relative
-      ${isMobile ? 'h-[100dvh]' : 'h-[85vh]'}
+      ${isMobile ? 'min-h-screen h-screen w-screen max-w-none sm:rounded-none' : 'h-[85vh]'}
     `}>
       <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
         <X className="h-5 w-5 text-white" />
@@ -64,13 +64,15 @@ export const CimiteroDetails = ({
       <ScrollArea className="h-full">
         <div className="flex flex-col h-full">
           {/* Cover Image */}
-          <CoverImage
-            imageUrl={cimitero.FotoCopertina || cimitero.foto?.[0]?.Url}
-            description={cimitero.Descrizione}
-            editMode={editMode}
-            onUpload={onUpload}
-            selectedFile={selectedFile}
-          />
+          <div className="relative w-full aspect-video md:aspect-[21/9]">
+            <CoverImage
+              imageUrl={cimitero.FotoCopertina || cimitero.foto?.[0]?.Url}
+              description={cimitero.Descrizione}
+              editMode={editMode}
+              onUpload={onUpload}
+              selectedFile={selectedFile}
+            />
+          </div>
           
           {/* Content */}
           <div className="px-4 py-3 space-y-4">

@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Settore } from "../../../types";
-import { BloccoDetails } from "../../BloccoDetails/BloccoDetails";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 interface SectorsTabProps {
   settori: Settore[];
@@ -22,6 +22,11 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
   const filteredSettori = sortedSettori.filter(settore => 
     settore.Descrizione?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Log per debug
+  console.log("Settori:", settori);
+  console.log("Settore selezionato:", selectedSettore);
+  console.log("Blocchi del settore:", selectedSettore?.blocchi);
 
   return (
     <>
@@ -60,10 +65,31 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
         </div>
       </div>
 
-      <BloccoDetails 
-        settore={selectedSettore} 
-        onClose={() => setSelectedSettore(null)} 
-      />
+      {/* Dialog per mostrare i blocchi del settore selezionato */}
+      <Dialog open={!!selectedSettore} onOpenChange={() => setSelectedSettore(null)}>
+        <DialogContent className="bg-[#1A1F2C] border-gray-800 text-white">
+          <div className="p-4">
+            <h2 className="text-lg font-semibold mb-4">
+              Blocchi del settore: {selectedSettore?.Descrizione}
+            </h2>
+            
+            {selectedSettore?.blocchi && selectedSettore.blocchi.length > 0 ? (
+              <ul className="space-y-2">
+                {selectedSettore.blocchi.map((blocco) => (
+                  <li 
+                    key={blocco.Id}
+                    className="p-2 bg-black/20 rounded border border-gray-800/50"
+                  >
+                    {blocco.Descrizione || "Blocco senza descrizione"}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-gray-400 italic">Nessun blocco presente in questo settore</p>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };

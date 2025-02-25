@@ -32,15 +32,14 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
   return (
     <div className="space-y-4">
       <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border border-gray-800">
-        <div className="absolute inset-0 pointer-events-none">
-          <iframe
-            ref={mapContainer}
-            className="w-full h-full"
-            src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite&language=it&region=IT`}
-            loading="lazy"
-            allowFullScreen
-          />
-        </div>
+        <iframe
+          ref={mapContainer}
+          className="w-full h-full"
+          style={{ border: 0 }}
+          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite&language=it&region=IT`}
+          loading="lazy"
+          allowFullScreen
+        />
       </div>
       <div className="flex flex-col gap-2">
         <Button

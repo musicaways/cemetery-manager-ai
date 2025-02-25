@@ -1,7 +1,7 @@
 
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { ExternalLink, Globe } from 'lucide-react';
+import { Globe } from 'lucide-react';
 
 interface LocationMapProps {
   latitude: number;
@@ -12,7 +12,12 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
   const mapContainer = useRef<HTMLIFrameElement>(null);
 
   const handleOpenInMaps = () => {
-    window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`, '_blank');
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    const url = isMobile
+      ? `geo:${latitude},${longitude}?q=${latitude},${longitude}`
+      : `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    
+    window.open(url, '_blank');
   };
 
   return (
@@ -26,7 +31,7 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
       <Button
         variant="outline"
         size="sm"
-        className="absolute top-4 right-4 z-10 bg-black/60 border-gray-600 hover:bg-black/80 text-white"
+        className="absolute bottom-4 right-4 z-10 bg-black/60 border-gray-600 hover:bg-black/80 text-white"
         onClick={handleOpenInMaps}
       >
         <Globe className="h-4 w-4 mr-2" />

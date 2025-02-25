@@ -6,6 +6,7 @@ import { MediaViewer } from "../components/MediaViewer";
 import { FileUploadZone } from "../components/FileUploadZone";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface GalleryTabProps {
   foto: CimiteroFoto[];
@@ -18,6 +19,7 @@ interface GalleryTabProps {
 export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComplete }: GalleryTabProps) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const queryClient = useQueryClient();
 
   const handleDelete = async (id: string) => {
     try {
@@ -27,6 +29,8 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
         .eq('Id', id);
 
       if (error) throw error;
+      
+      await queryClient.invalidateQueries({ queryKey: ['cimiteri'] });
       
       if (onDelete) {
         onDelete();
@@ -70,6 +74,9 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
 
       if (dbError) throw dbError;
 
+      // Invalida la cache per forzare il refresh dei dati
+      await queryClient.invalidateQueries({ queryKey: ['cimiteri'] });
+
       toast.dismiss();
       toast.success("Foto caricata con successo");
       onUploadComplete();
@@ -93,18 +100,22 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
       )}
 
       {foto?.length > 0 ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
           {foto.map((foto, index) => (
             <div 
               key={foto.Id} 
-              className="relative group aspect-video rounded-lg overflow-hidden border border-gray-800 hover:border-[var(--primary-color)] transition-colors cursor-pointer"
+              className="relative group aspect-square rounded-xl overflow-hidden border border-gray-800/50 hover:border-[var(--primary-color)] transition-all duration-300 cursor-pointer hover:scale-[0.98] bg-black/20"
               onClick={() => setSelectedIndex(index)}
             >
               <img
                 src={foto.Url}
                 alt={foto.Descrizione || "Foto cimitero"}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <Image className="w-4 h-4 text-white" />
+              </div>
             </div>
           ))}
         </div>

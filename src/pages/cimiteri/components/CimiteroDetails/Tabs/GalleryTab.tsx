@@ -31,6 +31,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
       if (error) throw error;
       
       await queryClient.invalidateQueries({ queryKey: ['cimiteri'] });
+      await onUploadComplete();
       
       if (onDelete) {
         onDelete();
@@ -45,7 +46,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
   const handleFileSelect = async (file: File) => {
     try {
       setIsUploading(true);
-      toast.loading("Caricamento in corso...");
+      const loadingToast = toast.loading("Caricamento in corso...");
 
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
@@ -74,12 +75,14 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
 
       if (dbError) throw dbError;
 
-      // Invalida la cache per forzare il refresh dei dati
-      await queryClient.invalidateQueries({ queryKey: ['cimiteri'] });
+      // Forza l'aggiornamento dei dati
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['cimiteri'] }),
+        onUploadComplete()
+      ]);
 
-      toast.dismiss();
+      toast.dismiss(loadingToast);
       toast.success("Foto caricata con successo");
-      onUploadComplete();
     } catch (error: any) {
       console.error("Error uploading photo:", error);
       toast.error("Errore durante il caricamento della foto");
@@ -100,11 +103,11 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
       )}
 
       {foto?.length > 0 ? (
-        <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
           {foto.map((foto, index) => (
             <div 
               key={foto.Id} 
-              className="relative group aspect-square rounded-xl overflow-hidden border border-gray-800/50 hover:border-[var(--primary-color)] transition-all duration-300 cursor-pointer hover:scale-[0.98] bg-black/20"
+              className="relative group aspect-square rounded-lg overflow-hidden border border-gray-800/50 hover:border-[var(--primary-color)] transition-all duration-300 cursor-pointer hover:scale-[0.98] bg-black/20"
               onClick={() => setSelectedIndex(index)}
             >
               <img
@@ -113,8 +116,8 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="absolute bottom-2 right-2 bg-black/50 backdrop-blur-sm p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <Image className="w-4 h-4 text-white" />
+              <div className="absolute bottom-1 right-1 bg-black/50 backdrop-blur-sm p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <Image className="w-3 h-3 text-white" />
               </div>
             </div>
           ))}

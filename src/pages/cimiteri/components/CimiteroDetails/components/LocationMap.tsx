@@ -31,22 +31,33 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
 
   return (
     <div className="space-y-4">
-      <div className="w-full aspect-[4/3] rounded-lg overflow-hidden border border-gray-800">
+      <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border border-gray-800">
         <iframe
           ref={mapContainer}
           className="absolute inset-0 w-full h-full"
           src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite&language=it&region=IT`}
+          loading="lazy"
           allowFullScreen
         />
       </div>
-      <Button
-        variant="default"
-        className="w-full bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
-        onClick={handleOpenInMaps}
-      >
-        <Navigation className="h-4 w-4 mr-2" />
-        Avvia Navigazione
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button
+          variant="default"
+          className="w-full bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
+          onClick={handleOpenInMaps}
+        >
+          <Navigation className="h-4 w-4 mr-2" />
+          Avvia Navigazione
+        </Button>
+        <Button
+          variant="outline"
+          className="w-full border-gray-800 hover:bg-gray-800/30"
+          onClick={() => window.open(`https://www.google.com/maps?q=${latitude},${longitude}`, '_blank')}
+        >
+          <Navigation className="h-4 w-4 mr-2" />
+          Apri in Google Maps
+        </Button>
+      </div>
     </div>
   );
 };

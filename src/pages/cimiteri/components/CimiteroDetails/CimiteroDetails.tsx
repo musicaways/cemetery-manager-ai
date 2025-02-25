@@ -45,45 +45,77 @@ export const CimiteroDetails = ({
   if (!cimitero) return null;
 
   const MediaContent = () => (
-    <>
-      <DialogHeader>
-        <DialogTitle>
+    <div className="flex-1 overflow-auto">
+      <DialogHeader className="mb-4">
+        <DialogTitle className="text-white">
           {activeTab === 'gallery' && 'Galleria Foto'}
           {activeTab === 'documents' && 'Documenti'}
           {activeTab === 'maps' && 'Mappe'}
         </DialogTitle>
       </DialogHeader>
-      <div className="mt-4">
-        {activeTab === 'gallery' && (
-          <GalleryTab 
-            foto={cimitero.foto} 
-            onDelete={handleRefresh}
-            canEdit={editMode}
-          />
-        )}
-        {activeTab === 'documents' && (
-          <DocumentsTab 
-            documenti={cimitero.documenti}
-            onDelete={handleRefresh}
-            canEdit={editMode}
-          />
-        )}
-        {activeTab === 'maps' && (
-          <MapsTab 
-            mappe={cimitero.mappe}
-            onDelete={handleRefresh}
-            canEdit={editMode}
-          />
-        )}
-      </div>
-    </>
+      {activeTab === 'gallery' && (
+        <GalleryTab 
+          foto={cimitero.foto} 
+          onDelete={handleRefresh}
+          canEdit={editMode}
+        />
+      )}
+      {activeTab === 'documents' && (
+        <DocumentsTab 
+          documenti={cimitero.documenti}
+          onDelete={handleRefresh}
+          canEdit={editMode}
+        />
+      )}
+      {activeTab === 'maps' && (
+        <MapsTab 
+          mappe={cimitero.mappe}
+          onDelete={handleRefresh}
+          canEdit={editMode}
+        />
+      )}
+    </div>
+  );
+
+  const MainContent = () => (
+    <div className="flex-1 overflow-hidden">
+      <ScrollArea className="h-full">
+        <CoverImage
+          imageUrl={cimitero.FotoCopertina || cimitero.foto?.[0]?.Url}
+          description={cimitero.Descrizione}
+          editMode={editMode}
+          onUpload={onUpload}
+          selectedFile={selectedFile}
+        />
+        <div className="p-6">
+          <SectorsTab settori={cimitero.settori} />
+        </div>
+      </ScrollArea>
+    </div>
   );
 
   return (
-    <DialogContent className="max-w-5xl bg-[#1A1F2C] border-gray-800 p-0 overflow-hidden">
-      <div className="flex h-[85vh]">
-        {/* Sidebar */}
-        <div className="w-[280px] border-r border-gray-800 bg-black/20 p-6 flex flex-col">
+    <DialogContent className={`
+      max-w-5xl 
+      bg-[#1A1F2C] 
+      border-gray-800 
+      p-0 
+      overflow-hidden
+      ${isMobile ? 'h-[100dvh]' : 'h-[85vh]'}
+    `}>
+      <div className={`
+        flex
+        ${isMobile ? 'flex-col h-full' : 'h-[85vh]'}
+      `}>
+        {/* Sidebar - diventa header su mobile */}
+        <div className={`
+          ${isMobile ? 'w-full border-b' : 'w-[280px] border-r'} 
+          border-gray-800 
+          bg-black/20 
+          p-6 
+          flex 
+          flex-col
+        `}>
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-white">
               {cimitero.Descrizione}
@@ -112,47 +144,21 @@ export const CimiteroDetails = ({
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-hidden">
-          <ScrollArea className="h-full">
-            <CoverImage
-              imageUrl={cimitero.FotoCopertina || cimitero.foto?.[0]?.Url}
-              description={cimitero.Descrizione}
-              editMode={editMode}
-              onUpload={onUpload}
-              selectedFile={selectedFile}
-            />
-
-            {/* Content Area */}
-            <div className="p-6">
-              <SectorsTab settori={cimitero.settori} />
-            </div>
-          </ScrollArea>
-        </div>
-      </div>
-
-      {/* Media Modal - Responsive */}
-      {isMobile ? (
-        <Sheet open={!!activeTab} onOpenChange={() => setActiveTab(null)}>
-          <SheetContent side="bottom" className="h-[80vh] bg-[#1A1F2C] border-t border-gray-800">
-            <SheetHeader>
-              <SheetTitle className="text-white">
-                {activeTab === 'gallery' && 'Galleria Foto'}
-                {activeTab === 'documents' && 'Documenti'}
-                {activeTab === 'maps' && 'Mappe'}
-              </SheetTitle>
-            </SheetHeader>
-            <div className="mt-4">
+        {!activeTab && <MainContent />}
+        {activeTab && (isMobile ? (
+          <Sheet open={!!activeTab} onOpenChange={() => setActiveTab(null)}>
+            <SheetContent side="bottom" className="h-[80vh] bg-[#1A1F2C] border-t border-gray-800 p-6">
               <MediaContent />
-            </div>
-          </SheetContent>
-        </Sheet>
-      ) : (
-        <Dialog open={!!activeTab} onOpenChange={() => setActiveTab(null)}>
-          <DialogContent className="max-w-4xl bg-[#1A1F2C] border-gray-800">
-            <MediaContent />
-          </DialogContent>
-        </Dialog>
-      )}
+            </SheetContent>
+          </Sheet>
+        ) : (
+          <Dialog open={!!activeTab} onOpenChange={() => setActiveTab(null)}>
+            <DialogContent className="max-w-4xl bg-[#1A1F2C] border-gray-800">
+              <MediaContent />
+            </DialogContent>
+          </Dialog>
+        ))}
+      </div>
     </DialogContent>
   );
 };

@@ -81,4 +81,49 @@ export const DocumentsTab = ({ documenti, onDelete, canEdit, cimiteroId, onUploa
   };
 
   return (
-    <div className="space
+    <div className="space-y-4">
+      {canEdit && (
+        <FileUploadZone
+          onFileSelect={handleFileSelect}
+          accept=".pdf,.doc,.docx,.xls,.xlsx"
+          maxSize={10}
+        />
+      )}
+
+      {documenti?.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {documenti.map((documento, index) => (
+            <div 
+              key={documento.Id} 
+              className="relative group p-4 rounded-lg border border-gray-800 hover:border-[var(--primary-color)] transition-colors cursor-pointer bg-black/20"
+              onClick={() => setSelectedIndex(index)}
+            >
+              <div className="flex items-center space-x-3">
+                <File className="w-8 h-8 text-[var(--primary-color)]" />
+                <div className="overflow-hidden">
+                  <p className="text-sm text-gray-200 truncate">{documento.NomeFile}</p>
+                  <p className="text-xs text-gray-500">{documento.TipoFile}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        !canEdit && (
+          <div className="text-center py-8 text-gray-500">
+            Nessun documento disponibile
+          </div>
+        )
+      )}
+
+      <MediaViewer
+        items={documenti}
+        currentIndex={selectedIndex ?? 0}
+        isOpen={selectedIndex !== null}
+        onClose={() => setSelectedIndex(null)}
+        onDelete={canEdit ? handleDelete : undefined}
+        canDelete={canEdit}
+      />
+    </div>
+  );
+};

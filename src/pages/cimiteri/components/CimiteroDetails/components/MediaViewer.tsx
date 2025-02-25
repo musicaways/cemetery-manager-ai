@@ -23,6 +23,7 @@ export const MediaViewer = ({
 }: MediaViewerProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isImageLoading, setIsImageLoading] = useState(true);
 
   // Reset currentIndex when items change
   useEffect(() => {
@@ -41,10 +42,12 @@ export const MediaViewer = ({
   const currentItem = items[currentIndex];
   
   const handlePrevious = useCallback(() => {
+    setIsImageLoading(true);
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : items.length - 1));
   }, [items.length]);
 
   const handleNext = useCallback(() => {
+    setIsImageLoading(true);
     setCurrentIndex((prev) => (prev < items.length - 1 ? prev + 1 : 0));
   }, [items.length]);
 
@@ -84,16 +87,100 @@ export const MediaViewer = ({
   // Safety check
   if (!currentItem || !isOpen) return null;
 
-  const getFileIcon = () => {
-    if (!currentItem?.Url) return '📎';
-    
-    const isPDF = currentItem.TipoFile?.includes('pdf') || currentItem.Url.toLowerCase().endsWith('.pdf');
-    const isImage = currentItem.TipoFile?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(currentItem.Url);
-    
-    return isPDF ? '📄' : isImage ? '🖼️' : '📎';
-  };
+  const isImage = currentItem.TipoFile?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(currentItem.Url);
 
-  const icon = getFileIcon();
+  if (isImage) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent 
+          className="max-w-[95vw] h-[95vh] p-0 bg-black/95 border-none"
+          onKeyDown={handleKeyDown}
+        >
+          {/* Navigazione immagini */}
+          <div className="absolute inset-0 flex items-center justify-between z-10 pointer-events-none">
+            <div className="w-16 flex justify-start pointer-events-auto">
+              {items.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/20"
+                  onClick={handlePrevious}
+                >
+                  <ChevronLeft className="h-8 w-8" />
+                </Button>
+              )}
+            </div>
+            <div className="w-16 flex justify-end pointer-events-auto">
+              {items.length > 1 && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-white hover:bg-white/20"
+                  onClick={handleNext}
+                >
+                  <ChevronRight className="h-8 w-8" />
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* Controlli superiori */}
+          <div className="absolute top-4 right-4 flex items-center gap-2 z-20">
+            {canDelete && onDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-red-500 hover:bg-white/20"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20"
+              onClick={onClose}
+            >
+              <X className="h-6 w-6" />
+            </Button>
+          </div>
+
+          {/* Immagine */}
+          <div className="w-full h-full flex items-center justify-center p-4">
+            <img
+              src={currentItem.Url}
+              alt={currentItem.Descrizione || ''}
+              className={`max-w-full max-h-full object-contain transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
+              onLoad={() => setIsImageLoading(false)}
+              onError={(e) => {
+                e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Crect width="18" height="18" x="3" y="3" rx="2" ry="2"%3E%3C/rect%3E%3Ccircle cx="9" cy="9" r="2"%3E%3C/circle%3E%3Cpath d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"%3E%3C/path%3E%3C/svg%3E';
+                setIsImageLoading(false);
+              }}
+            />
+          </div>
+
+          {/* Didascalia */}
+          {currentItem.Descrizione && (
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
+              <p className="text-white text-center">{currentItem.Descrizione}</p>
+              {items.length > 1 && (
+                <p className="text-white/60 text-sm text-center mt-1">
+                  {currentIndex + 1} di {items.length}
+                </p>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Rendering per file non immagine
+  const fileIcon = currentItem.TipoFile?.includes('pdf') || currentItem.Url.toLowerCase().endsWith('.pdf')
+    ? '📄'
+    : '📎';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -102,25 +189,13 @@ export const MediaViewer = ({
         onKeyDown={handleKeyDown}
       >
         <DialogTitle className="text-white mb-4 flex items-center gap-2">
-          {icon} {currentItem.Descrizione || 'File'}
+          {fileIcon} {currentItem.Descrizione || 'File'}
         </DialogTitle>
         
         <div className="relative w-full flex flex-col items-center justify-center gap-6">
           {/* Preview */}
           <div className="w-24 h-24 bg-white/10 rounded-lg overflow-hidden flex items-center justify-center">
-            {/\.(jpg|jpeg|png|gif|webp)$/i.test(currentItem.Url) ? (
-              <img
-                src={currentItem.Url}
-                alt={currentItem.Descrizione || ''}
-                className="w-full h-full object-cover"
-                loading="eager"
-                onError={(e) => {
-                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Crect width="18" height="18" x="3" y="3" rx="2" ry="2"%3E%3C/rect%3E%3Ccircle cx="9" cy="9" r="2"%3E%3C/circle%3E%3Cpath d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"%3E%3C/path%3E%3C/svg%3E';
-                }}
-              />
-            ) : (
-              <span className="text-4xl">{icon}</span>
-            )}
+            <span className="text-4xl">{fileIcon}</span>
           </div>
 
           {/* Actions */}
@@ -156,31 +231,6 @@ export const MediaViewer = ({
               </Button>
             )}
           </div>
-
-          {/* Navigation */}
-          {items.length > 1 && (
-            <div className="flex items-center gap-4 mt-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-                onClick={handlePrevious}
-              >
-                <ChevronLeft className="h-6 w-6" />
-              </Button>
-              <span className="text-white text-sm">
-                {currentIndex + 1} di {items.length}
-              </span>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-white hover:bg-white/20"
-                onClick={handleNext}
-              >
-                <ChevronRight className="h-6 w-6" />
-              </Button>
-            </div>
-          )}
         </div>
 
         <Button

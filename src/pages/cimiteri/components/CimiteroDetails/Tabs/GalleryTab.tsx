@@ -3,6 +3,7 @@ import { Image } from "lucide-react";
 import { useState } from "react";
 import { CimiteroFoto } from "../../../types";
 import { MediaViewer } from "../components/MediaViewer";
+import { FileUploadZone } from "../components/FileUploadZone";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -10,10 +11,13 @@ interface GalleryTabProps {
   foto: CimiteroFoto[];
   onDelete?: () => void;
   canEdit?: boolean;
+  cimiteroId: number;
+  onUploadComplete: () => void;
 }
 
-export const GalleryTab = ({ foto, onDelete, canEdit }: GalleryTabProps) => {
+export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComplete }: GalleryTabProps) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleDelete = async (id: string) => {
     try {
@@ -33,32 +37,81 @@ export const GalleryTab = ({ foto, onDelete, canEdit }: GalleryTabProps) => {
     }
   };
 
+  const handleFileSelect = async (file: File) => {
+    try {
+      setIsUploading(true);
+      toast.loading("Caricamento in corso...");
+
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${cimiteroId}/${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('cemetery-photos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('cemetery-photos')
+        .getPublicUrl(filePath);
+
+      // Save to database
+      const { error: dbError } = await supabase
+        .from('CimiteroFoto')
+        .insert({
+          CimiteroId: cimiteroId,
+          Url: publicUrl,
+          NomeFile: file.name,
+        });
+
+      if (dbError) throw dbError;
+
+      toast.dismiss();
+      toast.success("Foto caricata con successo");
+      onUploadComplete();
+    } catch (error) {
+      console.error("Error uploading photo:", error);
+      toast.error("Errore durante il caricamento della foto");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold flex items-center text-white">
-        <Image className="w-5 h-5 mr-2 text-[var(--primary-color)]" />
-        Galleria Foto
-      </h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {foto?.map((foto, index) => (
-          <div 
-            key={foto.Id} 
-            className="relative group aspect-video rounded-lg overflow-hidden border border-gray-800 hover:border-[var(--primary-color)] transition-colors cursor-pointer"
-            onClick={() => setSelectedIndex(index)}
-          >
-            <img
-              src={foto.Url}
-              alt={foto.Descrizione || "Foto cimitero"}
-              className="w-full h-full object-cover"
-            />
-            {foto.Descrizione && (
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-4">
-                <p className="text-white text-sm text-center">{foto.Descrizione}</p>
-              </div>
-            )}
+      {canEdit && (
+        <FileUploadZone
+          onFileSelect={handleFileSelect}
+          accept="image/*"
+          maxSize={5}
+        />
+      )}
+
+      {foto?.length > 0 ? (
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          {foto.map((foto, index) => (
+            <div 
+              key={foto.Id} 
+              className="relative group aspect-video rounded-lg overflow-hidden border border-gray-800 hover:border-[var(--primary-color)] transition-colors cursor-pointer"
+              onClick={() => setSelectedIndex(index)}
+            >
+              <img
+                src={foto.Url}
+                alt={foto.Descrizione || "Foto cimitero"}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        !canEdit && (
+          <div className="text-center py-8 text-gray-500">
+            Nessuna foto disponibile
           </div>
-        ))}
-      </div>
+        )
+      )}
 
       <MediaViewer
         items={foto}

@@ -1,7 +1,7 @@
 
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -25,6 +25,7 @@ export const MediaViewer = ({
 }: MediaViewerProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const currentItem = items[currentIndex];
 
@@ -85,11 +86,11 @@ export const MediaViewer = ({
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-4 right-16 z-50 text-white hover:bg-white/20"
+              className="absolute top-4 right-16 z-50 text-red-500 hover:bg-white/20"
               onClick={handleDelete}
               disabled={isDeleting}
             >
-              <Trash2 className="h-6 w-6 text-red-500" />
+              <X className="h-6 w-6" />
             </Button>
           )}
 

@@ -3,6 +3,7 @@ import { File } from "lucide-react";
 import { useState } from "react";
 import { CimiteroDocumenti } from "../../../types";
 import { MediaViewer } from "../components/MediaViewer";
+import { FileUploadZone } from "../components/FileUploadZone";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -10,10 +11,13 @@ interface DocumentsTabProps {
   documenti: CimiteroDocumenti[];
   onDelete?: () => void;
   canEdit?: boolean;
+  cimiteroId: number;
+  onUploadComplete: () => void;
 }
 
-export const DocumentsTab = ({ documenti, onDelete, canEdit }: DocumentsTabProps) => {
+export const DocumentsTab = ({ documenti, onDelete, canEdit, cimiteroId, onUploadComplete }: DocumentsTabProps) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleDelete = async (id: string) => {
     try {
@@ -33,44 +37,48 @@ export const DocumentsTab = ({ documenti, onDelete, canEdit }: DocumentsTabProps
     }
   };
 
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold flex items-center text-white">
-        <File className="w-5 h-5 mr-2 text-[var(--primary-color)]" />
-        Documenti
-      </h3>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {documenti?.map((doc, index) => (
-          <div
-            key={doc.Id}
-            className="relative group rounded-lg overflow-hidden border border-gray-800 hover:border-[var(--primary-color)] transition-colors cursor-pointer p-4"
-            onClick={() => setSelectedIndex(index)}
-          >
-            <div className="flex items-center space-x-3">
-              <File className="w-8 h-8 text-[var(--primary-color)]" />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">
-                  {doc.NomeFile}
-                </p>
-                {doc.Descrizione && (
-                  <p className="text-xs text-gray-400 truncate">
-                    {doc.Descrizione}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
+  const handleFileSelect = async (file: File) => {
+    try {
+      setIsUploading(true);
+      toast.loading("Caricamento in corso...");
 
-      <MediaViewer
-        items={documenti}
-        currentIndex={selectedIndex ?? 0}
-        isOpen={selectedIndex !== null}
-        onClose={() => setSelectedIndex(null)}
-        onDelete={canEdit ? handleDelete : undefined}
-        canDelete={canEdit}
-      />
-    </div>
-  );
-};
+      // Upload file to storage
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${cimiteroId}/${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('cemetery-documents')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('cemetery-documents')
+        .getPublicUrl(filePath);
+
+      // Save to database
+      const { error: dbError } = await supabase
+        .from('CimiteroDocumenti')
+        .insert({
+          CimiteroId: cimiteroId,
+          Url: publicUrl,
+          NomeFile: file.name,
+          TipoFile: file.type,
+        });
+
+      if (dbError) throw dbError;
+
+      toast.dismiss();
+      toast.success("Documento caricato con successo");
+      onUploadComplete();
+    } catch (error) {
+      console.error("Error uploading document:", error);
+      toast.error("Errore durante il caricamento del documento");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <div className="space

@@ -1,4 +1,3 @@
-
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -163,10 +162,24 @@ export const CimiteroDetails = ({
               </Collapsible>
 
               {/* Sectors Section */}
-              <div className="rounded-lg bg-black/20 border border-gray-800 p-3 mb-16">
-                <h3 className="text-sm font-medium text-white mb-3">Settori</h3>
-                <SectorsTab settori={cimitero.settori} />
-              </div>
+              <Collapsible 
+                open={openSection === 'sectors'} 
+                onOpenChange={() => setOpenSection(openSection === 'sectors' ? null : 'sectors')}
+              >
+                <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg hover:bg-gray-800/30 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-white">Settori</span>
+                    {cimitero.settori?.length > 0 && (
+                      <span className="px-2 py-0.5 text-xs bg-[var(--primary-color)] text-white rounded-full">
+                        {cimitero.settori.length}
+                      </span>
+                    )}
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <SectorsTab settori={cimitero.settori} />
+                </CollapsibleContent>
+              </Collapsible>
             </div>
           </div>
         </div>

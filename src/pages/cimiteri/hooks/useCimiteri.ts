@@ -11,12 +11,12 @@ export const useCimiteri = () => {
 
   const loadCimiteri = async () => {
     try {
-      // Verifichiamo prima la relazione tra Settore e Blocco specificando la foreign key da usare
+      // Verifichiamo la relazione tra Settore e Blocco
       const { data: settoriData, error: settoriError } = await supabase
         .from("Settore")
         .select(`
           *,
-          blocchi:Blocco!Blocco_IdSettore_fkey(*)
+          blocchi:Blocco(*)
         `);
 
       console.log("Debug - Settori con blocchi:", settoriData);
@@ -28,7 +28,7 @@ export const useCimiteri = () => {
           *,
           settori:Settore(
             *,
-            blocchi:Blocco!Blocco_IdSettore_fkey(*)
+            blocchi:Blocco(*)
           ),
           foto:CimiteroFoto(*),
           documenti:CimiteroDocumenti(*),

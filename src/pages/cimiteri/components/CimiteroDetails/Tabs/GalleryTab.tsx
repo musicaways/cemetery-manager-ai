@@ -31,9 +31,10 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
       if (onDelete) {
         onDelete();
       }
+      toast.success("Foto eliminata con successo");
     } catch (error) {
       console.error("Error deleting photo:", error);
-      throw error;
+      toast.error("Errore durante l'eliminazione della foto");
     }
   };
 
@@ -46,7 +47,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
       const fileExt = file.name.split('.').pop();
       const filePath = `${cimiteroId}/${crypto.randomUUID()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data } = await supabase.storage
         .from('cemetery-photos')
         .upload(filePath, file);
 
@@ -64,6 +65,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
           IdCimitero: cimiteroId,
           Url: publicUrl,
           NomeFile: file.name,
+          TipoFile: file.type,
         });
 
       if (dbError) throw dbError;
@@ -71,7 +73,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
       toast.dismiss();
       toast.success("Foto caricata con successo");
       onUploadComplete();
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error uploading photo:", error);
       toast.error("Errore durante il caricamento della foto");
     } finally {
@@ -86,6 +88,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
           onFileSelect={handleFileSelect}
           accept="image/*"
           maxSize={5}
+          disabled={isUploading}
         />
       )}
 

@@ -173,6 +173,8 @@ export type Database = {
           Descrizione: string | null
           Id: string
           IdCimitero: number
+          NomeFile: string | null
+          TipoFile: string | null
           Url: string
         }
         Insert: {
@@ -180,6 +182,8 @@ export type Database = {
           Descrizione?: string | null
           Id?: string
           IdCimitero: number
+          NomeFile?: string | null
+          TipoFile?: string | null
           Url: string
         }
         Update: {
@@ -187,6 +191,8 @@ export type Database = {
           Descrizione?: string | null
           Id?: string
           IdCimitero?: number
+          NomeFile?: string | null
+          TipoFile?: string | null
           Url?: string
         }
         Relationships: [
@@ -205,6 +211,8 @@ export type Database = {
           Descrizione: string | null
           Id: string
           IdCimitero: number
+          NomeFile: string | null
+          TipoFile: string | null
           Url: string
         }
         Insert: {
@@ -212,6 +220,8 @@ export type Database = {
           Descrizione?: string | null
           Id?: string
           IdCimitero: number
+          NomeFile?: string | null
+          TipoFile?: string | null
           Url: string
         }
         Update: {
@@ -219,6 +229,8 @@ export type Database = {
           Descrizione?: string | null
           Id?: string
           IdCimitero?: number
+          NomeFile?: string | null
+          TipoFile?: string | null
           Url?: string
         }
         Relationships: [

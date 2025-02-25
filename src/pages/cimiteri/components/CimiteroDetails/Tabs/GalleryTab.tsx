@@ -1,5 +1,5 @@
 
-import { Image } from "lucide-react";
+import { Image as ImageIcon } from "lucide-react";  // Rinominiamo l'importazione per evitare conflitti
 import { useState } from "react";
 import { CimiteroFoto } from "../../../types";
 import { MediaViewer } from "../components/MediaViewer";
@@ -209,7 +209,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div className="absolute bottom-1 right-1 bg-black/50 backdrop-blur-sm p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <Image className="w-3 h-3 text-white" />
+                <ImageIcon className="w-3 h-3 text-white" />
               </div>
             </div>
           ))}

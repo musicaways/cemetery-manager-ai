@@ -1,4 +1,5 @@
-import { Dialog, DialogClose } from "@/components/ui/dialog";
+
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Cimitero } from "../../types";

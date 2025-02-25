@@ -15,7 +15,10 @@ export const useCimiteri = () => {
         .from("Cimitero")
         .select(`
           *,
-          settori:Settore(*),
+          settori:Settore(
+            *,
+            blocchi:Blocco(*)
+          ),
           foto:CimiteroFoto(*),
           documenti:CimiteroDocumenti(*),
           mappe:CimiteroMappe(*)
@@ -23,6 +26,7 @@ export const useCimiteri = () => {
         .order('Descrizione', { ascending: true });
 
       if (cimiteriError) throw cimiteriError;
+      console.log("Loaded cemetery data:", cimiteriData);
       setCimiteri(cimiteriData || []);
       return cimiteriData;
     } catch (error: any) {

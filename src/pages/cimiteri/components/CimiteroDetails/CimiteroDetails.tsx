@@ -21,6 +21,7 @@ interface CimiteroDetailsProps {
   onUpload: () => void;
   onInputChange: (field: string, value: string | number | null) => void;
   selectedFile?: File | null;
+  onRefresh: () => void;
 }
 
 export const CimiteroDetails = ({
@@ -31,14 +32,15 @@ export const CimiteroDetails = ({
   onSave,
   onUpload,
   onInputChange,
-  selectedFile
+  selectedFile,
+  onRefresh
 }: CimiteroDetailsProps) => {
   const [openSection, setOpenSection] = useState<string | null>(null);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
   const handleRefresh = useCallback(() => {
-    // Implementare il refresh dei dati
-  }, []);
+    onRefresh();
+  }, [onRefresh]);
 
   // Chiudi tutte le sezioni quando si passa da desktop a mobile
   useEffect(() => {
@@ -97,7 +99,10 @@ export const CimiteroDetails = ({
         <EditButtons 
           editMode={editMode}
           onEdit={onEdit}
-          onSave={onSave}
+          onSave={() => {
+            onSave();
+            handleRefresh();
+          }}
         />
       </div>
     </DialogContent>

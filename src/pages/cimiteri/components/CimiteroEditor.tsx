@@ -4,6 +4,7 @@ import { MediaUpload } from "@/components/MediaUpload";
 import { CimiteroDetails } from "./CimiteroDetails/CimiteroDetails";
 import { useState } from "react";
 import { Cimitero } from "../types";
+import { useCimiteri } from "../hooks/useCimiteri";
 
 interface CimiteroEditorProps {
   cimitero: Cimitero | null;
@@ -22,6 +23,7 @@ export const CimiteroEditor = ({
   const [editedData, setEditedData] = useState<Partial<Cimitero>>({});
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const { loadCimiteri } = useCimiteri();
 
   const handleEdit = () => {
     if (!cimitero) return;
@@ -54,6 +56,10 @@ export const CimiteroEditor = ({
     setIsUploadOpen(false);
   };
 
+  const handleRefresh = async () => {
+    await loadCimiteri();
+  };
+
   return (
     <>
       <Dialog 
@@ -76,6 +82,7 @@ export const CimiteroEditor = ({
           onUpload={() => setIsUploadOpen(true)}
           onInputChange={handleInputChange}
           selectedFile={selectedFile}
+          onRefresh={handleRefresh}
         />
       </Dialog>
 

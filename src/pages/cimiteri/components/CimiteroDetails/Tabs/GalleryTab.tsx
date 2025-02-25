@@ -1,5 +1,4 @@
-
-import { Image as ImageIcon } from "lucide-react";
+import { Image as ImageIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { CimiteroFoto } from "../../../types";
 import { MediaViewer } from "../components/MediaViewer";
@@ -7,6 +6,7 @@ import { FileUploadZone } from "../components/FileUploadZone";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface GalleryTabProps {
   foto: CimiteroFoto[];
@@ -20,6 +20,8 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [localFoto, setLocalFoto] = useState<CimiteroFoto[]>(foto);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [photoToDelete, setPhotoToDelete] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const compressImage = async (file: File, maxSizeMB: number): Promise<Blob> => {
@@ -35,7 +37,6 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
           let width = img.width;
           let height = img.height;
           
-          // Mantieni l'aspect ratio riducendo le dimensioni se necessario
           const MAX_DIMENSION = 2048;
           if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
             if (width > height) {
@@ -58,7 +59,6 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
           
           ctx.drawImage(img, 0, 0, width, height);
           
-          // Inizia con qualità alta e riduci gradualmente finché non raggiungi la dimensione target
           let quality = 0.9;
           let iteration = 0;
           const maxIterations = 10;
@@ -71,8 +71,6 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
                   return;
                 }
                 
-                // Se il file è ancora troppo grande e non abbiamo raggiunto il massimo di iterazioni,
-                // riduci ulteriormente la qualità
                 if (blob.size > maxSizeMB * 1024 * 1024 && iteration < maxIterations) {
                   quality = Math.max(0.1, quality - 0.1);
                   iteration++;
@@ -98,6 +96,12 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
         reject(new Error('Failed to read file'));
       };
     });
+  };
+
+  const handleDeleteClick = (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPhotoToDelete(id);
+    setDeleteDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -129,13 +133,11 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
       setIsUploading(true);
       toastId = toast.loading("Elaborazione immagine in corso...");
 
-      // Comprimi l'immagine se è più grande di 5MB
       let fileToUpload: File | Blob = file;
       if (file.size > 5 * 1024 * 1024) {
         const compressedBlob = await compressImage(file, 5);
         fileToUpload = compressedBlob;
         
-        // Log della compressione
         const compressionRatio = ((file.size - compressedBlob.size) / file.size * 100).toFixed(1);
         console.log(`Immagine compressa: ${compressionRatio}% di riduzione`);
       }
@@ -144,7 +146,6 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
         id: toastId
       });
 
-      // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const filePath = `${cimiteroId}/${crypto.randomUUID()}.${fileExt}`;
 
@@ -154,12 +155,10 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
       const { data: { publicUrl } } = supabase.storage
         .from('cemetery-photos')
         .getPublicUrl(filePath);
 
-      // Save to database
       const { data: newFoto, error: dbError } = await supabase
         .from('CimiteroFoto')
         .insert({
@@ -173,10 +172,8 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
 
       if (dbError) throw dbError;
 
-      // Aggiorna la lista locale delle foto
       setLocalFoto(prevFoto => [...prevFoto, newFoto]);
 
-      // Forza l'aggiornamento dei dati in background
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['cimiteri'] }),
         onUploadComplete()
@@ -218,6 +215,18 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
                 className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+              
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                {canEdit && (
+                  <button
+                    onClick={(e) => handleDeleteClick(foto.Id, e)}
+                    className="p-2 bg-red-500/80 hover:bg-red-600 text-white rounded-full backdrop-blur-sm transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
               <div className="absolute bottom-1 right-1 bg-black/50 backdrop-blur-sm p-1 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <ImageIcon className="w-3 h-3 text-white" />
               </div>
@@ -240,6 +249,32 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
         onDelete={canEdit ? handleDelete : undefined}
         canDelete={canEdit}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
+            <AlertDialogDescription>
+              Sei sicuro di voler eliminare questa foto? Questa azione non può essere annullata.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPhotoToDelete(null)}>Annulla</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (photoToDelete) {
+                  handleDelete(photoToDelete);
+                  setPhotoToDelete(null);
+                  setDeleteDialogOpen(false);
+                }
+              }}
+              className="bg-red-500 hover:bg-red-600"
+            >
+              Elimina
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

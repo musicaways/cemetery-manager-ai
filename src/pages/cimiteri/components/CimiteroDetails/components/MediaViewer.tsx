@@ -2,9 +2,8 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 interface MediaViewerProps {
   items: Array<{ Id: string; Url: string; Descrizione?: string | null }>;
@@ -25,9 +24,21 @@ export const MediaViewer = ({
 }: MediaViewerProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
 
   const currentItem = items[currentIndex];
+
+  useEffect(() => {
+    setCurrentIndex(initialIndex);
+  }, [initialIndex]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setIsLoading(true);
+      setImageError(false);
+    }
+  }, [isOpen, currentIndex]);
 
   const handlePrevious = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : items.length - 1));
@@ -63,6 +74,8 @@ export const MediaViewer = ({
     if (e.key === "ArrowRight") handleNext();
     if (e.key === "Escape") onClose();
   };
+
+  const isPDF = currentItem?.Url?.toLowerCase().endsWith('.pdf');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -116,17 +129,46 @@ export const MediaViewer = ({
             </>
           )}
 
+          {/* Loading indicator */}
+          {isLoading && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+              <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+            </div>
+          )}
+
           {/* Main content */}
           <div className="w-full h-full flex items-center justify-center p-8">
-            <img
-              src={currentItem?.Url}
-              alt={currentItem?.Descrizione || ""}
-              className="max-w-full max-h-full object-contain"
-            />
+            {isPDF ? (
+              <iframe
+                src={currentItem?.Url}
+                className="w-full h-full"
+                style={{ backgroundColor: 'white' }}
+              />
+            ) : (
+              <img
+                src={currentItem?.Url}
+                alt={currentItem?.Descrizione || ""}
+                className="max-w-full max-h-full object-contain"
+                onLoad={() => setIsLoading(false)}
+                onError={() => {
+                  setIsLoading(false);
+                  setImageError(true);
+                  toast.error("Errore nel caricamento dell'immagine");
+                }}
+                style={{ display: isLoading ? 'none' : 'block' }}
+              />
+            )}
+
+            {imageError && (
+              <div className="text-white text-center">
+                <p>Impossibile caricare l'immagine</p>
+                <p className="text-sm text-gray-400">Riprova più tardi o contatta l'assistenza</p>
+              </div>
+            )}
           </div>
 
           {/* Description */}
-          {currentItem?.Descrizione && (
+          {currentItem?.Descrizione && !isLoading && !imageError && (
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
               <p className="text-white text-center">{currentItem.Descrizione}</p>
             </div>

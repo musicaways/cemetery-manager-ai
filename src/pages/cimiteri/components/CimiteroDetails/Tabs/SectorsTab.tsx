@@ -3,7 +3,8 @@ import { useState } from "react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Settore } from "../../../types";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SectorsTabProps {
   settori: Settore[];
@@ -22,11 +23,6 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
   const filteredSettori = sortedSettori.filter(settore => 
     settore.Descrizione?.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Log per debug
-  console.log("Settori:", settori);
-  console.log("Settore selezionato:", selectedSettore);
-  console.log("Blocchi del settore:", selectedSettore?.blocchi);
 
   return (
     <>
@@ -67,27 +63,63 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
 
       {/* Dialog per mostrare i blocchi del settore selezionato */}
       <Dialog open={!!selectedSettore} onOpenChange={() => setSelectedSettore(null)}>
-        <DialogContent className="bg-[#1A1F2C] border-gray-800 text-white">
-          <div className="p-4">
-            <h2 className="text-lg font-semibold mb-4">
-              Blocchi del settore: {selectedSettore?.Descrizione}
-            </h2>
-            
-            {selectedSettore?.blocchi && selectedSettore.blocchi.length > 0 ? (
-              <ul className="space-y-2">
-                {selectedSettore.blocchi.map((blocco) => (
-                  <li 
-                    key={blocco.Id}
-                    className="p-2 bg-black/20 rounded border border-gray-800/50"
-                  >
-                    {blocco.Descrizione || "Blocco senza descrizione"}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-gray-400 italic">Nessun blocco presente in questo settore</p>
-            )}
-          </div>
+        <DialogContent className="flex flex-col p-0 bg-[#1A1F2C] border-gray-800 h-[85vh] max-w-4xl">
+          <ScrollArea className="flex-grow">
+            <div className="p-6">
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold text-white mb-6">
+                  {selectedSettore?.Descrizione}
+                </DialogTitle>
+              </DialogHeader>
+
+              <div className="space-y-6">
+                <div className="bg-black/20 rounded-lg border border-gray-800/50 p-4">
+                  <h3 className="text-sm font-medium text-gray-400 mb-3">
+                    Dettagli Settore
+                  </h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Codice</p>
+                      <p className="text-sm text-white">{selectedSettore?.Codice || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">ID</p>
+                      <p className="text-sm text-white">{selectedSettore?.Id || '-'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-black/20 rounded-lg border border-gray-800/50 p-4">
+                  <h3 className="text-sm font-medium text-gray-400 mb-3">
+                    Blocchi
+                  </h3>
+                  {selectedSettore?.blocchi && selectedSettore.blocchi.length > 0 ? (
+                    <div className="space-y-2">
+                      {selectedSettore.blocchi.map((blocco) => (
+                        <div 
+                          key={blocco.Id}
+                          className="p-3 bg-black/30 rounded border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors"
+                        >
+                          <p className="text-sm text-white">
+                            {blocco.Descrizione || "Blocco senza descrizione"}
+                          </p>
+                          {blocco.Codice && (
+                            <p className="text-xs text-gray-500 mt-1">
+                              Codice: {blocco.Codice}
+                            </p>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">
+                      Nessun blocco presente in questo settore
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
     </>

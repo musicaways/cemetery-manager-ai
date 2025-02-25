@@ -1,3 +1,4 @@
+
 import { Image as ImageIcon, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { CimiteroFoto } from "../../../types";
@@ -250,16 +251,24 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
         canDelete={canEdit}
       />
 
+      {/* Dialog di conferma eliminazione con contrasto migliorato */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
+        <AlertDialogContent className="bg-[#1A1F2C] border border-[var(--primary-color)]/20">
           <AlertDialogHeader>
-            <AlertDialogTitle>Conferma eliminazione</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-white text-xl">
+              Conferma eliminazione
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-white/80 text-base">
               Sei sicuro di voler eliminare questa foto? Questa azione non può essere annullata.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPhotoToDelete(null)}>Annulla</AlertDialogCancel>
+            <AlertDialogCancel 
+              onClick={() => setPhotoToDelete(null)}
+              className="bg-transparent border border-white/20 text-white hover:bg-white/10"
+            >
+              Annulla
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => {
                 if (photoToDelete) {
@@ -268,7 +277,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
                   setDeleteDialogOpen(false);
                 }
               }}
-              className="bg-red-500 hover:bg-red-600"
+              className="bg-red-500 hover:bg-red-600 text-white font-medium"
             >
               Elimina
             </AlertDialogAction>

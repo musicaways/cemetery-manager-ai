@@ -71,6 +71,18 @@
   .theme-modern .chat-input {
     @apply bg-[var(--input-bg)] border border-[var(--border-color)] border-opacity-30 shadow-lg rounded-2xl;
   }
+
+  .cimitero-details-enter {
+    @apply animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2;
+  }
+
+  .cimitero-details-content {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10;
+  }
+
+  .scroll-shadow {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-20 after:bg-gradient-to-t after:from-[#1A1F2C] after:to-transparent after:pointer-events-none;
+  }
 }
 
 @layer utilities {

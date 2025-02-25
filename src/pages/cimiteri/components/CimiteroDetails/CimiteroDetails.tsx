@@ -1,13 +1,15 @@
+
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Cimitero } from "../../types";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { CoverImage } from "./components/CoverImage";
 import { EditButtons } from "./components/EditButtons";
 import { Breadcrumb } from "./components/Breadcrumb";
 import { CollapsibleSections } from "./components/CollapsibleSections";
 import { Footer } from "./components/Footer";
 import { X } from "lucide-react";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface CimiteroDetailsProps {
   cimitero: Cimitero | null;
@@ -31,23 +33,36 @@ export const CimiteroDetails = ({
   selectedFile
 }: CimiteroDetailsProps) => {
   const [openSection, setOpenSection] = useState<string | null>(null);
+  const isMobile = useMediaQuery("(max-width: 768px)");
 
   const handleRefresh = useCallback(() => {
     // Implementare il refresh dei dati
   }, []);
 
+  // Chiudi tutte le sezioni quando si passa da desktop a mobile
+  useEffect(() => {
+    if (isMobile) {
+      setOpenSection(null);
+    }
+  }, [isMobile]);
+
   if (!cimitero) return null;
 
   return (
-    <DialogContent className="flex flex-col h-[calc(100vh-32px)] md:h-[85vh] p-0 bg-[#1A1F2C] border-gray-800">
+    <DialogContent className={cn(
+      "flex flex-col p-0 bg-[#1A1F2C] border-gray-800",
+      "h-[calc(100vh-32px)] md:h-[85vh]",
+      "transition-all duration-300",
+      isMobile ? "w-full m-0 rounded-none" : "max-w-4xl"
+    )}>
       <DialogClose className="absolute right-2 top-2 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
         <X className="h-5 w-5 text-white" />
       </DialogClose>
 
-      <ScrollArea className="flex-grow">
+      <ScrollArea className="flex-grow scrollbar-none">
         <div className="space-y-4">
           {/* Cover Image */}
-          <div className="w-full aspect-[21/9]">
+          <div className="w-full aspect-[21/9] relative overflow-hidden">
             <CoverImage
               imageUrl={cimitero.FotoCopertina || cimitero.foto?.[0]?.Url}
               description={cimitero.Descrizione}
@@ -55,9 +70,10 @@ export const CimiteroDetails = ({
               onUpload={onUpload}
               selectedFile={selectedFile}
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] to-transparent opacity-50" />
           </div>
 
-          <div className="px-2">
+          <div className="px-2 md:px-4">
             <Breadcrumb description={cimitero.Descrizione} />
             
             <CollapsibleSections

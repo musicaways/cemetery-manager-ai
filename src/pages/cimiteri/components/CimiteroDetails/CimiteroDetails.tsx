@@ -1,3 +1,4 @@
+
 import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -72,18 +73,26 @@ export const CimiteroDetails = ({
               </div>
             </nav>
 
-            {/* Info Section */}
-            <div className="rounded-lg bg-black/20 border border-gray-800 overflow-hidden">
-              <InfoTab
-                cimitero={cimitero}
-                editMode={editMode}
-                editedData={editedData}
-                onInputChange={onInputChange}
-              />
-            </div>
+            {/* Collapsible Sections */}
+            <div className="space-y-2">
+              {/* Info Section */}
+              <Collapsible 
+                open={openSection === 'info'} 
+                onOpenChange={() => setOpenSection(openSection === 'info' ? null : 'info')}
+              >
+                <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg hover:bg-gray-800/30 transition-colors">
+                  <span className="text-sm font-medium text-white">Informazioni</span>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <InfoTab
+                    cimitero={cimitero}
+                    editMode={editMode}
+                    editedData={editedData}
+                    onInputChange={onInputChange}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
 
-            {/* Collapsible Media Sections */}
-            <div className="space-y-2 mt-4">
               {/* Gallery Section */}
               <Collapsible 
                 open={openSection === 'gallery'} 
@@ -156,17 +165,24 @@ export const CimiteroDetails = ({
               </Collapsible>
 
               {/* Sectors Section */}
-              <div className="rounded-lg bg-black/20 border border-gray-800 p-3">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-medium text-white">Settori</span>
-                  {cimitero.settori?.length > 0 && (
-                    <span className="px-2 py-0.5 text-xs bg-[var(--primary-color)] text-white rounded-full">
-                      {cimitero.settori.length}
-                    </span>
-                  )}
-                </div>
-                <SectorsTab settori={cimitero.settori} />
-              </div>
+              <Collapsible 
+                open={openSection === 'sectors'} 
+                onOpenChange={() => setOpenSection(openSection === 'sectors' ? null : 'sectors')}
+              >
+                <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg hover:bg-gray-800/30 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-white">Settori</span>
+                    {cimitero.settori?.length > 0 && (
+                      <span className="px-2 py-0.5 text-xs bg-[var(--primary-color)] text-white rounded-full">
+                        {cimitero.settori.length}
+                      </span>
+                    )}
+                  </div>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pt-2">
+                  <SectorsTab settori={cimitero.settori} />
+                </CollapsibleContent>
+              </Collapsible>
 
               {/* Footer */}
               <div className="mt-8 mb-16 px-3 py-4 bg-black/30 rounded-lg border-t border-gray-800/50">

@@ -11,6 +11,15 @@ export const useCimiteri = () => {
 
   const loadCimiteri = async () => {
     try {
+      // Prima verifichiamo i settori indipendentemente
+      const { data: settoriTest, error: settoriError } = await supabase
+        .from("Settore")
+        .select('*, blocchi:Blocco!IdSettore(*)');
+      
+      console.log("Debug - Test settori indipendenti:", settoriTest);
+      if (settoriError) console.error("Errore test settori:", settoriError);
+
+      // Poi facciamo la query principale
       const { data: cimiteriData, error: cimiteriError } = await supabase
         .from("Cimitero")
         .select(`
@@ -28,12 +37,18 @@ export const useCimiteri = () => {
       if (cimiteriError) throw cimiteriError;
 
       console.log("Debug - Dati completi cimiteri:", cimiteriData);
-      console.log("Debug - Verifica settori nei cimiteri:", cimiteriData?.map(c => ({
+      console.log("Debug - Struttura dettagliata:", cimiteriData?.map(c => ({
         cimitero: c.Descrizione,
+        id: c.Id,
         settori: c.settori?.map(s => ({
           settore: s.Descrizione,
+          settoreId: s.Id,
           numBlocchi: s.blocchi?.length || 0,
-          blocchi: s.blocchi
+          blocchi: s.blocchi?.map(b => ({
+            id: b.Id,
+            descrizione: b.Descrizione,
+            idSettore: b.IdSettore
+          }))
         }))
       })));
 

@@ -21,6 +21,84 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
   const [isUploading, setIsUploading] = useState(false);
   const queryClient = useQueryClient();
 
+  const compressImage = async (file: File, maxSizeMB: number): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Mantieni l'aspect ratio riducendo le dimensioni se necessario
+          const MAX_DIMENSION = 2048;
+          if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+            if (width > height) {
+              height = Math.round((height * MAX_DIMENSION) / width);
+              width = MAX_DIMENSION;
+            } else {
+              width = Math.round((width * MAX_DIMENSION) / height);
+              height = MAX_DIMENSION;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Failed to get canvas context'));
+            return;
+          }
+          
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Inizia con qualità alta e riduci gradualmente finché non raggiungi la dimensione target
+          let quality = 0.9;
+          let iteration = 0;
+          const maxIterations = 10;
+          
+          const compress = () => {
+            canvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject(new Error('Failed to compress image'));
+                  return;
+                }
+                
+                // Se il file è ancora troppo grande e non abbiamo raggiunto il massimo di iterazioni,
+                // riduci ulteriormente la qualità
+                if (blob.size > maxSizeMB * 1024 * 1024 && iteration < maxIterations) {
+                  quality = Math.max(0.1, quality - 0.1);
+                  iteration++;
+                  compress();
+                } else {
+                  resolve(blob);
+                }
+              },
+              file.type,
+              quality
+            );
+          };
+          
+          compress();
+        };
+        
+        img.onerror = () => {
+          reject(new Error('Failed to load image'));
+        };
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+    });
+  };
+
   const handleDelete = async (id: string) => {
     try {
       const { error } = await supabase
@@ -46,7 +124,21 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
   const handleFileSelect = async (file: File) => {
     try {
       setIsUploading(true);
-      const loadingToast = toast.loading("Caricamento in corso...");
+      const loadingToast = toast.loading("Elaborazione immagine in corso...");
+
+      // Comprimi l'immagine se è più grande di 5MB
+      let fileToUpload: File | Blob = file;
+      if (file.size > 5 * 1024 * 1024) {
+        const compressedBlob = await compressImage(file, 5);
+        fileToUpload = compressedBlob;
+        
+        // Log della compressione
+        const compressionRatio = ((file.size - compressedBlob.size) / file.size * 100).toFixed(1);
+        console.log(`Immagine compressa: ${compressionRatio}% di riduzione`);
+        
+        toast.dismiss(loadingToast);
+        toast.loading("Caricamento in corso...");
+      }
 
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
@@ -54,7 +146,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
 
       const { error: uploadError, data } = await supabase.storage
         .from('cemetery-photos')
-        .upload(filePath, file);
+        .upload(filePath, fileToUpload);
 
       if (uploadError) throw uploadError;
 

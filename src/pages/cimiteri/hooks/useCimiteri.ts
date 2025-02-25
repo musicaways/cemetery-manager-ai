@@ -11,6 +11,17 @@ export const useCimiteri = () => {
 
   const loadCimiteri = async () => {
     try {
+      // Prima verifichiamo direttamente la relazione tra Settore e Blocco
+      const { data: settoriData, error: settoriError } = await supabase
+        .from("Settore")
+        .select(`
+          *,
+          blocchi:Blocco(*)
+        `);
+
+      console.log("Debug - Settori con blocchi:", settoriData);
+
+      // Poi carichiamo i cimiteri con tutte le relazioni
       const { data: cimiteriData, error: cimiteriError } = await supabase
         .from("Cimitero")
         .select(`
@@ -26,7 +37,18 @@ export const useCimiteri = () => {
         .order('Descrizione', { ascending: true });
 
       if (cimiteriError) throw cimiteriError;
-      console.log("Loaded cemetery data:", cimiteriData);
+      if (settoriError) throw settoriError;
+
+      console.log("Debug - Dati completi cimiteri:", cimiteriData);
+      console.log("Debug - Verifica settori nei cimiteri:", cimiteriData?.map(c => ({
+        cimitero: c.Descrizione,
+        settori: c.settori?.map(s => ({
+          settore: s.Descrizione,
+          numBlocchi: s.blocchi?.length || 0,
+          blocchi: s.blocchi
+        }))
+      })));
+
       setCimiteri(cimiteriData || []);
       return cimiteriData;
     } catch (error: any) {

@@ -58,7 +58,7 @@ export const CimiteroDetails = ({
       "transition-all duration-300",
       isMobile ? "w-full m-0 rounded-none" : "max-w-4xl"
     )}>
-      <DialogClose className="absolute right-2 top-2 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
+      <DialogClose className="absolute right-4 top-2 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
         <X className="h-5 w-5 text-white" />
       </DialogClose>
 

@@ -1,5 +1,5 @@
 
-import { Image as ImageIcon } from "lucide-react";  // Rinominiamo l'importazione per evitare conflitti
+import { Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
 import { CimiteroFoto } from "../../../types";
 import { MediaViewer } from "../components/MediaViewer";
@@ -122,9 +122,10 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
   };
 
   const handleFileSelect = async (file: File) => {
+    let toastId: string | number = '';
     try {
       setIsUploading(true);
-      const loadingToast = toast.loading("Elaborazione immagine in corso...");
+      toastId = toast.loading("Elaborazione immagine in corso...");
 
       // Comprimi l'immagine se è più grande di 5MB
       let fileToUpload: File | Blob = file;
@@ -135,16 +136,17 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
         // Log della compressione
         const compressionRatio = ((file.size - compressedBlob.size) / file.size * 100).toFixed(1);
         console.log(`Immagine compressa: ${compressionRatio}% di riduzione`);
-        
-        toast.dismiss(loadingToast);
-        toast.loading("Caricamento in corso...");
       }
+
+      toast.loading("Caricamento in corso...", {
+        id: toastId
+      });
 
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const filePath = `${cimiteroId}/${crypto.randomUUID()}.${fileExt}`;
 
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('cemetery-photos')
         .upload(filePath, fileToUpload);
 
@@ -173,11 +175,12 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
         onUploadComplete()
       ]);
 
-      toast.dismiss(loadingToast);
+      toast.dismiss(toastId);
       toast.success("Foto caricata con successo");
     } catch (error: any) {
       console.error("Error uploading photo:", error);
-      toast.error("Errore durante il caricamento della foto");
+      toast.error("Errore durante il caricamento della foto: " + (error.message || 'Errore sconosciuto'));
+      toast.dismiss(toastId);
     } finally {
       setIsUploading(false);
     }

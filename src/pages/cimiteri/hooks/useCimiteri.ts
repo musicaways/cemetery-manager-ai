@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -14,9 +15,9 @@ export const useCimiteri = () => {
         .from("Cimitero")
         .select(`
           *,
-          settori:Settore(
+          settori:Settore!IdCimitero(
             *,
-            blocchi:Blocco(*)
+            blocchi:Blocco!IdSettore(*)
           ),
           foto:CimiteroFoto(*),
           documenti:CimiteroDocumenti(*),

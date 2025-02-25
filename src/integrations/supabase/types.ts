@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           created_at: string | null
           gemini_key: string | null
+          googlemaps_key: string | null
           groq_key: string | null
           huggingface_key: string | null
           id: string
@@ -23,6 +24,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           gemini_key?: string | null
+          googlemaps_key?: string | null
           groq_key?: string | null
           huggingface_key?: string | null
           id?: string
@@ -33,6 +35,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           gemini_key?: string | null
+          googlemaps_key?: string | null
           groq_key?: string | null
           huggingface_key?: string | null
           id?: string

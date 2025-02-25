@@ -1,7 +1,8 @@
 
-import { useEffect, useRef } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Navigation } from 'lucide-react';
+import { Navigation, Maximize } from 'lucide-react';
+import { FullscreenMap } from './FullscreenMap';
 
 interface LocationMapProps {
   latitude: number;
@@ -9,11 +10,10 @@ interface LocationMapProps {
 }
 
 export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
-  const mapContainer = useRef<HTMLIFrameElement>(null);
+  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
+  const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 
   const handleOpenInMaps = () => {
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    
     if (isMobile) {
       // Per iOS
       if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
@@ -29,36 +29,56 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
     }
   };
 
+  const handleOpenGoogleMaps = () => {
+    window.open(`https://www.google.com/maps?q=${latitude},${longitude}`, '_blank');
+  };
+
   return (
     <div className="space-y-4">
       <div className="relative w-full aspect-[4/3] rounded-lg overflow-hidden border border-gray-800">
         <iframe
-          ref={mapContainer}
           className="w-full h-full"
           style={{ border: 0 }}
-          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite&language=it&region=IT`}
+          src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite&language=it&region=IT&gestureHandling=greedy`}
           loading="lazy"
           allowFullScreen
         />
       </div>
       <div className="flex flex-col gap-2">
+        {isMobile && (
+          <Button
+            variant="default"
+            className="w-full bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
+            onClick={handleOpenInMaps}
+          >
+            <Navigation className="h-4 w-4 mr-2" />
+            Avvia Navigazione
+          </Button>
+        )}
         <Button
           variant="default"
           className="w-full bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
-          onClick={handleOpenInMaps}
-        >
-          <Navigation className="h-4 w-4 mr-2" />
-          Avvia Navigazione
-        </Button>
-        <Button
-          variant="outline"
-          className="w-full border-gray-800 hover:bg-gray-800/30"
-          onClick={() => window.open(`https://www.google.com/maps?q=${latitude},${longitude}`, '_blank')}
+          onClick={handleOpenGoogleMaps}
         >
           <Navigation className="h-4 w-4 mr-2" />
           Apri in Google Maps
         </Button>
+        <Button
+          variant="default"
+          className="w-full bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
+          onClick={() => setIsFullscreenOpen(true)}
+        >
+          <Maximize className="h-4 w-4 mr-2" />
+          Apri Mappa Grande
+        </Button>
       </div>
+
+      <FullscreenMap 
+        isOpen={isFullscreenOpen}
+        onClose={() => setIsFullscreenOpen(false)}
+        latitude={latitude}
+        longitude={longitude}
+      />
     </div>
   );
 };

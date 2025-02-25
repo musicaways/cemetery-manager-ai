@@ -1,5 +1,5 @@
 
-import { File, FileImage, FileText, FileSpreadsheet } from "lucide-react";
+import { File, FileImage, FileText, FileSpreadsheet, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { CimiteroDocumenti } from "../../../types";
 import { MediaViewer } from "../components/MediaViewer";

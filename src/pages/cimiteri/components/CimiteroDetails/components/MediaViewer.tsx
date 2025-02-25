@@ -41,17 +41,20 @@ export const MediaViewer = ({
 
   const currentItem = items[currentIndex];
   
-  const handlePrevious = useCallback(() => {
+  const handlePrevious = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Previene la propagazione dell'evento
     setIsImageLoading(true);
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : items.length - 1));
   }, [items.length]);
 
-  const handleNext = useCallback(() => {
+  const handleNext = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Previene la propagazione dell'evento
     setIsImageLoading(true);
     setCurrentIndex((prev) => (prev < items.length - 1 ? prev + 1 : 0));
   }, [items.length]);
 
-  const handleDelete = useCallback(async () => {
+  const handleDelete = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Previene la propagazione dell'evento
     if (!onDelete || !currentItem) return;
     try {
       setIsDeleting(true);
@@ -59,7 +62,7 @@ export const MediaViewer = ({
       if (items.length <= 1) {
         onClose();
       } else {
-        handleNext();
+        handleNext(e);
       }
     } catch (error) {
       console.error('Error deleting file:', error);
@@ -71,10 +74,10 @@ export const MediaViewer = ({
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     switch (e.key) {
       case "ArrowLeft":
-        handlePrevious();
+        handlePrevious(e as unknown as React.MouseEvent);
         break;
       case "ArrowRight":
-        handleNext();
+        handleNext(e as unknown as React.MouseEvent);
         break;
       case "Escape":
         onClose();
@@ -83,6 +86,11 @@ export const MediaViewer = ({
         break;
     }
   }, [handlePrevious, handleNext, onClose]);
+
+  const handleCloseClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation(); // Previene la propagazione dell'evento
+    onClose();
+  }, [onClose]);
 
   // Safety check
   if (!currentItem || !isOpen) return null;
@@ -141,7 +149,7 @@ export const MediaViewer = ({
               variant="ghost"
               size="icon"
               className="text-white hover:bg-white/20"
-              onClick={onClose}
+              onClick={handleCloseClick}
             >
               <X className="h-6 w-6" />
             </Button>
@@ -154,6 +162,7 @@ export const MediaViewer = ({
               alt={currentItem.Descrizione || ''}
               className={`max-w-full max-h-full object-contain transition-opacity duration-300 ${isImageLoading ? 'opacity-0' : 'opacity-100'}`}
               onLoad={() => setIsImageLoading(false)}
+              onClick={(e) => e.stopPropagation()} // Previene la propagazione dell'evento di click dell'immagine
               onError={(e) => {
                 e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Crect width="18" height="18" x="3" y="3" rx="2" ry="2"%3E%3C/rect%3E%3Ccircle cx="9" cy="9" r="2"%3E%3C/circle%3E%3Cpath d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"%3E%3C/path%3E%3C/svg%3E';
                 setIsImageLoading(false);

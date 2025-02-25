@@ -13,11 +13,20 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
 
   const handleOpenInMaps = () => {
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-    const url = isMobile
-      ? `geo:${latitude},${longitude}?q=${latitude},${longitude}`
-      : `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
     
-    window.open(url, '_blank');
+    if (isMobile) {
+      // Per iOS
+      if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        window.location.href = `maps://maps.apple.com/?q=${latitude},${longitude}`;
+      } 
+      // Per Android
+      else if (/Android/i.test(navigator.userAgent)) {
+        window.location.href = `google.navigation:q=${latitude},${longitude}`;
+      }
+    } else {
+      // Per desktop
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`, '_blank');
+    }
   };
 
   return (
@@ -25,7 +34,7 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
       <iframe
         ref={mapContainer}
         className="absolute inset-0 w-full h-full"
-        src={`https://www.google.com/maps/embed/v1/view?key=AIzaSyB_x50Ua4TtkSHYG9cRGR7kQkaVf-KLi1g&center=${latitude},${longitude}&zoom=18&maptype=satellite`}
+        src={`https://www.google.com/maps/embed/v1/place?key=AIzaSyD9I5JVW_vnECzvENv6HFg8CXwKX-exnXs&q=${latitude},${longitude}&zoom=18&maptype=satellite`}
         allowFullScreen
       />
       <Button
@@ -35,7 +44,7 @@ export const LocationMap = ({ latitude, longitude }: LocationMapProps) => {
         onClick={handleOpenInMaps}
       >
         <Globe className="h-4 w-4 mr-2" />
-        Visualizza in Google Maps
+        Naviga su Google Maps
       </Button>
     </div>
   );

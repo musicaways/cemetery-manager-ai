@@ -1,9 +1,11 @@
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, ExternalLink, Download } from "lucide-react";
-import { useState, useEffect, memo } from "react";
-import { toast } from "sonner";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { useState, useEffect } from "react";
+import { DownloadViewer } from "./viewers/DownloadViewer";
+import { ImageViewer } from "./viewers/ImageViewer";
+import { PDFViewer } from "./viewers/PDFViewer";
 
 interface MediaViewerProps {
   items: Array<{ Id: string; Url: string; Descrizione?: string | null; TipoFile?: string }>;
@@ -13,91 +15,6 @@ interface MediaViewerProps {
   onDelete?: (id: string) => Promise<void>;
   canDelete?: boolean;
 }
-
-// Memorizziamo il contenuto del viewer per evitare re-render non necessari
-const ViewerContent = memo(({ url, type, onLoad, onError }: { 
-  url: string;
-  type?: string;
-  onLoad: () => void;
-  onError: () => void;
-}) => {
-  const isPDF = url?.toLowerCase().endsWith('.pdf');
-  const isImage = type?.startsWith('image/') || url?.match(/\.(jpg|jpeg|png|gif|webp)$/i);
-
-  if (isPDF) {
-    return (
-      <div className="relative w-full h-full flex flex-col items-center justify-center">
-        <div className="flex gap-2 mb-4">
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md text-white text-sm"
-          >
-            <ExternalLink className="w-4 h-4" />
-            Apri in una nuova finestra
-          </a>
-          <a
-            href={url}
-            download
-            className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md text-white text-sm"
-          >
-            <Download className="w-4 h-4" />
-            Scarica PDF
-          </a>
-        </div>
-        <iframe
-          src={url}
-          className="w-full h-full bg-white rounded-lg"
-          onLoad={onLoad}
-          onError={onError}
-          title="PDF Viewer"
-          sandbox="allow-same-origin allow-scripts allow-forms"
-        />
-      </div>
-    );
-  }
-
-  if (isImage) {
-    return (
-      <img
-        src={url}
-        alt=""
-        className="max-w-full max-h-full object-contain"
-        onLoad={onLoad}
-        onError={onError}
-        loading="lazy"
-      />
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-center justify-center gap-4">
-      <p className="text-white">Questo tipo di file non può essere visualizzato direttamente.</p>
-      <div className="flex gap-2">
-        <a
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md text-white text-sm"
-        >
-          <ExternalLink className="w-4 h-4" />
-          Apri in una nuova finestra
-        </a>
-        <a
-          href={url}
-          download
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md text-white text-sm"
-        >
-          <Download className="w-4 h-4" />
-          Scarica file
-        </a>
-      </div>
-    </div>
-  );
-});
-
-ViewerContent.displayName = "ViewerContent";
 
 export const MediaViewer = ({
   items,
@@ -109,21 +26,15 @@ export const MediaViewer = ({
 }: MediaViewerProps) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
 
   const currentItem = items[currentIndex];
+  
+  const fileType = currentItem?.TipoFile || '';
+  const fileExtension = currentItem?.Url?.split('.').pop()?.toLowerCase() || '';
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
   }, [initialIndex]);
-
-  useEffect(() => {
-    if (isOpen) {
-      setIsLoading(true);
-      setError(false);
-    }
-  }, [isOpen, currentIndex]);
 
   const handlePrevious = () => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : items.length - 1));
@@ -135,20 +46,14 @@ export const MediaViewer = ({
 
   const handleDelete = async () => {
     if (!onDelete || !currentItem) return;
-    
     try {
       setIsDeleting(true);
       await onDelete(currentItem.Id);
-      toast.success("File eliminato con successo");
-      
       if (items.length === 1) {
         onClose();
       } else {
         handleNext();
       }
-    } catch (error) {
-      console.error("Error deleting file:", error);
-      toast.error("Errore durante l'eliminazione del file");
     } finally {
       setIsDeleting(false);
     }
@@ -160,39 +65,58 @@ export const MediaViewer = ({
     if (e.key === "Escape") onClose();
   };
 
+  const renderContent = () => {
+    if (!currentItem) return null;
+
+    if (fileExtension === 'pdf' || fileType.includes('pdf')) {
+      return <PDFViewer url={currentItem.Url} />;
+    }
+
+    if (fileType.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(fileExtension)) {
+      return (
+        <ImageViewer 
+          url={currentItem.Url} 
+          alt={currentItem.Descrizione || ''} 
+        />
+      );
+    }
+
+    return <DownloadViewer url={currentItem.Url} filename={currentItem.Descrizione || 'file'} />;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent 
-        className="max-w-[95vw] h-[95vh] p-0 border-none bg-black/90 md:max-w-7xl overflow-hidden"
+        className="max-w-screen-lg h-[90vh] p-0 border-none bg-black/95 overflow-hidden"
         onKeyDown={handleKeyDown}
       >
         <DialogTitle className="sr-only">Visualizzatore Media</DialogTitle>
         
         <div className="relative w-full h-full flex items-center justify-center">
-          {/* Close button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-4 right-4 z-50 text-white hover:bg-white/20"
-            onClick={onClose}
-          >
-            <X className="h-6 w-6" />
-          </Button>
-
-          {/* Delete button */}
-          {canDelete && onDelete && (
+          {/* Controlli */}
+          <div className="absolute top-4 right-4 flex items-center gap-2 z-50">
+            {canDelete && onDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-red-500 hover:bg-white/20"
+                onClick={handleDelete}
+                disabled={isDeleting}
+              >
+                <X className="h-6 w-6" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
-              className="absolute top-4 right-16 z-50 text-red-500 hover:bg-white/20"
-              onClick={handleDelete}
-              disabled={isDeleting}
+              className="text-white hover:bg-white/20"
+              onClick={onClose}
             >
               <X className="h-6 w-6" />
             </Button>
-          )}
+          </div>
 
-          {/* Navigation buttons */}
+          {/* Navigazione */}
           {items.length > 1 && (
             <>
               <Button
@@ -214,49 +138,13 @@ export const MediaViewer = ({
             </>
           )}
 
-          {/* Loading indicator */}
-          {isLoading && !error && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/50">
-              <div className="w-8 h-8 border-4 border-white/20 border-t-white rounded-full animate-spin" />
-            </div>
-          )}
-
-          {/* Main content */}
-          <div className="w-full h-full flex items-center justify-center p-8">
-            {currentItem && (
-              <ViewerContent
-                url={currentItem.Url}
-                type={currentItem.TipoFile}
-                onLoad={() => setIsLoading(false)}
-                onError={() => {
-                  setIsLoading(false);
-                  setError(true);
-                  toast.error("Errore nel caricamento del file");
-                }}
-              />
-            )}
-
-            {error && (
-              <div className="text-white text-center">
-                <p>Impossibile caricare il file</p>
-                <p className="text-sm text-gray-400 mb-4">Il file potrebbe non essere più disponibile</p>
-                <div className="flex gap-2 justify-center">
-                  <a
-                    href={currentItem?.Url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-md text-white text-sm"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Prova ad aprire in una nuova finestra
-                  </a>
-                </div>
-              </div>
-            )}
+          {/* Contenuto */}
+          <div className="w-full h-full flex items-center justify-center p-4">
+            {renderContent()}
           </div>
 
-          {/* Description */}
-          {currentItem?.Descrizione && !isLoading && !error && (
+          {/* Descrizione */}
+          {currentItem?.Descrizione && (
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
               <p className="text-white text-center">{currentItem.Descrizione}</p>
             </div>

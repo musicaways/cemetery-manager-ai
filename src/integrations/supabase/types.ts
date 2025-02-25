@@ -100,6 +100,13 @@ export type Database = {
             referencedRelation: "TipoNumerazione"
             referencedColumns: ["Id"]
           },
+          {
+            foreignKeyName: "fk_blocco_settore"
+            columns: ["IdSettore"]
+            isOneToOne: false
+            referencedRelation: "Settore"
+            referencedColumns: ["Id"]
+          },
         ]
       }
       Cimitero: {

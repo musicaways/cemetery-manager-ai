@@ -1,5 +1,5 @@
 
-import { Key, Link, KeyRound, MessageSquare, Search } from "lucide-react";
+import { Key, Link, KeyRound, MessageSquare, Search, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAPIKeys } from "./api-keys/useAPIKeys";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,7 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
     perplexityKey,
     huggingfaceKey,
     serpstackKey,
+    googleMapsKey,
     hasChanges,
     isLoading,
     isTesting,
@@ -31,7 +32,8 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
     setGeminiKey,
     setPerplexityKey,
     setHuggingfaceKey,
-    setSerpstackKey
+    setSerpstackKey,
+    setGoogleMapsKey
   } = useAPIKeys(onSave);
 
   if (isLoading) {
@@ -89,6 +91,28 @@ export const APIKeysTab = ({ onSave }: APIKeysTabProps) => {
   return (
     <div className="space-y-6">
       <Accordion type="single" collapsible className="w-full space-y-4">
+        <AccordionItem value="maps" className="border-none">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center gap-2 text-base font-semibold text-gray-200">
+              <Map className="w-4 h-4" />
+              Maps API Keys
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <div className="space-y-6 mt-4">
+              {renderAPIKeySection(
+                "GoogleMaps",
+                <KeyRound className="w-4 h-4" />,
+                "Google Maps API Key",
+                googleMapsKey,
+                setGoogleMapsKey,
+                "https://console.cloud.google.com/google/maps-apis/credentials",
+                "Ottieni la tua Google Maps API Key"
+              )}
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
         <AccordionItem value="llm" className="border-none">
           <AccordionTrigger className="hover:no-underline">
             <div className="flex items-center gap-2 text-base font-semibold text-gray-200">

@@ -9,6 +9,7 @@ export const useAPIKeys = (onSave: () => void) => {
   const [perplexityKey, setPerplexityKey] = useState('');
   const [huggingfaceKey, setHuggingfaceKey] = useState('');
   const [serpstackKey, setSerpstackKey] = useState('');
+  const [googleMapsKey, setGoogleMapsKey] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isTesting, setIsTesting] = useState<string | null>(null);
@@ -36,6 +37,7 @@ export const useAPIKeys = (onSave: () => void) => {
         setPerplexityKey(data.perplexity_key || '');
         setHuggingfaceKey(data.huggingface_key || '');
         setSerpstackKey(data.serpstack_key || '');
+        setGoogleMapsKey(data.googlemaps_key || '');
       }
     } catch (error) {
       console.error('Error:', error);
@@ -104,6 +106,7 @@ export const useAPIKeys = (onSave: () => void) => {
             perplexity_key: perplexityKey,
             huggingface_key: huggingfaceKey,
             serpstack_key: serpstackKey,
+            googlemaps_key: googleMapsKey,
             updated_at: new Date().toISOString()
           })
           .eq('id', data.id);
@@ -117,7 +120,8 @@ export const useAPIKeys = (onSave: () => void) => {
             gemini_key: geminiKey,
             perplexity_key: perplexityKey,
             huggingface_key: huggingfaceKey,
-            serpstack_key: serpstackKey
+            serpstack_key: serpstackKey,
+            googlemaps_key: googleMapsKey
           }]);
 
         if (error) throw error;
@@ -138,6 +142,7 @@ export const useAPIKeys = (onSave: () => void) => {
     perplexityKey,
     huggingfaceKey,
     serpstackKey,
+    googleMapsKey,
     hasChanges,
     isLoading,
     isTesting,
@@ -146,6 +151,7 @@ export const useAPIKeys = (onSave: () => void) => {
     setPerplexityKey,
     setHuggingfaceKey,
     setSerpstackKey,
+    setGoogleMapsKey,
     handleChange,
     testAPI,
     saveKeys

@@ -73,7 +73,7 @@ export const CimiteroDetails = ({
                 <ChevronRight className="h-4 w-4" />
                 <span>Cimiteri</span>
                 <ChevronRight className="h-4 w-4" />
-                <span className="text-white">{cimitero.Descrizione}</span>
+                <span className="text-gray-300">{cimitero.Descrizione}</span>
               </div>
             </nav>
 

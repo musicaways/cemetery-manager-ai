@@ -1,5 +1,5 @@
 
-import { File, Trash2 } from "lucide-react";
+import { File, FileImage, FileText, FileSpreadsheet } from "lucide-react";
 import { useState } from "react";
 import { CimiteroDocumenti } from "../../../types";
 import { MediaViewer } from "../components/MediaViewer";
@@ -27,11 +27,11 @@ export const DocumentsTab = ({ documenti, onDelete, canEdit, cimiteroId, onUploa
 
   const getFileIcon = (fileType: string) => {
     const type = fileType.toLowerCase();
-    if (type.includes('image')) return 'image';
-    if (type.includes('pdf')) return 'pdf';
-    if (type.includes('excel') || type.includes('spreadsheet')) return 'excel';
-    if (type.includes('word') || type.includes('document')) return 'word';
-    return 'file';
+    if (type.includes('image')) return <FileImage className="w-8 h-8 text-blue-400" />;
+    if (type.includes('pdf')) return <FileText className="w-8 h-8 text-red-400" />;
+    if (type.includes('excel') || type.includes('spreadsheet') || type.includes('sheet')) 
+      return <FileSpreadsheet className="w-8 h-8 text-green-400" />;
+    return <File className="w-8 h-8 text-[var(--primary-color)]" />;
   };
 
   const handleDeleteClick = (id: string, e: React.MouseEvent) => {
@@ -42,12 +42,40 @@ export const DocumentsTab = ({ documenti, onDelete, canEdit, cimiteroId, onUploa
 
   const handleDelete = async (id: string) => {
     try {
-      const { error } = await supabase
+      console.log("Deleting document with ID:", id);
+      
+      // Troviamo prima l'URL del file per eliminarlo dallo storage
+      const documentToDelete = localDocumenti.find(d => d.Id === id);
+      if (!documentToDelete) {
+        throw new Error("Documento non trovato");
+      }
+
+      // Estraiamo il path del file dall'URL
+      const fileUrl = new URL(documentToDelete.Url);
+      const filePath = fileUrl.pathname.split('/').pop();
+      
+      if (filePath) {
+        console.log("Removing file from storage:", filePath);
+        const { error: storageError } = await supabase.storage
+          .from('cemetery-documents')
+          .remove([filePath]);
+
+        if (storageError) {
+          console.error("Storage deletion error:", storageError);
+          throw storageError;
+        }
+      }
+
+      console.log("Deleting document from database");
+      const { error: dbError } = await supabase
         .from('CimiteroDocumenti')
         .delete()
         .eq('Id', id);
 
-      if (error) throw error;
+      if (dbError) {
+        console.error("Database deletion error:", dbError);
+        throw dbError;
+      }
       
       setLocalDocumenti(prevDocs => prevDocs.filter(d => d.Id !== id));
       await queryClient.invalidateQueries({ queryKey: ['cimiteri'] });
@@ -57,30 +85,43 @@ export const DocumentsTab = ({ documenti, onDelete, canEdit, cimiteroId, onUploa
         onDelete();
       }
       toast.success("Documento eliminato con successo");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error deleting document:", error);
-      toast.error("Errore durante l'eliminazione del documento");
+      toast.error("Errore durante l'eliminazione del documento: " + (error.message || 'Errore sconosciuto'));
     }
   };
 
   const handleFileSelect = async (file: File) => {
     let toastId: string | number = '';
     try {
+      console.log("Starting file upload:", { name: file.name, type: file.type, size: file.size });
       setIsUploading(true);
       toastId = toast.loading("Caricamento in corso...");
 
       const fileExt = file.name.split('.').pop();
-      const filePath = `${cimiteroId}/${crypto.randomUUID()}.${fileExt}`;
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
+      const filePath = `${cimiteroId}/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log("Uploading file to path:", filePath);
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('cemetery-documents')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Upload error:", uploadError);
+        throw uploadError;
+      }
+
+      console.log("File uploaded successfully:", uploadData);
 
       const { data: { publicUrl } } = supabase.storage
         .from('cemetery-documents')
         .getPublicUrl(filePath);
+
+      console.log("Got public URL:", publicUrl);
 
       const { data: newDoc, error: dbError } = await supabase
         .from('CimiteroDocumenti')
@@ -93,14 +134,16 @@ export const DocumentsTab = ({ documenti, onDelete, canEdit, cimiteroId, onUploa
         .select()
         .single();
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("Database insert error:", dbError);
+        throw dbError;
+      }
+
+      console.log("Document metadata saved:", newDoc);
 
       setLocalDocumenti(prevDocs => [...prevDocs, newDoc]);
-
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['cimiteri'] }),
-        onUploadComplete()
-      ]);
+      await queryClient.invalidateQueries({ queryKey: ['cimiteri'] });
+      await onUploadComplete();
 
       toast.dismiss(toastId);
       toast.success("Documento caricato con successo");
@@ -133,7 +176,7 @@ export const DocumentsTab = ({ documenti, onDelete, canEdit, cimiteroId, onUploa
               onClick={() => setSelectedIndex(index)}
             >
               <div className="flex items-center space-x-3">
-                <File className="w-8 h-8 text-[var(--primary-color)]" />
+                {getFileIcon(documento.TipoFile)}
                 <div className="overflow-hidden flex-1">
                   <p className="text-sm text-gray-200 truncate">{documento.NomeFile}</p>
                   <p className="text-xs text-gray-500">{documento.TipoFile}</p>
@@ -170,7 +213,6 @@ export const DocumentsTab = ({ documenti, onDelete, canEdit, cimiteroId, onUploa
         canDelete={canEdit}
       />
 
-      {/* Dialog di conferma eliminazione */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent className="bg-[#1A1F2C] border border-[var(--primary-color)]/20">
           <AlertDialogHeader>

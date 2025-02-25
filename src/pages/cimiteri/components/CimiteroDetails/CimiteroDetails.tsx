@@ -10,6 +10,7 @@ import { CollapsibleSections } from "./components/CollapsibleSections";
 import { Footer } from "./components/Footer";
 import { X } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { cn } from "@/lib/utils";
 
 interface CimiteroDetailsProps {
   cimitero: Cimitero | null;

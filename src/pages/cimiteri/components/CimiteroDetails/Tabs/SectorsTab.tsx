@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Search, ChevronDown, X } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Settore } from "../../../types";
 
@@ -31,29 +31,16 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
           placeholder="Cerca settore..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9 pr-12 bg-black/20 border-gray-800 text-white placeholder:text-gray-500 text-sm h-9 focus:border-[var(--primary-color)] focus:ring-1 focus:ring-[var(--primary-color)]"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              (document.activeElement as HTMLElement).blur();
-            }
-          }}
+          className="pl-9 pr-9 bg-black/20 border-gray-800 text-white placeholder:text-gray-500 text-sm h-9 focus:border-[var(--primary-color)] focus:ring-1 focus:ring-[var(--primary-color)]"
         />
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-          {searchQuery && (
-            <button 
-              className="text-gray-500 hover:text-white transition-colors"
-              onClick={() => setSearchQuery("")}
-            >
-              <X className="h-4 w-4" />
-            </button>
-          )}
+        {searchQuery && (
           <button 
-            className="text-gray-500 hover:text-white transition-colors"
-            onClick={() => (document.activeElement as HTMLElement).blur()}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+            onClick={() => setSearchQuery("")}
           >
-            <ChevronDown className="h-4 w-4" />
+            <X className="h-4 w-4" />
           </button>
-        </div>
+        )}
       </div>
 
       {/* Sectors list */}

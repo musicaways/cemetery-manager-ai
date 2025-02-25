@@ -10,24 +10,24 @@ interface EditButtonsProps {
 
 export const EditButtons = ({ editMode, onEdit, onSave }: EditButtonsProps) => {
   return (
-    <div className="mt-auto">
+    <>
       {editMode ? (
         <Button 
           onClick={onSave} 
-          className="w-full h-11 bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90 shadow-lg"
+          size="icon"
+          className="h-10 w-10 rounded-full bg-[var(--primary-color)] hover:bg-[var(--primary-color)]/90 shadow-lg"
         >
-          <Save className="w-4 h-4 mr-2" />
-          Salva modifiche
+          <Save className="w-4 h-4" />
         </Button>
       ) : (
         <Button 
           onClick={onEdit} 
-          className="w-full h-11 bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
+          size="icon"
+          className="h-10 w-10 rounded-full bg-gray-800 hover:bg-gray-700 text-white border-gray-700"
         >
-          <Edit2 className="w-4 h-4 mr-2" />
-          Modifica
+          <Edit2 className="w-4 h-4" />
         </Button>
       )}
-    </div>
+    </>
   );
 };

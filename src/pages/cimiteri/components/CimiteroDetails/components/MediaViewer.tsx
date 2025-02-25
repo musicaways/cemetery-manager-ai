@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, X, ExternalLink, Download } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
@@ -24,52 +24,76 @@ export const MediaViewer = ({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const currentItem = items[currentIndex];
-  
+  // Reset currentIndex when items change
   useEffect(() => {
-    setCurrentIndex(initialIndex);
+    if (items.length > 0 && currentIndex >= items.length) {
+      setCurrentIndex(0);
+    }
+  }, [items, currentIndex]);
+
+  // Sync with external currentIndex
+  useEffect(() => {
+    if (initialIndex !== currentIndex) {
+      setCurrentIndex(initialIndex);
+    }
   }, [initialIndex]);
 
-  const handlePrevious = () => {
+  const currentItem = items[currentIndex];
+  
+  const handlePrevious = useCallback(() => {
     setCurrentIndex((prev) => (prev > 0 ? prev - 1 : items.length - 1));
-  };
+  }, [items.length]);
 
-  const handleNext = () => {
+  const handleNext = useCallback(() => {
     setCurrentIndex((prev) => (prev < items.length - 1 ? prev + 1 : 0));
-  };
+  }, [items.length]);
 
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (!onDelete || !currentItem) return;
     try {
       setIsDeleting(true);
       await onDelete(currentItem.Id);
-      if (items.length === 1) {
+      if (items.length <= 1) {
         onClose();
       } else {
         handleNext();
       }
+    } catch (error) {
+      console.error('Error deleting file:', error);
     } finally {
       setIsDeleting(false);
     }
-  };
+  }, [currentItem, items.length, onDelete, onClose, handleNext]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === "ArrowLeft") handlePrevious();
-    if (e.key === "ArrowRight") handleNext();
-    if (e.key === "Escape") onClose();
+    switch (e.key) {
+      case "ArrowLeft":
+        handlePrevious();
+        break;
+      case "ArrowRight":
+        handleNext();
+        break;
+      case "Escape":
+        onClose();
+        break;
+      default:
+        break;
+    }
   }, [handlePrevious, handleNext, onClose]);
 
-  if (!currentItem) return null;
+  // Safety check
+  if (!currentItem || !isOpen) return null;
 
   const getFileIcon = () => {
-    if (currentItem.TipoFile?.includes('pdf') || currentItem.Url?.toLowerCase().endsWith('.pdf')) {
-      return '📄';
-    }
-    if (currentItem.TipoFile?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(currentItem.Url)) {
-      return '🖼️';
-    }
-    return '📎';
+    if (!currentItem?.Url) return '📎';
+    
+    const isPDF = currentItem.TipoFile?.includes('pdf') || currentItem.Url.toLowerCase().endsWith('.pdf');
+    const isImage = currentItem.TipoFile?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(currentItem.Url);
+    
+    return isPDF ? '📄' : isImage ? '🖼️' : '📎';
   };
+
+  const icon = getFileIcon();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -78,26 +102,28 @@ export const MediaViewer = ({
         onKeyDown={handleKeyDown}
       >
         <DialogTitle className="text-white mb-4 flex items-center gap-2">
-          {getFileIcon()} {currentItem.Descrizione || 'File'}
+          {icon} {currentItem.Descrizione || 'File'}
         </DialogTitle>
         
         <div className="relative w-full flex flex-col items-center justify-center gap-6">
-          {/* Anteprima */}
-          {currentItem.TipoFile?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(currentItem.Url) ? (
-            <div className="w-24 h-24 bg-white/10 rounded-lg overflow-hidden">
+          {/* Preview */}
+          <div className="w-24 h-24 bg-white/10 rounded-lg overflow-hidden flex items-center justify-center">
+            {/\.(jpg|jpeg|png|gif|webp)$/i.test(currentItem.Url) ? (
               <img
                 src={currentItem.Url}
                 alt={currentItem.Descrizione || ''}
                 className="w-full h-full object-cover"
+                loading="eager"
+                onError={(e) => {
+                  e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"%3E%3Crect width="18" height="18" x="3" y="3" rx="2" ry="2"%3E%3C/rect%3E%3Ccircle cx="9" cy="9" r="2"%3E%3C/circle%3E%3Cpath d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"%3E%3C/path%3E%3C/svg%3E';
+                }}
               />
-            </div>
-          ) : (
-            <div className="w-24 h-24 bg-white/10 rounded-lg flex items-center justify-center text-4xl">
-              {getFileIcon()}
-            </div>
-          )}
+            ) : (
+              <span className="text-4xl">{icon}</span>
+            )}
+          </div>
 
-          {/* Azioni */}
+          {/* Actions */}
           <div className="flex flex-col gap-3 w-full max-w-sm">
             <a
               href={currentItem.Url}
@@ -131,7 +157,7 @@ export const MediaViewer = ({
             )}
           </div>
 
-          {/* Navigazione */}
+          {/* Navigation */}
           {items.length > 1 && (
             <div className="flex items-center gap-4 mt-4">
               <Button

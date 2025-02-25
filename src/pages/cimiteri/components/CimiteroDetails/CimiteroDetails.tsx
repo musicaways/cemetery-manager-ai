@@ -162,24 +162,29 @@ export const CimiteroDetails = ({
               </Collapsible>
 
               {/* Sectors Section */}
-              <Collapsible 
-                open={openSection === 'sectors'} 
-                onOpenChange={() => setOpenSection(openSection === 'sectors' ? null : 'sectors')}
-              >
-                <CollapsibleTrigger className="w-full px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg hover:bg-gray-800/30 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-white">Settori</span>
-                    {cimitero.settori?.length > 0 && (
-                      <span className="px-2 py-0.5 text-xs bg-[var(--primary-color)] text-white rounded-full">
-                        {cimitero.settori.length}
-                      </span>
-                    )}
-                  </div>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pt-2">
-                  <SectorsTab settori={cimitero.settori} />
-                </CollapsibleContent>
-              </Collapsible>
+              <div className="rounded-lg bg-black/20 border border-gray-800 p-3">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-medium text-white">Settori</span>
+                  {cimitero.settori?.length > 0 && (
+                    <span className="px-2 py-0.5 text-xs bg-[var(--primary-color)] text-white rounded-full">
+                      {cimitero.settori.length}
+                    </span>
+                  )}
+                </div>
+                <SectorsTab settori={cimitero.settori} />
+              </div>
+
+              {/* Footer */}
+              <div className="mt-8 mb-16 px-3 py-4 bg-black/30 rounded-lg border-t border-gray-800/50">
+                <div className="flex flex-col items-center justify-center space-y-2 text-center">
+                  <span className="text-xs text-gray-500">
+                    © {new Date().getFullYear()} Cemetery Manager
+                  </span>
+                  <span className="text-xs text-gray-600">
+                    Versione 1.0.0
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>

@@ -19,6 +19,7 @@ interface GalleryTabProps {
 export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComplete }: GalleryTabProps) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [localFoto, setLocalFoto] = useState<CimiteroFoto[]>(foto);
   const queryClient = useQueryClient();
 
   const compressImage = async (file: File, maxSizeMB: number): Promise<Blob> => {
@@ -108,6 +109,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
 
       if (error) throw error;
       
+      setLocalFoto(prevFoto => prevFoto.filter(f => f.Id !== id));
       await queryClient.invalidateQueries({ queryKey: ['cimiteri'] });
       await onUploadComplete();
       
@@ -158,18 +160,23 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
         .getPublicUrl(filePath);
 
       // Save to database
-      const { error: dbError } = await supabase
+      const { data: newFoto, error: dbError } = await supabase
         .from('CimiteroFoto')
         .insert({
           IdCimitero: cimiteroId,
           Url: publicUrl,
           NomeFile: file.name,
           TipoFile: file.type,
-        });
+        })
+        .select()
+        .single();
 
       if (dbError) throw dbError;
 
-      // Forza l'aggiornamento dei dati
+      // Aggiorna la lista locale delle foto
+      setLocalFoto(prevFoto => [...prevFoto, newFoto]);
+
+      // Forza l'aggiornamento dei dati in background
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['cimiteri'] }),
         onUploadComplete()
@@ -197,9 +204,9 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
         />
       )}
 
-      {foto?.length > 0 ? (
+      {localFoto?.length > 0 ? (
         <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
-          {foto.map((foto, index) => (
+          {localFoto.map((foto, index) => (
             <div 
               key={foto.Id} 
               className="relative group aspect-square rounded-lg overflow-hidden border border-gray-800/50 hover:border-[var(--primary-color)] transition-all duration-300 cursor-pointer hover:scale-[0.98] bg-black/20"
@@ -226,7 +233,7 @@ export const GalleryTab = ({ foto, onDelete, canEdit, cimiteroId, onUploadComple
       )}
 
       <MediaViewer
-        items={foto}
+        items={localFoto}
         currentIndex={selectedIndex ?? 0}
         isOpen={selectedIndex !== null}
         onClose={() => setSelectedIndex(null)}

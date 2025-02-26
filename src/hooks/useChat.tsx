@@ -28,13 +28,12 @@ export const useChat = (): UseChatReturn => {
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
 
     try {
-      const normalizedQuery = finalQuery.toLowerCase().trim();
+      // Normalizza la query e rimuovi spazi extra
+      const normalizedQuery = finalQuery.toLowerCase().trim().replace(/\s+/g, ' ');
+      console.log("Query normalizzata:", normalizedQuery);
 
-      // Verifica funzioni AI attive
-      const aiFunctions = await getActiveFunctions();
-      
       // Lista esatta delle frasi trigger per la lista cimiteri
-      const listaCimiteriTriggers = [
+      const EXACT_CIMITERI_TRIGGERS = [
         "mostra la lista dei cimiteri",
         "mostrami la lista dei cimiteri",
         "lista cimiteri",
@@ -43,10 +42,16 @@ export const useChat = (): UseChatReturn => {
         "visualizza la lista dei cimiteri",
         "elenco cimiteri",
         "elenco dei cimiteri"
-      ].map(trigger => trigger.toLowerCase().trim());
+      ].map(trigger => trigger.toLowerCase().trim().replace(/\s+/g, ' '));
 
-      // Verifica match esatto per la lista cimiteri
-      if (listaCimiteriTriggers.includes(normalizedQuery)) {
+      console.log("Confronto con triggers:", EXACT_CIMITERI_TRIGGERS);
+
+      // Verifica match ESATTO per la lista cimiteri
+      const isExactMatch = EXACT_CIMITERI_TRIGGERS.includes(normalizedQuery);
+      console.log("È un match esatto?", isExactMatch);
+
+      if (isExactMatch) {
+        console.log("Esecuzione funzione lista cimiteri");
         const cimiteri = await getAllCimiteri();
         setMessages(prev => [...prev, { 
           type: 'response', 
@@ -64,6 +69,7 @@ export const useChat = (): UseChatReturn => {
       }
 
       // Verifica match esatto per le altre funzioni AI
+      const aiFunctions = await getActiveFunctions();
       const matchedFunction = findMatchingFunction(normalizedQuery, aiFunctions);
 
       if (matchedFunction) {
@@ -72,19 +78,20 @@ export const useChat = (): UseChatReturn => {
       }
 
       // Verifica richiesta specifica di un cimitero
-      const showCimiteroTriggers = [
+      const EXACT_SHOW_CIMITERO_TRIGGERS = [
         "mostra il cimitero di",
         "mostrami il cimitero di",
         "cerca il cimitero di",
         "trovami il cimitero di"
-      ].map(trigger => trigger.toLowerCase().trim());
+      ].map(trigger => trigger.toLowerCase().trim().replace(/\s+/g, ' '));
 
-      const matchedTrigger = showCimiteroTriggers.find(trigger => 
+      const matchedTrigger = EXACT_SHOW_CIMITERO_TRIGGERS.find(trigger => 
         normalizedQuery.startsWith(trigger)
       );
 
       if (matchedTrigger) {
         const nomeCimitero = normalizedQuery.slice(matchedTrigger.length).trim();
+        console.log("Ricerca cimitero:", nomeCimitero);
         const cimitero = await findCimiteroByName(nomeCimitero);
 
         if (cimitero) {
@@ -110,13 +117,19 @@ export const useChat = (): UseChatReturn => {
         return;
       }
 
+      // Se non è un comando specifico, procedi con la richiesta generica
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
-      let response;
-      
       if (finalQuery.toLowerCase().startsWith("/test-model")) {
-        response = await processTestQuery(aiProvider, aiModel);
+        const response = await processTestQuery(aiProvider, aiModel);
+        if (response) {
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: response.text || '',
+            data: response.data
+          }]);
+        }
       } else {
         const requestBody: QueryRequest = {
           query: finalQuery.trim(),
@@ -127,27 +140,24 @@ export const useChat = (): UseChatReturn => {
           allowGenericResponse: true
         };
 
-        console.log("Invio richiesta:", requestBody);
+        console.log("Invio richiesta generica:", requestBody);
         
-        const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+        const { data: response, error } = await supabase.functions.invoke<AIResponse>('process-query', {
           body: requestBody
         });
 
-        console.log("Risposta ricevuta:", { data, error });
-
         if (error) throw error;
-        response = data;
-      }
-      
-      if (response) {
-        setMessages(prev => [...prev, { 
-          type: 'response', 
-          content: response.text || '',
-          data: response.data
-        }]);
-        
-        if (response.error) {
-          toast.error(response.error, { duration: 2000 });
+
+        if (response) {
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: response.text || '',
+            data: response.data
+          }]);
+          
+          if (response.error) {
+            toast.error(response.error, { duration: 2000 });
+          }
         }
       }
       

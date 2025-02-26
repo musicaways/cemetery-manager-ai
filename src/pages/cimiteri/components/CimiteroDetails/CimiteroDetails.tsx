@@ -62,7 +62,7 @@ export const CimiteroDetails = ({
         <X className="h-5 w-5 text-white" />
       </DialogClose>
 
-      <ScrollArea className="flex-grow scrollbar-none">
+      <ScrollArea className="flex-grow">
         <div className="space-y-4">
           {/* Cover Image */}
           <div className="w-full aspect-[21/9] relative overflow-hidden">
@@ -76,7 +76,7 @@ export const CimiteroDetails = ({
             <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] to-transparent opacity-50" />
           </div>
 
-          <div className="px-2 md:px-4">
+          <div className="px-6 py-4 space-y-4">
             <Breadcrumb description={cimitero.Descrizione} />
             
             <CollapsibleSections

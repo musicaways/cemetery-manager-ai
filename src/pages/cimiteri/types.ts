@@ -26,8 +26,8 @@ export interface Blocco {
   Descrizione: string | null;
   NumeroFile: number | null;
   NumeroLoculi: number | null;
-  NumeroFileInterrate: number | null;
-  Annotazioni: string | null;
+  NumeroFileInterrate?: number | null;
+  Annotazioni?: string | null;
 }
 
 export interface CimiteroFoto {

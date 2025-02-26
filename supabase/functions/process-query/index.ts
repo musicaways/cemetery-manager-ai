@@ -64,6 +64,49 @@ async function getGroqResponse(query: string): Promise<string> {
   return data.choices[0].message.content;
 }
 
+async function getGeminiResponse(query: string): Promise<string> {
+  const apiKey = Deno.env.get('GEMINI_API_KEY');
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY non configurata');
+  }
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      contents: [{
+        parts: [{
+          text: query
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 1000,
+      }
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Errore nella chiamata a Gemini API');
+  }
+
+  const data = await response.json();
+  return data.candidates[0].content.parts[0].text;
+}
+
+async function getAIResponse(query: string, provider: string): Promise<string> {
+  switch (provider.toLowerCase()) {
+    case 'groq':
+      return await getGroqResponse(query);
+    case 'gemini':
+      return await getGeminiResponse(query);
+    default:
+      return await getGroqResponse(query); // Fallback to Groq
+  }
+}
+
 async function findMatchingFunction(query: string): Promise<{ code: string } | null> {
   const { data: functions, error } = await supabase
     .from('ai_chat_functions')
@@ -90,7 +133,7 @@ async function findMatchingFunction(query: string): Promise<{ code: string } | n
   return null;
 }
 
-async function processQuery(query: string): Promise<AIResponse> {
+async function processQuery(query: string, aiProvider: string): Promise<AIResponse> {
   try {
     // Prima cerca una funzione corrispondente
     const matchingFunction = await findMatchingFunction(query);
@@ -102,8 +145,8 @@ async function processQuery(query: string): Promise<AIResponse> {
       return await func(supabase);
     }
 
-    // Se non trova una funzione personalizzata, usa Groq per una risposta generica
-    const aiResponse = await getGroqResponse(query);
+    // Se non trova una funzione personalizzata, usa il provider AI selezionato
+    const aiResponse = await getAIResponse(query, aiProvider);
     return {
       text: aiResponse
     };
@@ -124,15 +167,16 @@ serve(async (req) => {
 
   try {
     const requestBody: QueryRequest = await req.json();
-    const { query } = requestBody;
+    const { query, aiProvider } = requestBody;
 
     console.log("Ricevuta query:", query);
+    console.log("Provider AI:", aiProvider);
 
     if (!query) {
       throw new Error("Query is required.");
     }
 
-    const aiResponse = await processQuery(query);
+    const aiResponse = await processQuery(query, aiProvider);
     console.log("Risposta:", aiResponse);
 
     return new Response(

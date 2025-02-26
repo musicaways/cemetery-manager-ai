@@ -86,11 +86,9 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
   useEffect(() => {
     const fetchData = async () => {
       try {
-        console.log("Starting data fetch...");
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject);
         });
-        console.log("Got position:", position.coords);
 
         const weatherResponse = await fetch(
           `https://api.openweathermap.org/data/2.5/forecast?q=${city},IT&units=metric&appid=${OPENWEATHER_API_KEY}`
@@ -132,15 +130,8 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
         });
 
         if (address) {
-          console.log("Fetching travel info with address:", address);
           const origin = `${position.coords.latitude},${position.coords.longitude}`;
           const destination = encodeURIComponent(`${address}, ${city}, Italy`);
-          
-          console.log("Making request to distance-matrix with:", {
-            origin,
-            destination,
-            url: `/api/edge/distance-matrix?origin=${origin}&destination=${destination}`
-          });
           
           const response = await fetch(
             `/api/edge/distance-matrix?origin=${origin}&destination=${destination}`,
@@ -156,23 +147,15 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           }
           
           const data = await response.json();
-          console.log("Distance Matrix Raw Response:", data);
 
           if (data.rows?.[0]?.elements?.[0]?.status === "OK") {
-            console.log("Setting travel info:", {
-              duration: data.rows[0].elements[0].duration.text,
-              distance: data.rows[0].elements[0].distance.text
-            });
             setTravelInfo({
               duration: data.rows[0].elements[0].duration.text,
               distance: data.rows[0].elements[0].distance.text
             });
           } else {
-            console.error("Invalid Distance Matrix Response:", data);
             throw new Error("Impossibile calcolare il percorso");
           }
-        } else {
-          console.log("No address provided, skipping travel info fetch");
         }
       } catch (error) {
         console.error("Error in fetchData:", error);
@@ -235,6 +218,9 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
                     <div key={index} className="bg-black/20 rounded-lg p-2 text-center">
                       <p className="text-xs text-gray-400">{hour.time}</p>
                       <p className="text-sm font-medium">{hour.temperature}°C</p>
+                      <div className="h-4 w-4 mx-auto mt-1">
+                        {getWeatherIcon(hour.condition)}
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -251,7 +237,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               {weather.forecast.map((day, index) => (
                 <div key={index} className="bg-black/20 rounded-lg p-2 text-center">
                   <p className="text-xs text-gray-400 capitalize">{day.date}</p>
-                  <div className="h-5 w-5 mx-auto my-1">
+                  <div className="h-5 w-5 mx-auto mb-1">
                     {getWeatherIcon(day.condition)}
                   </div>
                   <p className="text-sm font-medium">{day.temperature}°C</p>

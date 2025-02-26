@@ -36,20 +36,22 @@ export const Cimiteri = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <>
       <Breadcrumb />
-      <CimiteriGrid 
-        cimiteri={filteredCimiteri}
-        onSelectCimitero={setSelectedCimitero}
-      />
+      <div className="container mx-auto px-4 py-8 mt-14">
+        <CimiteriGrid 
+          cimiteri={filteredCimiteri}
+          onSelectCimitero={setSelectedCimitero}
+        />
 
-      <CimiteroEditor
-        cimitero={selectedCimitero}
-        onClose={() => setSelectedCimitero(null)}
-        onSave={handleSave}
-        onUploadComplete={handleUploadComplete}
-      />
-    </div>
+        <CimiteroEditor
+          cimitero={selectedCimitero}
+          onClose={() => setSelectedCimitero(null)}
+          onSave={handleSave}
+          onUploadComplete={handleUploadComplete}
+        />
+      </div>
+    </>
   );
 };
 

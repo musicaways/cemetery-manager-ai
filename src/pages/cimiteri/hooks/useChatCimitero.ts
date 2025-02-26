@@ -3,40 +3,56 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Cimitero } from "../types";
 
 export const useChatCimitero = () => {
-  const findCimiteroByName = async (nome: string): Promise<Cimitero | null> => {
+  const findCimiteroByName = async (name: string) => {
     try {
-      const { data, error } = await supabase
+      const { data: cimitero, error } = await supabase
         .from('Cimitero')
         .select(`
           *,
-          settori:Settore(
-            *,
-            blocchi:Blocco(*)
+          settori:Settore!Settore_IdCimitero_fkey(
+            Id,
+            Codice,
+            Descrizione,
+            blocchi:Blocco!Blocco_IdSettore_fkey(
+              Id,
+              Codice,
+              Descrizione,
+              NumeroFile,
+              NumeroLoculi
+            )
           ),
           foto:CimiteroFoto(*),
           documenti:CimiteroDocumenti(*),
           mappe:CimiteroMappe(*)
         `)
-        .ilike('Descrizione', `%${nome}%`)
+        .ilike('Descrizione', `%${name}%`)
         .maybeSingle();
 
       if (error) throw error;
-      return data;
+      return cimitero as Cimitero;
     } catch (error) {
-      console.error("Errore nella ricerca del cimitero:", error);
-      return null;
+      console.error('Error finding cimitero:', error);
+      throw error;
     }
   };
 
-  const getAllCimiteri = async (): Promise<Cimitero[]> => {
+  const getAllCimiteri = async () => {
     try {
-      const { data, error } = await supabase
+      const { data: cimiteri, error } = await supabase
         .from('Cimitero')
         .select(`
           *,
-          settori:Settore(
-            *,
-            blocchi:Blocco(*)
+          settori:Settore!Settore_IdCimitero_fkey(
+            Id,
+            Codice,
+            Descrizione,
+            blocchi:Blocco!Blocco_IdSettore_fkey(
+              Id,
+              Codice,
+              Descrizione,
+              NumeroFile,
+              NumeroLoculi
+            )
           ),
           foto:CimiteroFoto(*),
           documenti:CimiteroDocumenti(*),
@@ -45,12 +61,15 @@ export const useChatCimitero = () => {
         .order('Descrizione');
 
       if (error) throw error;
-      return data || [];
+      return cimiteri as Cimitero[];
     } catch (error) {
-      console.error("Errore nel recupero dei cimiteri:", error);
-      return [];
+      console.error('Error fetching cimiteri:', error);
+      throw error;
     }
   };
 
-  return { findCimiteroByName, getAllCimiteri };
+  return {
+    findCimiteroByName,
+    getAllCimiteri
+  };
 };

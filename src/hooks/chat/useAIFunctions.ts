@@ -26,21 +26,29 @@ export const useAIFunctions = () => {
   };
 
   const getActiveFunctions = async () => {
-    const { data: aiFunctions, error } = await supabase
-      .from('ai_chat_functions')
-      .select('*')
-      .eq('is_active', true);
+    try {
+      const { data: aiFunctions, error } = await supabase
+        .from('ai_chat_functions')
+        .select('*')
+        .eq('is_active', true);
 
-    if (error) throw error;
-    return aiFunctions;
+      if (error) throw error;
+      console.log("Funzioni AI attive recuperate:", aiFunctions);
+      return aiFunctions;
+    } catch (error) {
+      console.error("Errore nel recupero delle funzioni AI:", error);
+      throw error;
+    }
   };
 
   const findMatchingFunction = (normalizedQuery: string, aiFunctions: any[]) => {
-    return aiFunctions.find(func => 
+    const matchedFunction = aiFunctions.find(func => 
       func.trigger_phrases.some((phrase: string) => 
         normalizedQuery.includes(phrase.toLowerCase())
       )
     );
+    console.log("Funzione corrispondente trovata:", matchedFunction);
+    return matchedFunction;
   };
 
   return {

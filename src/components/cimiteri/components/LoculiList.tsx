@@ -17,6 +17,7 @@ interface Loculo {
   fila: number;
   tipo_tomba: number;
   annotazioni: string | null;
+  defunti_count: number;
 }
 
 interface LoculiListProps {
@@ -44,7 +45,10 @@ export const LoculiList = ({ bloccoId, bloccoDescrizione, isOpen, onClose }: Loc
       setLoading(true);
       const { data, error } = await supabase
         .from('loculi')
-        .select('*')
+        .select(`
+          *,
+          defunti:defunti (count)
+        `)
         .eq('id_blocco', bloccoId)
         .order('numero', { ascending: true });
 
@@ -53,7 +57,13 @@ export const LoculiList = ({ bloccoId, bloccoDescrizione, isOpen, onClose }: Loc
         return;
       }
 
-      setLoculi(data || []);
+      // Trasforma i dati per includere il conteggio dei defunti
+      const loculiWithCount = (data || []).map(loculo => ({
+        ...loculo,
+        defunti_count: loculo.defunti?.[0]?.count || 0
+      }));
+
+      setLoculi(loculiWithCount);
     } catch (error: any) {
       toast.error("Errore nel caricamento dei loculi: " + error.message);
     } finally {
@@ -136,9 +146,14 @@ export const LoculiList = ({ bloccoId, bloccoDescrizione, isOpen, onClose }: Loc
                         >
                           <div className="flex flex-col space-y-2">
                             <div className="flex items-center justify-between">
-                              <p className="text-sm font-medium text-white">
-                                Loculo {loculo.numero}
-                              </p>
+                              <div>
+                                <p className="text-sm font-medium text-white">
+                                  Numero {loculo.numero} - Fila {loculo.fila}
+                                </p>
+                                <p className="text-xs text-gray-500">
+                                  {loculo.defunti_count} defunt{loculo.defunti_count === 1 ? 'o' : 'i'} present{loculo.defunti_count === 1 ? 'e' : 'i'}
+                                </p>
+                              </div>
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -156,8 +171,6 @@ export const LoculiList = ({ bloccoId, bloccoDescrizione, isOpen, onClose }: Loc
                             )}
                             <div className="flex items-center space-x-2 text-xs text-gray-500">
                               <span>Tipo tomba: {loculo.tipo_tomba}</span>
-                              <span>•</span>
-                              <span>Fila: {loculo.fila}</span>
                             </div>
                           </div>
                         </div>

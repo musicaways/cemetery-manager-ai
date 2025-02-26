@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -210,7 +209,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
         <div className="space-y-4">
           <div className="flex items-stretch">
             {/* Current weather */}
-            <div className="w-[45%]">
+            <div className="flex-1 pr-4">
               <div className="h-full flex items-center gap-3 bg-black/20 rounded-lg p-3">
                 <div className="h-10 w-10 flex items-center justify-center text-[var(--primary-color)]">
                   {getWeatherIcon(weather.condition)}
@@ -225,23 +224,23 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               </div>
             </div>
 
-            <div className="flex items-center px-4">
-              <Separator orientation="vertical" className="h-16 bg-white/20" />
-            </div>
+            <Separator orientation="vertical" className="mx-4 h-auto bg-white/20" />
 
             {/* Hourly forecast preview */}
-            <div className="flex-1 grid grid-cols-2 gap-1.5">
-              {futureHourlyForecast.slice(0, 6).map((hour, index) => (
-                <div key={index} className="flex items-center justify-between bg-black/20 rounded-lg px-2 py-1">
-                  <span className="text-xs text-white/80">{hour.time}</span>
-                  <div className="flex items-center gap-1">
-                    <div className="h-3 w-3 text-[var(--primary-color)]">
-                      {getWeatherIcon(hour.condition)}
+            <div className="flex-1">
+              <div className="space-y-1.5">
+                {futureHourlyForecast.slice(0, 3).map((hour, index) => (
+                  <div key={index} className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-1.5">
+                    <span className="text-xs text-white/80">{hour.time}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="h-4 w-4 text-[var(--primary-color)]">
+                        {getWeatherIcon(hour.condition)}
+                      </div>
+                      <span className="text-sm font-medium text-white">{hour.temperature}°C</span>
                     </div>
-                    <span className="text-xs font-medium text-white">{hour.temperature}°C</span>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
 
@@ -286,18 +285,16 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
                     <Clock className="w-4 h-4 text-[var(--primary-color)]" />
                     Previsioni orarie di oggi
                   </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
                     {futureHourlyForecast.slice(0, 6).map((hour, index) => (
-                      <div key={index} className="bg-black/20 rounded-xl p-3 border border-white/10">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-medium text-white">{hour.time}</p>
-                          <p className="text-lg font-medium text-white">{hour.temperature}°C</p>
-                        </div>
-                        <div className="flex items-center gap-2 mt-2">
-                          <div className="h-5 w-5 text-[var(--primary-color)]">
+                      <div key={index} className="bg-black/20 rounded-lg p-2 border border-white/10">
+                        <p className="text-sm font-medium text-white text-center mb-2">{hour.time}</p>
+                        <div className="flex flex-col items-center gap-1">
+                          <div className="h-6 w-6 text-[var(--primary-color)]">
                             {getWeatherIcon(hour.condition)}
                           </div>
-                          <p className="text-sm text-white/80">{hour.condition}</p>
+                          <p className="text-lg font-medium text-white">{hour.temperature}°C</p>
+                          <p className="text-xs text-white/80 text-center">{hour.condition}</p>
                         </div>
                       </div>
                     ))}

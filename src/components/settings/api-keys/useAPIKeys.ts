@@ -60,24 +60,31 @@ export const useAPIKeys = (onSave: () => void) => {
     setIsTesting(provider);
     
     try {
-      const response = await fetch(`${window.location.origin}/api/test-api`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          provider,
-          apiKey
-        }),
+      // Aggiorniamo la chiave in Supabase Edge Functions
+      const { error: updateError } = await supabase.functions.invoke('update-ai-provider', {
+        body: { provider: provider.toLowerCase(), apiKey }
       });
 
-      const data = await response.json();
-      
-      if (!data.success) {
-        throw new Error(data.error);
+      if (updateError) {
+        throw updateError;
       }
 
-      toast.success(data.message);
+      // Testiamo la chiave con una query di test
+      const { data, error } = await supabase.functions.invoke('process-query', {
+        body: {
+          query: "Test. Rispondi solo 'OK' se funziono.",
+          queryType: 'test',
+          aiProvider: provider.toLowerCase(),
+          aiModel: provider === 'Groq' ? 'mixtral-8x7b-32768' : 'gemini-pro',
+          isTest: true
+        }
+      });
+
+      if (error || !data?.text?.includes('OK')) {
+        throw new Error('Test fallito');
+      }
+
+      toast.success(`Test API di ${provider} completato con successo`);
     } catch (error) {
       console.error(`Errore nel test dell'API di ${provider}:`, error);
       toast.error(`Errore nel test dell'API di ${provider}. Verifica che la chiave sia corretta.`);
@@ -126,6 +133,21 @@ export const useAPIKeys = (onSave: () => void) => {
 
         if (error) throw error;
       }
+
+      // Aggiorniamo le chiavi nelle Edge Functions dopo il salvataggio
+      const promises = [];
+      if (groqKey) {
+        promises.push(supabase.functions.invoke('update-ai-provider', {
+          body: { provider: 'groq', apiKey: groqKey }
+        }));
+      }
+      if (geminiKey) {
+        promises.push(supabase.functions.invoke('update-ai-provider', {
+          body: { provider: 'gemini', apiKey: geminiKey }
+        }));
+      }
+
+      await Promise.all(promises);
 
       setHasChanges(false);
       toast.success('Chiavi API salvate con successo');

@@ -26,6 +26,16 @@ export const ChatModals = ({
   selectedCimitero,
   onCimiteroEditorClose
 }: ChatModalsProps) => {
+  const handleSave = async (data: Partial<Cimitero>, coverImage?: File): Promise<void> => {
+    // Per ora non implementiamo il salvataggio nella chat
+    return Promise.resolve();
+  };
+
+  const handleUploadComplete = async (url: string): Promise<void> => {
+    // Per ora non implementiamo l'upload nella chat
+    return Promise.resolve();
+  };
+
   return (
     <>
       <MediaUpload 
@@ -44,8 +54,8 @@ export const ChatModals = ({
         <CimiteroEditor
           cimitero={selectedCimitero}
           onClose={onCimiteroEditorClose}
-          onSave={() => {}}
-          onUploadComplete={() => {}}
+          onSave={handleSave}
+          onUploadComplete={handleUploadComplete}
         />
       )}
     </>

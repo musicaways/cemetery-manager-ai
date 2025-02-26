@@ -1,5 +1,4 @@
-
-import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle, Database } from "lucide-react";
+import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle, Database, Code } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -228,6 +227,16 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                         >
                           <Users className="mr-2 h-4 w-4" />
                           Utenti
+                        </Button>
+                      </SheetClose>
+                      <SheetClose asChild>
+                        <Button
+                          variant="ghost"
+                          className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
+                          onClick={() => navigate("/admin/ai-functions")}
+                        >
+                          <Code className="mr-2 h-4 w-4" />
+                          Funzioni AI
                         </Button>
                       </SheetClose>
                     </CollapsibleContent>

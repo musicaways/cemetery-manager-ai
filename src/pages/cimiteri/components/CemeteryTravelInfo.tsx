@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Clock, MapPin, Sun, Car } from "lucide-react";
+import { Clock, MapPin, Sun, Car, Calendar } from "lucide-react";
 import { toast } from "sonner";
 
 interface CemeteryTravelInfoProps {
@@ -12,6 +12,13 @@ interface CemeteryTravelInfoProps {
 interface WeatherData {
   temperature: number;
   condition: string;
+  forecast: ForecastDay[];
+}
+
+interface ForecastDay {
+  date: string;
+  temperature: number;
+  condition: string;
 }
 
 interface TravelInfo {
@@ -20,6 +27,25 @@ interface TravelInfo {
 }
 
 const OPENWEATHER_API_KEY = "bd5e378503939ddaee76f12ad7a97608";
+
+// Traduzione delle condizioni meteo
+const weatherTranslations: { [key: string]: string } = {
+  'Clear': 'Sereno',
+  'Clouds': 'Nuvoloso',
+  'Rain': 'Pioggia',
+  'Snow': 'Neve',
+  'Drizzle': 'Pioggerella',
+  'Thunderstorm': 'Temporale',
+  'Mist': 'Nebbia',
+  'Fog': 'Nebbia',
+  'Haze': 'Foschia',
+  'Dust': 'Polvere',
+  'Smoke': 'Fumo',
+  'Few clouds': 'Poco nuvoloso',
+  'Scattered clouds': 'Nubi sparse',
+  'Broken clouds': 'Nuvoloso',
+  'Overcast clouds': 'Coperto'
+};
 
 export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
@@ -34,9 +60,9 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           navigator.geolocation.getCurrentPosition(resolve, reject);
         });
 
-        // Fetch weather data
+        // Fetch weather data con forecast
         const weatherResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city},IT&units=metric&appid=${OPENWEATHER_API_KEY}`
+          `https://api.openweathermap.org/data/2.5/forecast?q=${city},IT&units=metric&appid=${OPENWEATHER_API_KEY}`
         );
         const weatherData = await weatherResponse.json();
 
@@ -44,9 +70,20 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           throw new Error("Città non trovata");
         }
 
+        // Organizziamo i dati del forecast per i prossimi 3 giorni
+        const forecast = weatherData.list
+          .filter((_: any, index: number) => index % 8 === 0) // Prendiamo una previsione al giorno
+          .slice(0, 3) // Solo i prossimi 3 giorni
+          .map((day: any) => ({
+            date: new Date(day.dt * 1000).toLocaleDateString('it-IT', { weekday: 'long' }),
+            temperature: Math.round(day.main.temp),
+            condition: weatherTranslations[day.weather[0].main] || day.weather[0].main
+          }));
+
         setWeather({
-          temperature: Math.round(weatherData.main.temp),
-          condition: weatherData.weather[0].main
+          temperature: Math.round(weatherData.list[0].main.temp),
+          condition: weatherTranslations[weatherData.list[0].weather[0].main] || weatherData.list[0].weather[0].main,
+          forecast
         });
 
         // Fetch travel info using Google Maps Distance Matrix API
@@ -63,6 +100,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           }
           
           const data = await response.json();
+          console.log("Distance Matrix Response:", data);
 
           if (data.rows?.[0]?.elements?.[0]?.status === "OK") {
             setTravelInfo({
@@ -98,14 +136,33 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
     <Card className="p-4 space-y-4 bg-black/20 border-[var(--primary-color)]/20">
       <div className="grid grid-cols-2 gap-4">
         {weather && (
-          <div className="flex items-center gap-2">
-            <Sun className="w-5 h-5 text-yellow-500" />
-            <div>
-              <p className="text-sm text-gray-400">Temperatura</p>
-              <p className="text-lg">{weather.temperature}°C</p>
-              <p className="text-sm text-gray-400">{weather.condition}</p>
+          <>
+            <div className="flex items-center gap-2">
+              <Sun className="w-5 h-5 text-yellow-500" />
+              <div>
+                <p className="text-sm text-gray-400">Temperatura attuale</p>
+                <p className="text-lg">{weather.temperature}°C</p>
+                <p className="text-sm text-gray-400">{weather.condition}</p>
+              </div>
             </div>
-          </div>
+            <div className="col-span-2">
+              <div className="mt-2">
+                <p className="text-sm text-gray-400 mb-2 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" />
+                  Previsioni prossimi giorni:
+                </p>
+                <div className="grid grid-cols-3 gap-2">
+                  {weather.forecast.map((day, index) => (
+                    <div key={index} className="text-center p-2 bg-black/10 rounded">
+                      <p className="text-xs text-gray-400 capitalize">{day.date}</p>
+                      <p className="text-sm font-medium">{day.temperature}°C</p>
+                      <p className="text-xs text-gray-400">{day.condition}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
         )}
         
         {travelInfo && (
@@ -126,7 +183,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 col-span-2">
               <MapPin className="w-5 h-5 text-red-500" />
               <div>
                 <p className="text-sm text-gray-400">Indirizzo</p>

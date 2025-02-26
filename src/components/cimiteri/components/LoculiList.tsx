@@ -73,8 +73,7 @@ export const LoculiList = ({ bloccoId, bloccoDescrizione, isOpen, onClose }: Loc
 
   // Filtra i loculi in base alla ricerca
   const filteredLoculi = loculi.filter(loculo =>
-    loculo.numero.toString().includes(searchQuery.toLowerCase()) ||
-    loculo.annotazioni?.toLowerCase().includes(searchQuery.toLowerCase())
+    loculo.numero.toString().includes(searchQuery.toLowerCase())
   );
 
   return (
@@ -144,34 +143,24 @@ export const LoculiList = ({ bloccoId, bloccoDescrizione, isOpen, onClose }: Loc
                           key={loculo.id}
                           className="p-4 bg-black/20 rounded-lg border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors"
                         >
-                          <div className="flex flex-col space-y-2">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <p className="text-sm font-medium text-white">
-                                  Numero {loculo.numero} - Fila {loculo.fila}
-                                </p>
-                                <p className="text-xs text-gray-500">
-                                  {loculo.defunti_count} defunt{loculo.defunti_count === 1 ? 'o' : 'i'} present{loculo.defunti_count === 1 ? 'e' : 'i'}
-                                </p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 px-2 text-gray-400 hover:text-white"
-                                onClick={() => setSelectedLoculo({ id: loculo.id, numero: loculo.numero })}
-                              >
-                                <Users className="h-4 w-4 mr-1" />
-                                <span className="text-xs">Defunti</span>
-                              </Button>
-                            </div>
-                            {loculo.annotazioni && (
-                              <p className="text-xs text-gray-400">
-                                {loculo.annotazioni}
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-sm font-medium text-white">
+                                Numero {loculo.numero} - Fila {loculo.fila}
                               </p>
-                            )}
-                            <div className="flex items-center space-x-2 text-xs text-gray-500">
-                              <span>Tipo tomba: {loculo.tipo_tomba}</span>
+                              <p className="text-xs text-gray-500">
+                                {loculo.defunti_count} defunt{loculo.defunti_count === 1 ? 'o' : 'i'} present{loculo.defunti_count === 1 ? 'e' : 'i'}
+                              </p>
                             </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 px-2 text-gray-400 hover:text-white"
+                              onClick={() => setSelectedLoculo({ id: loculo.id, numero: loculo.numero })}
+                            >
+                              <Users className="h-4 w-4 mr-1" />
+                              <span className="text-xs">Defunti</span>
+                            </Button>
                           </div>
                         </div>
                       ))

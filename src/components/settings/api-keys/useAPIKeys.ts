@@ -60,15 +60,54 @@ export const useAPIKeys = (onSave: () => void) => {
     setIsTesting(provider);
     
     try {
-      // Aggiorniamo prima la chiave nelle Edge Functions
+      // Prima aggiorniamo la chiave nelle Edge Functions
       const { error: updateError } = await supabase.functions.invoke('update-ai-provider', {
         body: { provider: provider.toLowerCase(), apiKey }
       });
 
       if (updateError) {
+        console.error('Update error:', updateError);
         throw updateError;
       }
 
+      // Test specifici per tipo di API
+      if (provider.toLowerCase() === 'googlemaps') {
+        // Test di Google Maps API con una semplice richiesta di geocoding
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?address=Via+Roma,Roma&key=${apiKey}`
+        );
+        const data = await response.json();
+        
+        console.log('Google Maps test response:', data);
+        
+        if (data.status === 'OK' || data.status === 'ZERO_RESULTS') {
+          toast.success(`Test API di ${provider} completato con successo`);
+          setIsTesting(null);
+          return;
+        } else {
+          throw new Error(`Google Maps API error: ${data.status}`);
+        }
+      } 
+      
+      if (provider.toLowerCase() === 'serpstack') {
+        // Test di SerpStack con una semplice query di ricerca
+        const response = await fetch(
+          `http://api.serpstack.com/search?access_key=${apiKey}&query=test`
+        );
+        const data = await response.json();
+        
+        console.log('SerpStack test response:', data);
+        
+        if (!data.error) {
+          toast.success(`Test API di ${provider} completato con successo`);
+          setIsTesting(null);
+          return;
+        } else {
+          throw new Error(`SerpStack API error: ${data.error.info}`);
+        }
+      }
+
+      // Per i modelli linguistici (Groq, Gemini, Perplexity, HuggingFace)
       let testQuery = "Test API. Rispondi solo 'OK' se funzioni.";
       let testModel = '';
 
@@ -90,8 +129,9 @@ export const useAPIKeys = (onSave: () => void) => {
           testModel = 'default';
       }
 
-      // Testiamo la chiave
       console.log(`Testing ${provider} with model ${testModel}`);
+      
+      // Test del modello linguistico
       const { data, error } = await supabase.functions.invoke('process-query', {
         body: {
           query: testQuery,
@@ -103,7 +143,10 @@ export const useAPIKeys = (onSave: () => void) => {
         }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Process query error:', error);
+        throw error;
+      }
 
       console.log(`Test response for ${provider}:`, data);
 

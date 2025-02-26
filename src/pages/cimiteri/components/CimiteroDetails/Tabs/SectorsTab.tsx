@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search, X, ChevronRight, Home } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -135,27 +134,19 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
                         key={blocco.Id}
                         className="p-4 bg-black/20 rounded-lg border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors"
                       >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-medium text-white">
-                              {blocco.Descrizione || "Blocco senza descrizione"}
-                            </p>
-                            {blocco.Codice && (
-                              <p className="text-xs text-gray-500 mt-1">
-                                Codice: {blocco.Codice}
-                              </p>
-                            )}
-                          </div>
-                          <div className="flex gap-2">
+                        <div className="flex flex-col space-y-2">
+                          <p className="text-sm font-medium text-white">
+                            {blocco.Descrizione || "Blocco senza descrizione"}
+                          </p>
+                          <div className="flex items-center space-x-2 text-xs text-gray-500">
                             {blocco.NumeroFile && (
-                              <span className="text-xs px-1.5 py-0.5 bg-[var(--primary-color)]/10 text-[var(--primary-color)] rounded">
-                                File: {blocco.NumeroFile}
-                              </span>
+                              <span>File: {blocco.NumeroFile}</span>
                             )}
                             {blocco.NumeroLoculi && (
-                              <span className="text-xs px-1.5 py-0.5 bg-[var(--primary-color)]/10 text-[var(--primary-color)] rounded">
-                                Loculi: {blocco.NumeroLoculi}
-                              </span>
+                              <>
+                                <span>•</span>
+                                <span>Loculi: {blocco.NumeroLoculi}</span>
+                              </>
                             )}
                           </div>
                         </div>

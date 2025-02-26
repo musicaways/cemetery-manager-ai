@@ -1,9 +1,17 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 
-const GOOGLE_MAPS_API_KEY = Deno.env.get('GOOGLE_MAPS_API_KEY')
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
   try {
     const url = new URL(req.url)
     const origin = url.searchParams.get('origin')
@@ -15,15 +23,15 @@ serve(async (req) => {
         { 
           status: 400,
           headers: {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Origin': '*'
+            ...corsHeaders,
+            'Content-Type': 'application/json'
           }
         }
       )
     }
 
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&key=${GOOGLE_MAPS_API_KEY}`
+      `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&key=${Deno.env.get('GOOGLE_MAPS_API_KEY')}`
     )
 
     const data = await response.json()
@@ -32,8 +40,8 @@ serve(async (req) => {
       JSON.stringify(data),
       { 
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          ...corsHeaders,
+          'Content-Type': 'application/json'
         }
       }
     )
@@ -43,8 +51,8 @@ serve(async (req) => {
       { 
         status: 500,
         headers: {
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
+          ...corsHeaders,
+          'Content-Type': 'application/json'
         }
       }
     )

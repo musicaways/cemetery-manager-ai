@@ -260,42 +260,54 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
             </DialogTrigger>
             <DialogContent className="max-w-2xl bg-gradient-to-br from-black/95 to-black/90 backdrop-blur-xl border-white/10">
               <DialogHeader>
-                <DialogTitle>Previsioni meteo complete per {city}</DialogTitle>
+                <DialogTitle className="text-lg font-medium">Previsioni meteo per {city}</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 py-4">
                 <div className="space-y-4">
-                  <h4 className="text-sm font-medium text-gray-400">Previsioni orarie di oggi</h4>
+                  <h4 className="text-sm font-medium text-gray-400 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Previsioni orarie di oggi
+                  </h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                     {hourlyForecast.map((hour, index) => (
-                      <div key={index} className="bg-black/30 rounded-lg p-3 flex items-center justify-between">
-                        <div>
-                          <p className="text-sm">{hour.time}</p>
-                          <p className="text-xs text-gray-400">{hour.condition}</p>
-                        </div>
-                        <div className="text-right">
-                          <div className="h-6 w-6 mb-1">
-                            {getWeatherIcon(hour.condition)}
+                      <div key={index} className="bg-black/30 rounded-lg p-3">
+                        <div className="flex items-center gap-3">
+                          <div>
+                            <p className="text-sm font-medium">{hour.time}</p>
+                            <div className="flex items-center gap-1 mt-1">
+                              <div className="h-4 w-4">
+                                {getWeatherIcon(hour.condition)}
+                              </div>
+                              <p className="text-xs text-gray-400">{hour.condition}</p>
+                            </div>
                           </div>
-                          <p className="text-sm font-medium">{hour.temperature}°C</p>
+                          <p className="text-xl font-medium ml-auto">{hour.temperature}°C</p>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
                 
+                <Separator className="bg-white/10" />
+                
                 <div className="space-y-4">
-                  <h4 className="text-sm font-medium text-gray-400">Previsioni prossimi giorni</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <h4 className="text-sm font-medium text-gray-400 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Previsioni prossimi giorni
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {weather.forecast.map((day, index) => (
                       <div key={index} className="bg-black/30 rounded-lg p-4">
-                        <p className="text-sm font-medium capitalize mb-2">{day.date}</p>
+                        <p className="text-sm font-medium capitalize mb-3">{day.date}</p>
                         <div className="flex items-center justify-between">
                           <div>
-                            <p className="text-xs text-gray-400">{day.condition}</p>
-                            <p className="text-lg font-medium mt-1">{day.temperature}°C</p>
-                          </div>
-                          <div className="h-8 w-8">
-                            {getWeatherIcon(day.condition)}
+                            <div className="flex items-center gap-2">
+                              <div className="h-5 w-5">
+                                {getWeatherIcon(day.condition)}
+                              </div>
+                              <p className="text-xs text-gray-400">{day.condition}</p>
+                            </div>
+                            <p className="text-xl font-medium mt-2">{day.temperature}°C</p>
                           </div>
                         </div>
                       </div>

@@ -183,43 +183,72 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
       <div className="border-b border-white/10 pb-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Navigation className="w-5 h-5 text-[var(--primary-color)]" />
-            <h3 className="text-lg font-medium capitalize">{city}</h3>
+            <Navigation className="w-4 h-4 text-[var(--primary-color)]" />
+            <h3 className="text-base font-medium capitalize">{city}</h3>
           </div>
-          <p className="text-sm text-gray-400 capitalize">{currentDate}</p>
+          <p className="text-xs text-gray-400 capitalize">{currentDate}</p>
         </div>
+        
+        {travelInfo && (
+          <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-blue-500" />
+              <div>
+                <p className="text-xs text-gray-400">Tempo</p>
+                <p className="text-sm">{travelInfo.duration}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <Car className="w-4 h-4 text-green-500" />
+              <div>
+                <p className="text-xs text-gray-400">Distanza</p>
+                <p className="text-sm">{travelInfo.distance}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-red-500" />
+              <div>
+                <p className="text-xs text-gray-400">Indirizzo</p>
+                <p className="text-xs text-gray-300 truncate">{address}</p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-4">
         {weather && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between bg-black/20 rounded-xl p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-black/20 rounded-lg h-16 w-16 flex items-center justify-center">
-                  {getWeatherIcon(weather.condition)}
-                </div>
-                <div>
-                  <p className="text-sm text-gray-400">Temperatura attuale</p>
-                  <div className="flex items-end gap-1">
-                    <p className="text-3xl font-medium">{weather.temperature}</p>
-                    <p className="text-lg text-gray-400 mb-1">°C</p>
+          <div className="space-y-4">
+            <div className="bg-black/20 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="h-10 w-10 flex items-center justify-center">
+                    {getWeatherIcon(weather.condition)}
+                  </div>
+                  <div>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-2xl font-medium">{weather.temperature}</p>
+                      <p className="text-sm text-gray-400">°C</p>
+                    </div>
+                    <p className="text-xs text-gray-400">{weather.condition}</p>
                   </div>
                 </div>
               </div>
-              <p className="text-lg text-gray-300">{weather.condition}</p>
             </div>
 
             {hourlyForecast.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-gray-400">
-                  <Clock className="w-4 h-4" />
-                  <p className="text-sm">Previsioni orarie di oggi</p>
-                </div>
+              <div>
+                <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  Previsioni orarie
+                </p>
                 <div className="grid grid-cols-4 gap-2">
                   {hourlyForecast.slice(0, 4).map((hour, index) => (
-                    <div key={index} className="bg-black/20 rounded-lg p-3 text-center">
-                      <p className="text-sm text-gray-400">{hour.time}</p>
-                      <p className="text-lg font-medium my-1">{hour.temperature}°C</p>
+                    <div key={index} className="bg-black/20 rounded-lg p-2 text-center">
+                      <p className="text-xs text-gray-400">{hour.time}</p>
+                      <p className="text-sm font-medium">{hour.temperature}°C</p>
                       <p className="text-xs text-gray-400">{hour.condition}</p>
                     </div>
                   ))}
@@ -227,56 +256,22 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               </div>
             )}
 
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-gray-400">
-                <Calendar className="w-4 h-4" />
-                <p className="text-sm">Previsioni prossimi giorni</p>
-              </div>
-              <div className="grid grid-cols-3 gap-3">
+            <div>
+              <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                Prossimi giorni
+              </p>
+              <div className="grid grid-cols-3 gap-2">
                 {weather.forecast.map((day, index) => (
-                  <div key={index} className="bg-black/20 rounded-lg p-3 text-center">
-                    <p className="text-sm text-gray-400 capitalize mb-2">{day.date}</p>
-                    <div className="h-8 w-8 mx-auto mb-2">
+                  <div key={index} className="bg-black/20 rounded-lg p-2 text-center">
+                    <p className="text-xs text-gray-400 capitalize">{day.date}</p>
+                    <div className="h-6 w-6 mx-auto my-1">
                       {getWeatherIcon(day.condition)}
                     </div>
-                    <p className="text-lg font-medium">{day.temperature}°C</p>
+                    <p className="text-sm font-medium">{day.temperature}°C</p>
                     <p className="text-xs text-gray-400">{day.condition}</p>
                   </div>
                 ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {travelInfo && (
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Clock className="w-5 h-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Tempo stimato</p>
-                <p className="text-lg">{travelInfo.duration}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <Car className="w-5 h-5 text-green-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Distanza</p>
-                <p className="text-lg">{travelInfo.distance}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-3 col-span-2">
-              <div className="p-2 bg-red-500/10 rounded-lg">
-                <MapPin className="w-5 h-5 text-red-500" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-400">Indirizzo</p>
-                <p className="text-sm text-gray-300">{address}</p>
               </div>
             </div>
           </div>

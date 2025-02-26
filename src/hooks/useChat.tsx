@@ -83,7 +83,8 @@ export const useChat = () => {
           queryType: webSearchEnabled ? 'web' : 'database',
           aiProvider,
           aiModel,
-          isTest: false
+          isTest: false,
+          allowGenericResponse: true // Aggiungiamo questo flag per permettere risposte generiche
         };
 
         console.log("Invio richiesta:", requestBody);

@@ -11,4 +11,5 @@ export interface QueryRequest {
   isTest?: boolean;
   aiProvider?: string;
   aiModel?: string;
+  allowGenericResponse?: boolean;
 }

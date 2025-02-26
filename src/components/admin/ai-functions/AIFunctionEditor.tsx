@@ -48,8 +48,39 @@ export const AIFunctionEditor = ({ open, onClose, initialData }: AIFunctionEdito
     } else {
       setName("");
       setDescription("");
-      setTriggerPhrasesText("");
-      setCode("");
+      setTriggerPhrasesText(`mostrami il cimitero
+mostra il cimitero
+mostrami cimitero
+mostra cimitero
+apri il cimitero
+apri cimitero
+dettagli cimitero
+informazioni cimitero
+mostra informazioni cimitero
+mostra informazioni sul cimitero
+mostra informazioni del cimitero
+voglio vedere il cimitero
+fammi vedere il cimitero
+visualizza cimitero
+visualizza il cimitero`);
+      setCode(`const cimiteroName = query.toLowerCase().match(/(?:mostr|apri|vedi|informazioni|dettagli|visualizza)(?:[a-z\\s]+)(?:il\\s+)?cimitero(?:\\s+di\\s+)?([a-zA-Z\\s]+)?/)?.[1]?.trim();
+
+if (cimiteroName) {
+  const cimitero = await findCimiteroByName(cimiteroName);
+  if (cimitero) {
+    return {
+      text: \`Ho trovato il cimitero "\${cimitero.Descrizione}"\`,
+      data: {
+        type: 'cimitero',
+        cimitero
+      }
+    };
+  } else {
+    return {
+      text: \`Non ho trovato nessun cimitero con il nome "\${cimiteroName}"\`,
+    };
+  }
+}`);
     }
   }, [initialData]);
 
@@ -87,7 +118,7 @@ export const AIFunctionEditor = ({ open, onClose, initialData }: AIFunctionEdito
     
     const triggerPhrases = triggerPhrasesText
       .split("\n")
-      .map(phrase => phrase.trim())
+      .map(phrase => phrase.trim().toLowerCase())
       .filter(phrase => phrase.length > 0);
 
     if (!name || triggerPhrases.length === 0 || !code) {

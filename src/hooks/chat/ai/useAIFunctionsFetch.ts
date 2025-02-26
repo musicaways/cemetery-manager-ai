@@ -11,7 +11,18 @@ export const useAIFunctionsFetch = () => {
         .eq('is_active', true);
 
       if (error) throw error;
-      console.log("Funzioni AI attive recuperate:", aiFunctions);
+
+      // Log dettagliato delle funzioni
+      console.log("\n=== FUNZIONI AI ATTIVE ===");
+      aiFunctions?.forEach(func => {
+        console.log(`\nFunzione: ${func.name}`);
+        console.log("Frasi trigger:");
+        func.trigger_phrases.forEach((phrase: string) => {
+          console.log(`- "${phrase}"`);
+        });
+      });
+      console.log("===========================\n");
+
       return aiFunctions;
     } catch (error) {
       console.error("Errore nel recupero delle funzioni AI:", error);

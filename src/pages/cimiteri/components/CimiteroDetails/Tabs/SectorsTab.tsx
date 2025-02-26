@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Search, X, ChevronRight } from "lucide-react";
+import { Search, X, ChevronRight, Home } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Settore } from "../../../types";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
@@ -78,20 +78,20 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
           </DialogClose>
 
           <ScrollArea className="flex-grow">
-            <div className="p-6">
+            <div className="px-6 py-4 space-y-4">
               {/* Breadcrumb */}
-              <nav className="flex items-center space-x-1 text-sm text-gray-400 mb-4">
+              <nav className="flex items-center space-x-1 text-sm text-gray-400">
                 <div className="flex items-center">
-                  <span>Cimiteri</span>
+                  <Home className="h-4 w-4" />
                   <ChevronRight className="h-4 w-4" />
-                  <span>{selectedSettore?.settore?.cimitero?.Descrizione}</span>
+                  <span>Cimiteri</span>
                   <ChevronRight className="h-4 w-4" />
                   <span className="text-gray-300">{selectedSettore?.Descrizione}</span>
                 </div>
               </nav>
 
               {/* Lista Blocchi */}
-              <div className="space-y-2">
+              <div className="space-y-2 px-2">
                 {selectedSettore?.blocchi && selectedSettore.blocchi.length > 0 ? (
                   selectedSettore.blocchi.map((blocco) => (
                     <div 

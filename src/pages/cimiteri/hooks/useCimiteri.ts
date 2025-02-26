@@ -11,22 +11,35 @@ export const useCimiteri = () => {
 
   const loadCimiteri = async () => {
     try {
-      // Prima verifichiamo i settori indipendentemente
-      const { data: settoriTest, error: settoriError } = await supabase
-        .from("Settore")
-        .select('*, blocchi:Blocco!IdSettore(*)');
+      // Verifica diretta della relazione Settore-Blocco
+      const { data: testData, error: testError } = await supabase
+        .from('Settore')
+        .select(`
+          Id,
+          Descrizione,
+          blocchi:Blocco(*)
+        `)
+        .limit(1);
       
-      console.log("Debug - Test settori indipendenti:", settoriTest);
-      if (settoriError) console.error("Errore test settori:", settoriError);
+      console.log("Test relazione Settore-Blocco:", testData);
+      if (testError) console.error("Errore test:", testError);
 
-      // Poi facciamo la query principale
+      // Query principale per i cimiteri
       const { data: cimiteriData, error: cimiteriError } = await supabase
         .from("Cimitero")
         .select(`
           *,
-          settori:Settore!IdCimitero(
-            *,
-            blocchi:Blocco!IdSettore(*)
+          settori:Settore(
+            Id,
+            Codice,
+            Descrizione,
+            blocchi:Blocco(
+              Id,
+              Codice,
+              Descrizione,
+              NumeroFile,
+              NumeroLoculi
+            )
           ),
           foto:CimiteroFoto(*),
           documenti:CimiteroDocumenti(*),
@@ -36,21 +49,7 @@ export const useCimiteri = () => {
 
       if (cimiteriError) throw cimiteriError;
 
-      console.log("Debug - Dati completi cimiteri:", cimiteriData);
-      console.log("Debug - Struttura dettagliata:", cimiteriData?.map(c => ({
-        cimitero: c.Descrizione,
-        id: c.Id,
-        settori: c.settori?.map(s => ({
-          settore: s.Descrizione,
-          settoreId: s.Id,
-          numBlocchi: s.blocchi?.length || 0,
-          blocchi: s.blocchi?.map(b => ({
-            id: b.Id,
-            descrizione: b.Descrizione,
-            idSettore: b.IdSettore
-          }))
-        }))
-      })));
+      console.log("Dati cimiteri completi:", JSON.stringify(cimiteriData, null, 2));
 
       setCimiteri(cimiteriData || []);
       return cimiteriData;

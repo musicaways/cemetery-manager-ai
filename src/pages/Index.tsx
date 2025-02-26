@@ -50,6 +50,7 @@ const Index = () => {
           onQuestionSelect={(q) => handleSubmit(undefined, q)}
           scrollAreaRef={scrollAreaRef}
           messagesEndRef={messagesEndRef}
+          onCimiteroSelect={setSelectedCimitero}
         />
       </main>
 

@@ -1,3 +1,4 @@
+
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,6 +10,7 @@ interface ChatMessage {
   type: 'query' | 'response';
   content: string;
   data?: any;
+  timestamp?: Date;
 }
 
 export const useChat = () => {
@@ -81,15 +83,20 @@ export const useChat = () => {
         const cimitero = await findCimiteroByName(nomeCimitero);
 
         if (cimitero) {
-          setSelectedCimitero(cimitero);
           setMessages(prev => [...prev, { 
             type: 'response', 
-            content: `Ho trovato il cimitero "${cimitero.Descrizione}". Mostro i dettagli.`
+            content: `Ho trovato il cimitero "${cimitero.Descrizione}"`,
+            data: {
+              type: 'cimitero',
+              cimitero
+            },
+            timestamp: new Date()
           }]);
         } else {
           setMessages(prev => [...prev, { 
             type: 'response', 
-            content: `Non ho trovato nessun cimitero con il nome "${nomeCimitero}".`
+            content: `Non ho trovato nessun cimitero con il nome "${nomeCimitero}".`,
+            timestamp: new Date()
           }]);
         }
         setQuery("");

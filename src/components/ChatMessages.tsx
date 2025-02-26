@@ -5,7 +5,7 @@ import { Bot } from "lucide-react";
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { SuggestedQuestions } from "./SuggestedQuestions";
-import { CimiteriList } from "./chat/CimiteriList";
+import { CimiteroCard } from "@/pages/cimiteri/components/CimiteroCard";
 
 interface ChatMessagesProps {
   messages: {
@@ -18,6 +18,7 @@ interface ChatMessagesProps {
   onQuestionSelect: (question: string) => void;
   scrollAreaRef: React.RefObject<HTMLDivElement>;
   messagesEndRef: React.RefObject<HTMLDivElement>;
+  onCimiteroSelect?: (cimitero: any) => void;
 }
 
 export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
@@ -25,7 +26,8 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
   isProcessing,
   onQuestionSelect,
   scrollAreaRef,
-  messagesEndRef
+  messagesEndRef,
+  onCimiteroSelect
 }, ref) => {
   return (
     <ScrollArea 
@@ -69,9 +71,12 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                       {message.content}
                     </div>
                     
-                    {message.data?.type === 'cimiteri' && (
-                      <div className="pl-2">
-                        <CimiteriList cimiteri={message.data.cimiteri} />
+                    {message.data?.type === 'cimitero' && message.data.cimitero && (
+                      <div className="mt-4 pl-2">
+                        <CimiteroCard 
+                          cimitero={message.data.cimitero}
+                          onClick={() => onCimiteroSelect?.(message.data.cimitero)}
+                        />
                       </div>
                     )}
                     

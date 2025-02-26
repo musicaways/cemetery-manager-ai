@@ -91,13 +91,13 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
           "w-full max-w-xl mx-auto",
           isMobile ? "m-0 rounded-none" : "rounded-lg"
         )}>
-          <div className="relative border-b border-gray-800/50 pt-2">
-            <DialogClose className="absolute right-4 top-2 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
+          <div className="relative border-b border-gray-800/50 pt-1">
+            <DialogClose className="absolute right-4 top-1 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
               <X className="h-5 w-5 text-white" />
             </DialogClose>
 
             {/* Header con breadcrumb */}
-            <div className="px-4 py-4 mt-4">
+            <div className="px-4 py-4 mt-8">
               <nav className="flex items-center space-x-1 text-sm text-gray-400">
                 <div className="flex items-center">
                   <Home className="h-4 w-4" />

@@ -5,10 +5,12 @@ import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
 import { ChatModals } from "@/components/chat/ChatModals";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import type { Cimitero } from "@/pages/cimiteri/types";
 
 const Index = () => {
   const [isMediaUploadOpen, setIsMediaUploadOpen] = useState(false);
   const [isFunctionsOpen, setIsFunctionsOpen] = useState(false);
+  const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
   
   const {
     query,
@@ -70,6 +72,8 @@ const Index = () => {
         onFunctionsClose={() => setIsFunctionsOpen(false)}
         onMediaUpload={(url) => handleSubmit(undefined, url)}
         onFunctionSelect={handleFunctionSelect}
+        selectedCimitero={selectedCimitero}
+        onCimiteroEditorClose={() => setSelectedCimitero(null)}
       />
     </div>
   );

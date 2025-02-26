@@ -1,6 +1,9 @@
 
+import { useState } from "react";
 import { MediaUpload } from "@/components/MediaUpload";
 import { FunctionsModal } from "@/components/FunctionsModal";
+import { CimiteroEditor } from "@/pages/cimiteri/components/CimiteroEditor";
+import type { Cimitero } from "@/pages/cimiteri/types";
 
 interface ChatModalsProps {
   isMediaUploadOpen: boolean;
@@ -9,6 +12,8 @@ interface ChatModalsProps {
   onFunctionsClose: () => void;
   onMediaUpload: (url: string) => void;
   onFunctionSelect: (functionType: string) => void;
+  selectedCimitero?: Cimitero | null;
+  onCimiteroEditorClose?: () => void;
 }
 
 export const ChatModals = ({
@@ -17,7 +22,9 @@ export const ChatModals = ({
   onMediaUploadClose,
   onFunctionsClose,
   onMediaUpload,
-  onFunctionSelect
+  onFunctionSelect,
+  selectedCimitero,
+  onCimiteroEditorClose
 }: ChatModalsProps) => {
   return (
     <>
@@ -32,6 +39,15 @@ export const ChatModals = ({
         onClose={onFunctionsClose}
         onFunctionSelect={onFunctionSelect}
       />
+
+      {selectedCimitero && (
+        <CimiteroEditor
+          cimitero={selectedCimitero}
+          onClose={onCimiteroEditorClose}
+          onSave={() => {}}
+          onUploadComplete={() => {}}
+        />
+      )}
     </>
   );
 };

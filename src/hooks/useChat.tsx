@@ -1,8 +1,9 @@
-
 import { useState, useRef } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useChatCimitero } from "@/pages/cimiteri/hooks/useChatCimitero";
 import type { AIResponse, QueryRequest } from "@/utils/types";
+import type { Cimitero } from "@/pages/cimiteri/types";
 
 interface ChatMessage {
   type: 'query' | 'response';
@@ -15,8 +16,10 @@ export const useChat = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
+  const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
+  const { findCimiteroByName } = useChatCimitero();
 
   const handleSearch = (searchText: string) => {
     if (!searchText.trim()) return;
@@ -70,6 +73,31 @@ export const useChat = () => {
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
 
     try {
+      const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
+      const cimiteroMatch = finalQuery.match(cimiteroRegex);
+
+      if (cimiteroMatch) {
+        const nomeCimitero = cimiteroMatch[3];
+        const cimitero = await findCimiteroByName(nomeCimitero);
+
+        if (cimitero) {
+          setSelectedCimitero(cimitero);
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: `Ho trovato il cimitero "${cimitero.Descrizione}". Mostro i dettagli.`
+          }]);
+        } else {
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: `Non ho trovato nessun cimitero con il nome "${nomeCimitero}".`
+          }]);
+        }
+        setQuery("");
+        setIsProcessing(false);
+        setTimeout(scrollToBottom, 100);
+        return;
+      }
+
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
@@ -84,7 +112,7 @@ export const useChat = () => {
           aiProvider,
           aiModel,
           isTest: false,
-          allowGenericResponse: true // Aggiungiamo questo flag per permettere risposte generiche
+          allowGenericResponse: true
         };
 
         console.log("Invio richiesta:", requestBody);
@@ -146,6 +174,8 @@ export const useChat = () => {
     webSearchEnabled,
     messagesEndRef,
     scrollAreaRef,
+    selectedCimitero,
+    setSelectedCimitero,
     handleSearch,
     handleSubmit,
     toggleWebSearch

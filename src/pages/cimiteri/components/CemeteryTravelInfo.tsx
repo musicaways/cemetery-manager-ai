@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -117,6 +118,13 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
         setHourlyForecast(todayHourly);
 
         const forecast = weatherData.list
+          .filter((item: any) => {
+            const itemDate = new Date(item.dt * 1000);
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+            return itemDate >= tomorrow;
+          })
           .filter((_: any, index: number) => index % 8 === 0)
           .slice(0, 3)
           .map((day: any) => ({
@@ -202,7 +210,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
         <div className="space-y-4">
           <div className="flex items-stretch">
             {/* Current weather */}
-            <div className="flex-1 pr-4">
+            <div className="w-[45%]">
               <div className="h-full flex items-center gap-3 bg-black/20 rounded-lg p-3">
                 <div className="h-10 w-10 flex items-center justify-center text-[var(--primary-color)]">
                   {getWeatherIcon(weather.condition)}
@@ -217,23 +225,23 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               </div>
             </div>
 
-            <Separator orientation="vertical" className="mx-4 h-auto bg-white/20" />
+            <div className="flex items-center px-4">
+              <Separator orientation="vertical" className="h-16 bg-white/20" />
+            </div>
 
             {/* Hourly forecast preview */}
-            <div className="flex-1">
-              <div className="space-y-1.5">
-                {futureHourlyForecast.slice(0, 3).map((hour, index) => (
-                  <div key={index} className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-1.5">
-                    <span className="text-xs text-white/80">{hour.time}</span>
-                    <div className="flex items-center gap-2">
-                      <div className="h-4 w-4 text-[var(--primary-color)]">
-                        {getWeatherIcon(hour.condition)}
-                      </div>
-                      <span className="text-sm font-medium text-white">{hour.temperature}°C</span>
+            <div className="flex-1 grid grid-cols-2 gap-1.5">
+              {futureHourlyForecast.slice(0, 6).map((hour, index) => (
+                <div key={index} className="flex items-center justify-between bg-black/20 rounded-lg px-2 py-1">
+                  <span className="text-xs text-white/80">{hour.time}</span>
+                  <div className="flex items-center gap-1">
+                    <div className="h-3 w-3 text-[var(--primary-color)]">
+                      {getWeatherIcon(hour.condition)}
                     </div>
+                    <span className="text-xs font-medium text-white">{hour.temperature}°C</span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
 

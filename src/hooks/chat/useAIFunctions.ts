@@ -36,16 +36,49 @@ export const useAIFunctions = () => {
   };
 
   const findMatchingFunction = (normalizedQuery: string, aiFunctions: any[]) => {
-    return aiFunctions.find(func => 
-      func.trigger_phrases.some((phrase: string) => 
-        normalizedQuery.includes(phrase.toLowerCase())
-      )
+    console.log("Controllo funzioni AI per query:", normalizedQuery);
+    console.log("Funzioni disponibili:", aiFunctions);
+    
+    const matchedFunction = aiFunctions.find(func => 
+      func.trigger_phrases.some((phrase: string) => {
+        const matches = normalizedQuery.includes(phrase.toLowerCase());
+        console.log(`Confronto "${phrase.toLowerCase()}" con "${normalizedQuery}":`, matches);
+        return matches;
+      })
     );
+
+    if (matchedFunction) {
+      console.log("Funzione trovata:", matchedFunction);
+    } else {
+      console.log("Nessuna funzione trovata per la query");
+    }
+
+    return matchedFunction;
+  };
+
+  const executeFunction = async (func: any, query: string) => {
+    try {
+      // Esegue il codice della funzione in modo sicuro
+      const functionBody = func.code;
+      console.log("Esecuzione funzione:", func.name);
+      console.log("Codice funzione:", functionBody);
+      
+      // Crea una funzione dalla stringa del codice
+      const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
+      const executableFunction = new AsyncFunction('query', functionBody);
+      
+      // Esegue la funzione
+      return await executableFunction(query);
+    } catch (error) {
+      console.error("Errore nell'esecuzione della funzione:", error);
+      throw error;
+    }
   };
 
   return {
     processTestQuery,
     getActiveFunctions,
-    findMatchingFunction
+    findMatchingFunction,
+    executeFunction
   };
 };

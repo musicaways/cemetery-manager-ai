@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +16,7 @@ export const useChat = (): UseChatReturn => {
   
   const { findCimiteroByName, getAllCimiteri } = useChatCimitero();
   const { messages, setMessages, messagesEndRef, scrollAreaRef, handleSearch, scrollToBottom } = useChatMessages();
-  const { processTestQuery, getActiveFunctions, findMatchingFunction } = useAIFunctions();
+  const { processTestQuery, getActiveFunctions, findMatchingFunction, executeFunction } = useAIFunctions();
 
   const handleSubmit = async (e?: React.FormEvent, submittedQuery?: string) => {
     e?.preventDefault();
@@ -35,7 +34,23 @@ export const useChat = (): UseChatReturn => {
       const matchedFunction = findMatchingFunction(normalizedQuery, aiFunctions);
 
       if (matchedFunction) {
-        console.log("Funzione AI trovata:", matchedFunction);
+        console.log("Funzione AI trovata, eseguo:", matchedFunction.name);
+        try {
+          const result = await executeFunction(matchedFunction, finalQuery);
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: result.text || result,
+            data: result.data,
+            timestamp: new Date()
+          }]);
+          setQuery("");
+          setIsProcessing(false);
+          setTimeout(scrollToBottom, 100);
+          return;
+        } catch (error) {
+          console.error("Errore nell'esecuzione della funzione:", error);
+          toast.error("Errore nell'esecuzione della funzione: " + (error as Error).message);
+        }
       }
 
       // Verifica lista cimiteri

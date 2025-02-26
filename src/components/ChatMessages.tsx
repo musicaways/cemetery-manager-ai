@@ -7,6 +7,7 @@ import { it } from 'date-fns/locale';
 import { SuggestedQuestions } from "./SuggestedQuestions";
 import { CimiteroCard } from "@/pages/cimiteri/components/CimiteroCard";
 import { CimiteriGrid } from "@/pages/cimiteri/components/CimiteriGrid";
+import { CemeteryTravelInfo } from "@/pages/cimiteri/components/CemeteryTravelInfo";
 
 interface ChatMessagesProps {
   messages: {
@@ -73,11 +74,18 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                     </div>
                     
                     {message.data?.type === 'cimitero' && message.data.cimitero && (
-                      <div className="mt-4 pl-2">
+                      <div className="mt-4 pl-2 space-y-4">
                         <CimiteroCard 
                           cimitero={message.data.cimitero}
                           onClick={() => onCimiteroSelect?.(message.data.cimitero)}
                         />
+                        
+                        {message.data.cimitero.Indirizzo && (
+                          <CemeteryTravelInfo
+                            address={message.data.cimitero.Indirizzo}
+                            city={message.data.cimitero.Descrizione.split(' ')[0]} // Assume che la prima parola sia la città
+                          />
+                        )}
                       </div>
                     )}
                     

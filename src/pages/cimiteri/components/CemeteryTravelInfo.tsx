@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { Clock, MapPin, Sun, Car, Calendar, Navigation, CloudRain, Cloud, CloudSnow, CloudLightning } from "lucide-react";
 import { toast } from "sonner";
 
@@ -85,9 +86,11 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
   useEffect(() => {
     const fetchData = async () => {
       try {
+        console.log("Starting data fetch...");
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject);
         });
+        console.log("Got position:", position.coords);
 
         const weatherResponse = await fetch(
           `https://api.openweathermap.org/data/2.5/forecast?q=${city},IT&units=metric&appid=${OPENWEATHER_API_KEY}`
@@ -129,8 +132,15 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
         });
 
         if (address) {
+          console.log("Fetching travel info with address:", address);
           const origin = `${position.coords.latitude},${position.coords.longitude}`;
           const destination = encodeURIComponent(`${address}, ${city}, Italy`);
+          
+          console.log("Making request to distance-matrix with:", {
+            origin,
+            destination,
+            url: `/api/edge/distance-matrix?origin=${origin}&destination=${destination}`
+          });
           
           const response = await fetch(
             `/api/edge/distance-matrix?origin=${origin}&destination=${destination}`,
@@ -142,24 +152,30 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           );
           
           if (!response.ok) {
-            throw new Error("Errore nella risposta del server");
+            throw new Error(`HTTP error! status: ${response.status}`);
           }
           
           const data = await response.json();
-          console.log("Distance Matrix Response:", data);
+          console.log("Distance Matrix Raw Response:", data);
 
           if (data.rows?.[0]?.elements?.[0]?.status === "OK") {
+            console.log("Setting travel info:", {
+              duration: data.rows[0].elements[0].duration.text,
+              distance: data.rows[0].elements[0].distance.text
+            });
             setTravelInfo({
               duration: data.rows[0].elements[0].duration.text,
               distance: data.rows[0].elements[0].distance.text
             });
           } else {
-            console.error("Errore risposta Distance Matrix:", data);
+            console.error("Invalid Distance Matrix Response:", data);
             throw new Error("Impossibile calcolare il percorso");
           }
+        } else {
+          console.log("No address provided, skipping travel info fetch");
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error in fetchData:", error);
         toast.error("Errore nel recupero delle informazioni di viaggio e meteo");
       } finally {
         setLoading(false);
@@ -179,8 +195,8 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
   }
 
   return (
-    <Card className="p-6 space-y-6 bg-gradient-to-br from-black/30 to-black/10 backdrop-blur-sm border-[var(--primary-color)]/20">
-      <div className="border-b border-white/10 pb-4">
+    <Card className="p-4 space-y-4 bg-gradient-to-br from-black/30 to-black/10 backdrop-blur-sm border-[var(--primary-color)]/20">
+      <div className="border-b border-white/10 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Navigation className="w-4 h-4 text-[var(--primary-color)]" />
@@ -188,9 +204,67 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           </div>
           <p className="text-xs text-gray-400 capitalize">{currentDate}</p>
         </div>
-        
-        {travelInfo && (
-          <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-white/10">
+      </div>
+
+      {weather && (
+        <div className="space-y-4">
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <div className="bg-black/20 rounded-lg p-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 flex items-center justify-center">
+                    {getWeatherIcon(weather.condition)}
+                  </div>
+                  <div>
+                    <div className="flex items-baseline gap-1">
+                      <p className="text-2xl font-medium">{weather.temperature}</p>
+                      <p className="text-sm text-gray-400">°C</p>
+                    </div>
+                    <p className="text-xs text-gray-400">{weather.condition}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Separator orientation="vertical" className="bg-white/10" />
+
+            {hourlyForecast.length > 0 && (
+              <div className="flex-1">
+                <div className="grid grid-cols-2 gap-2">
+                  {hourlyForecast.slice(0, 4).map((hour, index) => (
+                    <div key={index} className="bg-black/20 rounded-lg p-2 text-center">
+                      <p className="text-xs text-gray-400">{hour.time}</p>
+                      <p className="text-sm font-medium">{hour.temperature}°C</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-white/10 pt-3">
+            <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
+              <Calendar className="w-3 h-3" />
+              Prossimi giorni
+            </p>
+            <div className="grid grid-cols-3 gap-2">
+              {weather.forecast.map((day, index) => (
+                <div key={index} className="bg-black/20 rounded-lg p-2 text-center">
+                  <p className="text-xs text-gray-400 capitalize">{day.date}</p>
+                  <div className="h-5 w-5 mx-auto my-1">
+                    {getWeatherIcon(day.condition)}
+                  </div>
+                  <p className="text-sm font-medium">{day.temperature}°C</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {travelInfo && (
+        <div className="border-t border-white/10 pt-3 mt-3">
+          <div className="grid grid-cols-3 gap-2">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-blue-500" />
               <div>
@@ -215,68 +289,8 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               </div>
             </div>
           </div>
-        )}
-      </div>
-
-      <div className="grid gap-4">
-        {weather && (
-          <div className="space-y-4">
-            <div className="bg-black/20 rounded-lg p-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 flex items-center justify-center">
-                    {getWeatherIcon(weather.condition)}
-                  </div>
-                  <div>
-                    <div className="flex items-baseline gap-1">
-                      <p className="text-2xl font-medium">{weather.temperature}</p>
-                      <p className="text-sm text-gray-400">°C</p>
-                    </div>
-                    <p className="text-xs text-gray-400">{weather.condition}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {hourlyForecast.length > 0 && (
-              <div>
-                <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Previsioni orarie
-                </p>
-                <div className="grid grid-cols-4 gap-2">
-                  {hourlyForecast.slice(0, 4).map((hour, index) => (
-                    <div key={index} className="bg-black/20 rounded-lg p-2 text-center">
-                      <p className="text-xs text-gray-400">{hour.time}</p>
-                      <p className="text-sm font-medium">{hour.temperature}°C</p>
-                      <p className="text-xs text-gray-400">{hour.condition}</p>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div>
-              <p className="text-xs text-gray-400 mb-2 flex items-center gap-1">
-                <Calendar className="w-3 h-3" />
-                Prossimi giorni
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {weather.forecast.map((day, index) => (
-                  <div key={index} className="bg-black/20 rounded-lg p-2 text-center">
-                    <p className="text-xs text-gray-400 capitalize">{day.date}</p>
-                    <div className="h-6 w-6 mx-auto my-1">
-                      {getWeatherIcon(day.condition)}
-                    </div>
-                    <p className="text-sm font-medium">{day.temperature}°C</p>
-                    <p className="text-xs text-gray-400">{day.condition}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </Card>
   );
 };

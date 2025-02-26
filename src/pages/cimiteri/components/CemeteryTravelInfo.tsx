@@ -101,30 +101,24 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           throw new Error("Città non trovata");
         }
 
-        console.log("Dati completi da OpenWeather:", weatherData.list);
-
-        const todayHourly = weatherData.list
+        const now = new Date();
+        const nextForecasts = weatherData.list
+          .filter((item: any) => new Date(item.dt * 1000) > now)
+          .slice(0, 6)
           .map((item: any) => {
             const itemDate = new Date(item.dt * 1000);
+            const isNextDay = itemDate.getDate() !== now.getDate();
             return {
-              time: itemDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+              time: isNextDay 
+                ? `${itemDate.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' })} ${itemDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })}`
+                : itemDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
               temperature: Math.round(item.main.temp),
               condition: weatherTranslations[item.weather[0].main] || item.weather[0].main,
               fullDate: itemDate
             };
           });
 
-        console.log("Previsioni orarie mappate:", todayHourly);
-
-        const now = new Date();
-        const todayForecast = todayHourly.filter(item => {
-          const itemDate = item.fullDate;
-          return itemDate.getDate() === now.getDate() && itemDate > now;
-        });
-
-        console.log("Previsioni filtrate per oggi:", todayForecast);
-
-        setHourlyForecast(todayForecast);
+        setHourlyForecast(nextForecasts);
 
         const forecast = weatherData.list
           .filter((item: any) => {

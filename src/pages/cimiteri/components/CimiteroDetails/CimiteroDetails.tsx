@@ -57,7 +57,7 @@ export const CimiteroDetails = ({
       "transition-all duration-300",
       isMobile ? "w-full m-0 rounded-none" : "max-w-4xl"
     )}>
-      <DialogClose className="absolute right-6 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
+      <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
         <X className="h-5 w-5 text-white" />
       </DialogClose>
 
@@ -75,7 +75,7 @@ export const CimiteroDetails = ({
             <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] to-transparent opacity-50" />
           </div>
 
-          <div className="px-6 py-6 space-y-6">
+          <div className="px-4 py-6 space-y-6">
             <Breadcrumb description={cimitero.Descrizione} />
             
             <CollapsibleSections
@@ -94,7 +94,7 @@ export const CimiteroDetails = ({
       </ScrollArea>
 
       {/* Edit Button */}
-      <div className="absolute bottom-6 right-6">
+      <div className="absolute bottom-4 right-4">
         <EditButtons 
           editMode={editMode}
           onEdit={onEdit}

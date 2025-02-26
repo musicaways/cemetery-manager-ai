@@ -36,51 +36,56 @@ export const useChat = (): UseChatReturn => {
 
       if (matchedFunction) {
         console.log("Funzione AI trovata:", matchedFunction);
-        try {
-          // Esegui il codice della funzione AI
-          const functionCode = new Function('query', 'findCimiteroByName', 'getAllCimiteri', `
-            return (async () => {
-              ${matchedFunction.code}
-            })();
-          `);
-          
-          const result = await functionCode(normalizedQuery, findCimiteroByName, getAllCimiteri);
-          if (result) {
-            setMessages(prev => [...prev, {
-              type: 'response',
-              content: result.text,
-              data: result.data,
-              timestamp: new Date()
-            }]);
-            setQuery("");
-            setIsProcessing(false);
-            setTimeout(scrollToBottom, 100);
-            return;
-          }
-        } catch (error) {
-          console.error("Errore nell'esecuzione della funzione AI:", error);
-        }
       }
 
-      // Verifica lista cimiteri solo se non è stata trovata una funzione AI specifica
-      if (!matchedFunction) {
-        const listaCimiteriRegex = /mostra(mi)?\s+(la\s+)?lista\s+(dei\s+)?cimiteri/i;
-        if (listaCimiteriRegex.test(normalizedQuery)) {
-          const cimiteri = await getAllCimiteri();
+      // Verifica lista cimiteri
+      const listaCimiteriRegex = /mostra(mi)?\s+(la\s+)?lista\s+(dei\s+)?cimiteri/i;
+      if (listaCimiteriRegex.test(normalizedQuery)) {
+        const cimiteri = await getAllCimiteri();
+        setMessages(prev => [...prev, { 
+          type: 'response', 
+          content: 'Ecco la lista dei cimiteri disponibili:',
+          data: {
+            type: 'cimiteri',
+            cimiteri
+          },
+          timestamp: new Date()
+        }]);
+        setQuery("");
+        setIsProcessing(false);
+        setTimeout(scrollToBottom, 100);
+        return;
+      }
+
+      // Verifica cimitero specifico
+      const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
+      const cimiteroMatch = normalizedQuery.match(cimiteroRegex);
+
+      if (cimiteroMatch) {
+        const nomeCimitero = cimiteroMatch[3];
+        const cimitero = await findCimiteroByName(nomeCimitero);
+
+        if (cimitero) {
           setMessages(prev => [...prev, { 
             type: 'response', 
-            content: 'Ecco la lista dei cimiteri disponibili:',
+            content: `Ho trovato il cimitero "${cimitero.Descrizione}"`,
             data: {
-              type: 'cimiteri',
-              cimiteri
+              type: 'cimitero',
+              cimitero
             },
             timestamp: new Date()
           }]);
-          setQuery("");
-          setIsProcessing(false);
-          setTimeout(scrollToBottom, 100);
-          return;
+        } else {
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: `Non ho trovato nessun cimitero con il nome "${nomeCimitero}".`,
+            timestamp: new Date()
+          }]);
         }
+        setQuery("");
+        setIsProcessing(false);
+        setTimeout(scrollToBottom, 100);
+        return;
       }
 
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';

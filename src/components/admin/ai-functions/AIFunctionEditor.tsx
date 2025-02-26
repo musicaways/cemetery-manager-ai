@@ -1,149 +1,24 @@
 
-import { useState, useEffect } from "react";
-import { useQueryClient, useMutation } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-
-interface AIFunction {
-  id: string;
-  name: string;
-  description: string | null;
-  trigger_phrases: string[];
-  code: string;
-  is_active: boolean;
-}
-
-// Definizione del tipo per i dati necessari per l'inserimento/aggiornamento
-type AIFunctionInput = {
-  name: string;
-  description: string | null;
-  trigger_phrases: string[];
-  code: string;
-  is_active: boolean;
-};
-
-interface AIFunctionEditorProps {
-  open: boolean;
-  onClose: () => void;
-  initialData: AIFunction | null;
-}
+import { AIFunctionFormFields } from "./components/AIFunctionFormFields";
+import { useAIFunctionForm } from "./hooks/useAIFunctionForm";
+import type { AIFunctionEditorProps } from "./types";
 
 export const AIFunctionEditor = ({ open, onClose, initialData }: AIFunctionEditorProps) => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [triggerPhrasesText, setTriggerPhrasesText] = useState("");
-  const [code, setCode] = useState("");
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    if (initialData) {
-      setName(initialData.name);
-      setDescription(initialData.description || "");
-      setTriggerPhrasesText(initialData.trigger_phrases.join("\n"));
-      setCode(initialData.code);
-    } else {
-      setName("");
-      setDescription("");
-      setTriggerPhrasesText(`mostrami il cimitero
-mostra il cimitero
-mostrami cimitero
-mostra cimitero
-apri il cimitero
-apri cimitero
-dettagli cimitero
-informazioni cimitero
-mostra informazioni cimitero
-mostra informazioni sul cimitero
-mostra informazioni del cimitero
-voglio vedere il cimitero
-fammi vedere il cimitero
-visualizza cimitero
-visualizza il cimitero`);
-      setCode(`const cimiteroName = query.toLowerCase().match(/(?:mostr|apri|vedi|informazioni|dettagli|visualizza)(?:[a-z\\s]+)(?:il\\s+)?cimitero(?:\\s+di\\s+)?([a-zA-Z\\s]+)?/)?.[1]?.trim();
-
-if (cimiteroName) {
-  const cimitero = await findCimiteroByName(cimiteroName);
-  if (cimitero) {
-    return {
-      text: \`Ho trovato il cimitero "\${cimitero.Descrizione}"\`,
-      data: {
-        type: 'cimitero',
-        cimitero
-      }
-    };
-  } else {
-    return {
-      text: \`Non ho trovato nessun cimitero con il nome "\${cimiteroName}"\`,
-    };
-  }
-}`);
-    }
-  }, [initialData]);
-
-  const mutation = useMutation({
-    mutationFn: async (data: AIFunctionInput) => {
-      if (initialData) {
-        const { error } = await supabase
-          .from('ai_chat_functions')
-          .update(data)
-          .eq('id', initialData.id);
-        if (error) throw error;
-      } else {
-        const { error } = await supabase
-          .from('ai_chat_functions')
-          .insert(data);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['ai-functions'] });
-      toast.success(
-        initialData 
-          ? "Funzione aggiornata con successo" 
-          : "Funzione creata con successo"
-      );
-      handleClose();
-    },
-    onError: (error) => {
-      toast.error(`Errore: ${error.message}`);
-    },
-  });
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const triggerPhrases = triggerPhrasesText
-      .split("\n")
-      .map(phrase => phrase.trim().toLowerCase())
-      .filter(phrase => phrase.length > 0);
-
-    if (!name || triggerPhrases.length === 0 || !code) {
-      toast.error("Compila tutti i campi obbligatori");
-      return;
-    }
-
-    const functionData: AIFunctionInput = {
-      name,
-      description: description || null,
-      trigger_phrases: triggerPhrases,
-      code,
-      is_active: true
-    };
-
-    mutation.mutate(functionData);
-  };
-
-  const handleClose = () => {
-    setName("");
-    setDescription("");
-    setTriggerPhrasesText("");
-    setCode("");
-    onClose();
-  };
+  const {
+    name,
+    setName,
+    description,
+    setDescription,
+    triggerPhrasesText,
+    setTriggerPhrasesText,
+    code,
+    setCode,
+    handleSubmit,
+    handleClose,
+    mutation
+  } = useAIFunctionForm(initialData, onClose);
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -155,59 +30,16 @@ if (cimiteroName) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="name" className="text-white">
-                Nome
-              </Label>
-              <Input
-                id="name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="bg-[#2A2F3C] border-[#4F46E5] text-white"
-                placeholder="Nome della funzione"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="description" className="text-white">
-                Descrizione
-              </Label>
-              <Input
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="bg-[#2A2F3C] border-[#4F46E5] text-white"
-                placeholder="Descrizione della funzione"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="trigger_phrases" className="text-white">
-                Frasi Trigger (una per riga)
-              </Label>
-              <textarea
-                id="trigger_phrases"
-                value={triggerPhrasesText}
-                onChange={(e) => setTriggerPhrasesText(e.target.value)}
-                className="w-full h-32 p-3 rounded-md bg-[#2A2F3C] border border-[#4F46E5] text-white resize-none"
-                placeholder="Inserisci le frasi trigger, una per riga"
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="code" className="text-white">
-                Codice
-              </Label>
-              <textarea
-                id="code"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                className="w-full h-64 p-3 rounded-md bg-[#2A2F3C] border border-[#4F46E5] text-white font-mono resize-none"
-                placeholder="Inserisci il codice della funzione"
-              />
-            </div>
-          </div>
+          <AIFunctionFormFields
+            name={name}
+            setName={setName}
+            description={description}
+            setDescription={setDescription}
+            triggerPhrasesText={triggerPhrasesText}
+            setTriggerPhrasesText={setTriggerPhrasesText}
+            code={code}
+            setCode={setCode}
+          />
 
           <div className="flex justify-end gap-3">
             <Button

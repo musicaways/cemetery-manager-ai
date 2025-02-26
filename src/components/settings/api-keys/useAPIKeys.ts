@@ -72,15 +72,16 @@ export const useAPIKeys = (onSave: () => void) => {
       // Testiamo la chiave con una query di test
       const { data, error } = await supabase.functions.invoke('process-query', {
         body: {
-          query: "Test. Rispondi solo 'OK' se funziono.",
+          query: "Test API. Rispondi solo 'OK' se funziono.",
           queryType: 'test',
           aiProvider: provider.toLowerCase(),
-          aiModel: provider === 'Groq' ? 'mixtral-8x7b-32768' : 'gemini-pro',
-          isTest: true
+          aiModel: provider === 'Groq' ? 'mixtral-8x7b-32768' : 'gemini-2.0-flash',
+          isTest: true,
+          allowGenericResponse: true
         }
       });
 
-      if (error || !data?.text?.includes('OK')) {
+      if (error || !data?.text?.toLowerCase().includes('ok')) {
         throw new Error('Test fallito');
       }
 

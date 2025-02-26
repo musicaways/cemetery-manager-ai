@@ -1,4 +1,6 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
 
 const corsHeaders = {
@@ -21,7 +23,6 @@ interface AIResponse {
   error?: string;
 }
 
-// Initialize Supabase client
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const supabase = createClient(supabaseUrl, supabaseKey);
@@ -101,66 +102,63 @@ async function getGeminiResponse(query: string): Promise<string> {
   return data.candidates[0].content.parts[0].text;
 }
 
-async function getAIResponse(query: string, provider: string): Promise<string> {
+async function handleCimiteriQuery(): Promise<AIResponse> {
   try {
-    switch (provider.toLowerCase()) {
-      case 'groq':
-        return await getGroqResponse(query);
-      case 'gemini':
-        return await getGeminiResponse(query);
-      default:
-        return await getGroqResponse(query); // Fallback to Groq
-    }
+    const { data: cimiteri, error } = await supabase
+      .from('Cimitero')
+      .select(`
+        *,
+        settori:Settore(
+          Id,
+          Codice,
+          Descrizione,
+          blocchi:Blocco(
+            Id,
+            Codice,
+            Descrizione,
+            NumeroFile,
+            NumeroLoculi
+          )
+        ),
+        foto:CimiteroFoto(*),
+        documenti:CimiteroDocumenti(*),
+        mappe:CimiteroMappe(*)
+      `)
+      .order('Descrizione', { ascending: true });
+
+    if (error) throw error;
+
+    return {
+      text: "Ecco la lista dei cimiteri disponibili:",
+      data: {
+        type: 'cimiteri',
+        cimiteri: cimiteri || []
+      }
+    };
   } catch (error) {
-    console.error(`Error with ${provider} API:`, error);
-    throw error;
+    console.error('Error fetching cimiteri:', error);
+    return {
+      text: "Mi dispiace, si è verificato un errore nel recupero dei cimiteri.",
+      error: error.message
+    };
   }
-}
-
-async function findMatchingFunction(query: string): Promise<{ code: string } | null> {
-  const { data: functions, error } = await supabase
-    .from('ai_chat_functions')
-    .select('code, trigger_phrases')
-    .eq('is_active', true);
-
-  if (error) {
-    console.error("Error fetching functions:", error);
-    return null;
-  }
-
-  const normalizedQuery = query.toLowerCase().trim();
-
-  for (const func of functions) {
-    const matches = func.trigger_phrases.some(phrase => 
-      normalizedQuery.includes(phrase.toLowerCase())
-    );
-    
-    if (matches) {
-      return { code: func.code };
-    }
-  }
-
-  return null;
 }
 
 async function processQuery(query: string, aiProvider: string): Promise<AIResponse> {
   try {
-    // Prima cerca una funzione corrispondente
-    const matchingFunction = await findMatchingFunction(query);
+    // Check if query is about cemeteries
+    const cimiteriKeywords = ['cimiteri', 'cimitero', 'lista cimiteri', 'elenco cimiteri', 'mostra cimiteri', 'vedere i cimiteri'];
+    const isCimiteriQuery = cimiteriKeywords.some(keyword => query.toLowerCase().includes(keyword.toLowerCase()));
 
-    if (matchingFunction) {
-      // Se trova una funzione personalizzata, la esegue
-      const functionCode = matchingFunction.code;
-      const func = new Function('supabase', `return (${functionCode})();`);
-      return await func(supabase);
+    if (isCimiteriQuery) {
+      return await handleCimiteriQuery();
     }
 
-    // Se non trova una funzione personalizzata, usa il provider AI selezionato
-    const aiResponse = await getAIResponse(query, aiProvider);
+    // Handle normal AI responses
+    const aiResponse = await (aiProvider === 'gemini' ? getGeminiResponse(query) : getGroqResponse(query));
     return {
       text: aiResponse
     };
-
   } catch (error: any) {
     console.error("Error processing query:", error);
     return {
@@ -177,7 +175,7 @@ serve(async (req) => {
 
   try {
     const requestBody: QueryRequest = await req.json();
-    const { query, aiProvider } = requestBody;
+    const { query, aiProvider, isTest } = requestBody;
 
     console.log("Ricevuta query:", query);
     console.log("Provider AI:", aiProvider);

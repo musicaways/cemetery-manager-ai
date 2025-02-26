@@ -13,9 +13,9 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url)
-    const origin = url.searchParams.get('origin')
-    const destination = url.searchParams.get('destination')
+    const url = new URL(req.url);
+    const origin = url.searchParams.get('origin');
+    const destination = url.searchParams.get('destination');
 
     if (!origin || !destination) {
       return new Response(
@@ -27,14 +27,18 @@ serve(async (req) => {
             'Content-Type': 'application/json'
           }
         }
-      )
+      );
     }
 
-    const response = await fetch(
-      `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&key=${Deno.env.get('GOOGLE_MAPS_API_KEY')}`
-    )
-
-    const data = await response.json()
+    // Costruiamo l'URL corretto per l'API di Google Distance Matrix
+    const apiUrl = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&language=it&key=${Deno.env.get('GOOGLE_MAPS_API_KEY')}`;
+    
+    console.log("Calling Google Maps API:", apiUrl);
+    
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+    
+    console.log("Google Maps API Response:", data);
 
     return new Response(
       JSON.stringify(data),
@@ -44,8 +48,9 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         }
       }
-    )
+    );
   } catch (error) {
+    console.error("Error in distance-matrix function:", error);
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
@@ -55,6 +60,6 @@ serve(async (req) => {
           'Content-Type': 'application/json'
         }
       }
-    )
+    );
   }
-})
+});

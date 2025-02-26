@@ -58,11 +58,12 @@ export const useAIFunctions = () => {
       console.log(`Verifico funzione: ${func.name}`);
       console.log("Frasi trigger:", func.trigger_phrases);
 
-      // Verifica se qualsiasi frase trigger è contenuta nella query
+      // Verifica se la query contiene qualsiasi frase trigger
       const matchingPhrase = func.trigger_phrases.find((phrase: string) => {
         const phraseNormalized = phrase.toLowerCase().trim();
-        const isMatch = normalizedQuery.includes(phraseNormalized);
-        console.log(`Confronto: "${phraseNormalized}" con "${normalizedQuery}" -> ${isMatch}`);
+        // Inverto il controllo: verifichiamo se la query contiene la frase trigger
+        const isMatch = phraseNormalized.includes(normalizedQuery);
+        console.log(`Confronto: "${normalizedQuery}" con "${phraseNormalized}" -> ${isMatch}`);
         return isMatch;
       });
 

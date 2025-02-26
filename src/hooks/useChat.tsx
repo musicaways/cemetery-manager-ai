@@ -21,7 +21,7 @@ export const useChat = () => {
   const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const { findCimiteroByName } = useChatCimitero();
+  const { findCimiteroByName, getAllCimiteri } = useChatCimitero();
 
   const handleSearch = (searchText: string) => {
     if (!searchText.trim()) return;
@@ -75,6 +75,26 @@ export const useChat = () => {
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
 
     try {
+      // Verifica se è richiesta la lista dei cimiteri
+      const listaCimiteriRegex = /mostra(mi)?\s+(la\s+)?lista\s+(dei\s+)?cimiteri/i;
+      if (listaCimiteriRegex.test(finalQuery)) {
+        const cimiteri = await getAllCimiteri();
+        setMessages(prev => [...prev, { 
+          type: 'response', 
+          content: 'Ecco la lista dei cimiteri disponibili:',
+          data: {
+            type: 'cimiteri',
+            cimiteri
+          },
+          timestamp: new Date()
+        }]);
+        setQuery("");
+        setIsProcessing(false);
+        setTimeout(scrollToBottom, 100);
+        return;
+      }
+
+      // Verifica se è richiesto un cimitero specifico
       const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
       const cimiteroMatch = finalQuery.match(cimiteroRegex);
 

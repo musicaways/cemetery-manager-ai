@@ -55,14 +55,15 @@ export const CimiteroDetails = ({
       "flex flex-col p-0 bg-[#1A1F2C] border-gray-800",
       "h-[calc(100vh-32px)] md:h-[85vh]",
       "transition-all duration-300",
-      isMobile ? "w-full m-0 rounded-none" : "max-w-4xl"
+      "max-w-2xl mx-auto",
+      isMobile ? "w-full m-0 rounded-none" : "w-[95%]"
     )}>
       <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
         <X className="h-5 w-5 text-white" />
       </DialogClose>
 
       <ScrollArea className="flex-grow">
-        <div>
+        <div className="w-full">
           {/* Cover Image */}
           <div className="w-full aspect-[21/9] relative overflow-hidden">
             <CoverImage
@@ -75,7 +76,7 @@ export const CimiteroDetails = ({
             <div className="absolute inset-0 bg-gradient-to-t from-[#1A1F2C] to-transparent opacity-50" />
           </div>
 
-          <div className="px-4 py-6 space-y-6">
+          <div className="px-6 py-6 space-y-6">
             <Breadcrumb description={cimitero.Descrizione} />
             
             <CollapsibleSections

@@ -5,6 +5,7 @@ import { Bot } from "lucide-react";
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { SuggestedQuestions } from "./SuggestedQuestions";
+import { CimiteriList } from "./chat/CimiteriList";
 
 interface ChatMessagesProps {
   messages: {
@@ -67,6 +68,12 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                     <div className="mt-2 text-sm text-gray-100 whitespace-pre-wrap pl-2">
                       {message.content}
                     </div>
+                    
+                    {message.data?.type === 'cimiteri' && (
+                      <div className="pl-2">
+                        <CimiteriList cimiteri={message.data.cimiteri} />
+                      </div>
+                    )}
                     
                     {message.data?.suggestions && (
                       <div className="mt-4 pl-2">

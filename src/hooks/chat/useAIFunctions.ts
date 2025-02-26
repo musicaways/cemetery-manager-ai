@@ -20,9 +20,13 @@ export const useAIFunctions = () => {
     
     // Cerca un match esatto tra le frasi trigger di ogni funzione
     for (const func of functions) {
-      const hasExactMatch = func.trigger_phrases.some(
-        phrase => phrase.toLowerCase().trim() === normalizedQuery
+      // Normalizza tutte le frasi trigger
+      const normalizedTriggers = func.trigger_phrases.map(phrase => 
+        phrase.toLowerCase().trim()
       );
+      
+      // Verifica se c'è un match esatto
+      const hasExactMatch = normalizedTriggers.includes(normalizedQuery);
       
       if (hasExactMatch) {
         return func;

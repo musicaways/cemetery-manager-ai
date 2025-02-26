@@ -33,7 +33,7 @@ export const useChat = (): UseChatReturn => {
       // Verifica funzioni AI attive
       const aiFunctions = await getActiveFunctions();
       
-      // Prima controlla se c'è un match esatto per la lista cimiteri
+      // Lista esatta delle frasi trigger per la lista cimiteri
       const listaCimiteriTriggers = [
         "mostra la lista dei cimiteri",
         "mostrami la lista dei cimiteri",
@@ -43,13 +43,10 @@ export const useChat = (): UseChatReturn => {
         "visualizza la lista dei cimiteri",
         "elenco cimiteri",
         "elenco dei cimiteri"
-      ];
+      ].map(trigger => trigger.toLowerCase().trim());
 
-      const isExactListaMatch = listaCimiteriTriggers.some(
-        trigger => trigger.toLowerCase() === normalizedQuery
-      );
-
-      if (isExactListaMatch) {
+      // Verifica match esatto per la lista cimiteri
+      if (listaCimiteriTriggers.includes(normalizedQuery)) {
         const cimiteri = await getAllCimiteri();
         setMessages(prev => [...prev, { 
           type: 'response', 
@@ -66,7 +63,7 @@ export const useChat = (): UseChatReturn => {
         return;
       }
 
-      // Se non è un match esatto per la lista, cerca altre funzioni AI
+      // Verifica match esatto per le altre funzioni AI
       const matchedFunction = findMatchingFunction(normalizedQuery, aiFunctions);
 
       if (matchedFunction) {
@@ -74,12 +71,20 @@ export const useChat = (): UseChatReturn => {
         // Procedi con l'esecuzione della funzione AI...
       }
 
-      // Verifica cimitero specifico
-      const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
-      const cimiteroMatch = normalizedQuery.match(cimiteroRegex);
+      // Verifica richiesta specifica di un cimitero
+      const showCimiteroTriggers = [
+        "mostra il cimitero di",
+        "mostrami il cimitero di",
+        "cerca il cimitero di",
+        "trovami il cimitero di"
+      ].map(trigger => trigger.toLowerCase().trim());
 
-      if (cimiteroMatch) {
-        const nomeCimitero = cimiteroMatch[3];
+      const matchedTrigger = showCimiteroTriggers.find(trigger => 
+        normalizedQuery.startsWith(trigger)
+      );
+
+      if (matchedTrigger) {
+        const nomeCimitero = normalizedQuery.slice(matchedTrigger.length).trim();
         const cimitero = await findCimiteroByName(nomeCimitero);
 
         if (cimitero) {

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -20,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { Check, Ban, Save, Edit2, X } from "lucide-react";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 type UserRole = 'admin' | 'read_write' | 'read_only';
 
@@ -160,128 +160,131 @@ export const UsersAdmin = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">Gestione Utenti</h1>
-        <div className="flex gap-4">
-          <Input
-            type="text"
-            placeholder="Cerca utente..."
-            className="w-64 bg-[#2A2F3C] border-[#3A3F4C] text-white"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {hasChanges && (
-            <Button
-              onClick={saveChanges}
-              className="bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Salva Modifiche
-            </Button>
-          )}
+    <>
+      <Breadcrumb items={[{ label: "Amministrazione" }, { label: "Utenti" }]} />
+      <div className="space-y-6 mt-7">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-white">Gestione Utenti</h1>
+          <div className="flex gap-4">
+            <Input
+              type="text"
+              placeholder="Cerca utente..."
+              className="w-64 bg-[#2A2F3C] border-[#3A3F4C] text-white"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {hasChanges && (
+              <Button
+                onClick={saveChanges}
+                className="bg-[var(--primary-color)] hover:bg-[var(--primary-hover)]"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Salva Modifiche
+              </Button>
+            )}
+          </div>
+        </div>
+        
+        <div className="bg-[#1A1F2C] rounded-lg border border-[#2A2F3C]/40 overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-gray-400">Email</TableHead>
+                <TableHead className="text-gray-400">Nome</TableHead>
+                <TableHead className="text-gray-400">Stato</TableHead>
+                <TableHead className="text-gray-400">Ruolo</TableHead>
+                <TableHead className="text-gray-400">Azioni</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredUsers.map((user) => (
+                <TableRow key={user.id}>
+                  <TableCell className="text-white">{user.email}</TableCell>
+                  <TableCell className="text-white">
+                    {editingUser === user.id ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          defaultValue={user.full_name || ''}
+                          onChange={(e) => updateUserName(user.id, e.target.value)}
+                          className="h-8 bg-[#2A2F3C] border-[#3A3F4C] text-white"
+                        />
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditingUser(null)}
+                          className="text-gray-400 hover:text-white"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        {user.full_name}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setEditingUser(user.id)}
+                          className="text-gray-400 hover:text-white"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                      ${user.status === 'active' ? 'bg-green-100 text-green-800' :
+                        user.status === 'banned' ? 'bg-red-100 text-red-800' :
+                        'bg-yellow-100 text-yellow-800'}`}>
+                      {user.status}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Select 
+                      defaultValue={user.table_permissions?.[0]?.role}
+                      onValueChange={(value: UserRole) => updateUserRole(user.id, value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue placeholder="Seleziona ruolo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="admin">Admin</SelectItem>
+                        <SelectItem value="read_write">Lettura/Scrittura</SelectItem>
+                        <SelectItem value="read_only">Solo lettura</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex space-x-2">
+                      {user.status === 'pending' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => updateUserStatus(user.id, 'active')}
+                          className="text-green-500 hover:text-green-600"
+                        >
+                          <Check className="h-4 w-4" />
+                        </Button>
+                      )}
+                      {user.status !== 'banned' && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => updateUserStatus(user.id, 'banned')}
+                          className="text-red-500 hover:text-red-600"
+                        >
+                          <Ban className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </div>
       </div>
-      
-      <div className="bg-[#1A1F2C] rounded-lg border border-[#2A2F3C]/40 overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="text-gray-400">Email</TableHead>
-              <TableHead className="text-gray-400">Nome</TableHead>
-              <TableHead className="text-gray-400">Stato</TableHead>
-              <TableHead className="text-gray-400">Ruolo</TableHead>
-              <TableHead className="text-gray-400">Azioni</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filteredUsers.map((user) => (
-              <TableRow key={user.id}>
-                <TableCell className="text-white">{user.email}</TableCell>
-                <TableCell className="text-white">
-                  {editingUser === user.id ? (
-                    <div className="flex items-center gap-2">
-                      <Input
-                        defaultValue={user.full_name || ''}
-                        onChange={(e) => updateUserName(user.id, e.target.value)}
-                        className="h-8 bg-[#2A2F3C] border-[#3A3F4C] text-white"
-                      />
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setEditingUser(null)}
-                        className="text-gray-400 hover:text-white"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      {user.full_name}
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setEditingUser(user.id)}
-                        className="text-gray-400 hover:text-white"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  )}
-                </TableCell>
-                <TableCell>
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
-                    ${user.status === 'active' ? 'bg-green-100 text-green-800' :
-                      user.status === 'banned' ? 'bg-red-100 text-red-800' :
-                      'bg-yellow-100 text-yellow-800'}`}>
-                    {user.status}
-                  </span>
-                </TableCell>
-                <TableCell>
-                  <Select 
-                    defaultValue={user.table_permissions?.[0]?.role}
-                    onValueChange={(value: UserRole) => updateUserRole(user.id, value)}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Seleziona ruolo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Admin</SelectItem>
-                      <SelectItem value="read_write">Lettura/Scrittura</SelectItem>
-                      <SelectItem value="read_only">Solo lettura</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </TableCell>
-                <TableCell>
-                  <div className="flex space-x-2">
-                    {user.status === 'pending' && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => updateUserStatus(user.id, 'active')}
-                        className="text-green-500 hover:text-green-600"
-                      >
-                        <Check className="h-4 w-4" />
-                      </Button>
-                    )}
-                    {user.status !== 'banned' && (
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => updateUserStatus(user.id, 'banned')}
-                        className="text-red-500 hover:text-red-600"
-                      >
-                        <Ban className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    </div>
+    </>
   );
 };
 

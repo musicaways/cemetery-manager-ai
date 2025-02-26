@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TableInfo, SchemaResponse } from "@/types/database";
 import TablesList from "@/components/admin/tables/TablesList";
-import Breadcrumb from "@/components/admin/tables/Breadcrumb";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 export const TablesAdmin = () => {
   const [tables, setTables] = useState<TableInfo[]>([]);
@@ -87,13 +87,15 @@ export const TablesAdmin = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <Breadcrumb />
-      <TablesList 
-        tables={filteredTables} 
-        onTableChange={loadTables}
-      />
-    </div>
+    <>
+      <Breadcrumb items={[{ label: "Amministrazione" }, { label: "Tabelle" }]} />
+      <div className="space-y-6 mt-7">
+        <TablesList 
+          tables={filteredTables} 
+          onTableChange={loadTables}
+        />
+      </div>
+    </>
   );
 };
 

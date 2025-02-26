@@ -4,6 +4,7 @@ import { useChat } from "@/hooks/useChat";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
 import { ChatModals } from "@/components/chat/ChatModals";
+import { Breadcrumb } from "@/components/ui/breadcrumb";
 
 const Index = () => {
   const [isMediaUploadOpen, setIsMediaUploadOpen] = useState(false);
@@ -39,7 +40,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-[var(--chat-bg)] text-gray-100 overflow-hidden flex flex-col">
-      <main className="flex-1 pb-20">
+      <Breadcrumb items={[{ label: "Chat" }]} />
+      <main className="flex-1 pb-20 mt-7">
         <ChatMessages
           messages={messages}
           isProcessing={isProcessing}

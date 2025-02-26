@@ -37,7 +37,7 @@ export const CollapsibleSections = ({
       >
         <CollapsibleTrigger className="w-full group">
           <div className={cn(
-            "px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg",
+            "px-3 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg",
             "hover:bg-gray-800/30 transition-all duration-200",
             "active:scale-[0.98]",
             openSection === 'info' && "bg-[var(--primary-color)]/10 border-[var(--primary-color)]/20"
@@ -68,7 +68,7 @@ export const CollapsibleSections = ({
       >
         <CollapsibleTrigger className="w-full group">
           <div className={cn(
-            "px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg",
+            "px-3 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg",
             "hover:bg-gray-800/30 transition-all duration-200",
             "active:scale-[0.98]",
             openSection === 'gallery' && "bg-[var(--primary-color)]/10 border-[var(--primary-color)]/20"
@@ -107,7 +107,7 @@ export const CollapsibleSections = ({
       >
         <CollapsibleTrigger className="w-full group">
           <div className={cn(
-            "px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg",
+            "px-3 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg",
             "hover:bg-gray-800/30 transition-all duration-200",
             "active:scale-[0.98]",
             openSection === 'documents' && "bg-[var(--primary-color)]/10 border-[var(--primary-color)]/20"
@@ -146,7 +146,7 @@ export const CollapsibleSections = ({
       >
         <CollapsibleTrigger className="w-full group">
           <div className={cn(
-            "px-4 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg",
+            "px-3 py-3 flex items-center justify-between bg-black/20 border border-gray-800 rounded-lg",
             "hover:bg-gray-800/30 transition-all duration-200",
             "active:scale-[0.98]",
             openSection === 'maps' && "bg-[var(--primary-color)]/10 border-[var(--primary-color)]/20"

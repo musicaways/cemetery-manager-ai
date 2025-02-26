@@ -1,9 +1,9 @@
 
 import { useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Settore } from "../../../types";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SectorsTabProps {
@@ -73,43 +73,34 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
       {/* Dialog per mostrare i blocchi del settore selezionato */}
       <Dialog open={!!selectedSettore} onOpenChange={() => setSelectedSettore(null)}>
         <DialogContent className="flex flex-col p-0 bg-[#1A1F2C] border-gray-800 h-[85vh] max-w-4xl">
+          <DialogClose className="absolute right-4 top-2 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
+            <X className="h-5 w-5 text-white" />
+          </DialogClose>
+
           <ScrollArea className="flex-grow">
             <div className="p-6">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-semibold text-white mb-6">
-                  {selectedSettore?.Descrizione}
-                </DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-6">
-                <div className="bg-black/20 rounded-lg border border-gray-800/50 p-4">
-                  <h3 className="text-sm font-medium text-gray-400 mb-3">
-                    Dettagli Settore
-                  </h3>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Codice</p>
-                      <p className="text-sm text-white">{selectedSettore?.Codice || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">ID</p>
-                      <p className="text-sm text-white">{selectedSettore?.Id || '-'}</p>
-                    </div>
-                  </div>
+              {/* Breadcrumb */}
+              <nav className="flex items-center space-x-1 text-sm text-gray-400 mb-4">
+                <div className="flex items-center">
+                  <span>Cimiteri</span>
+                  <ChevronRight className="h-4 w-4" />
+                  <span>{selectedSettore?.settore?.cimitero?.Descrizione}</span>
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="text-gray-300">{selectedSettore?.Descrizione}</span>
                 </div>
+              </nav>
 
-                <div className="bg-black/20 rounded-lg border border-gray-800/50 p-4">
-                  <h3 className="text-sm font-medium text-gray-400 mb-3">
-                    Blocchi
-                  </h3>
-                  {selectedSettore?.blocchi && selectedSettore.blocchi.length > 0 ? (
-                    <div className="space-y-2">
-                      {selectedSettore.blocchi.map((blocco) => (
-                        <div 
-                          key={blocco.Id}
-                          className="p-3 bg-black/30 rounded border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors"
-                        >
-                          <p className="text-sm text-white">
+              {/* Lista Blocchi */}
+              <div className="space-y-2">
+                {selectedSettore?.blocchi && selectedSettore.blocchi.length > 0 ? (
+                  selectedSettore.blocchi.map((blocco) => (
+                    <div 
+                      key={blocco.Id}
+                      className="p-4 bg-black/20 rounded-lg border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors"
+                    >
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium text-white">
                             {blocco.Descrizione || "Blocco senza descrizione"}
                           </p>
                           {blocco.Codice && (
@@ -118,14 +109,26 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
                             </p>
                           )}
                         </div>
-                      ))}
+                        <div className="flex gap-2">
+                          {blocco.NumeroFile && (
+                            <span className="text-xs px-1.5 py-0.5 bg-[var(--primary-color)]/10 text-[var(--primary-color)] rounded">
+                              File: {blocco.NumeroFile}
+                            </span>
+                          )}
+                          {blocco.NumeroLoculi && (
+                            <span className="text-xs px-1.5 py-0.5 bg-[var(--primary-color)]/10 text-[var(--primary-color)] rounded">
+                              Loculi: {blocco.NumeroLoculi}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  ) : (
-                    <p className="text-sm text-gray-500 italic">
-                      Nessun blocco presente in questo settore
-                    </p>
-                  )}
-                </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 italic">
+                    Nessun blocco presente in questo settore
+                  </p>
+                )}
               </div>
             </div>
           </ScrollArea>

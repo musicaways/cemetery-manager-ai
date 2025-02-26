@@ -13,6 +13,7 @@ interface QueryRequest {
   aiProvider: string;
   aiModel: string;
   isTest: boolean;
+  allowGenericResponse?: boolean;
 }
 
 interface AIResponse {
@@ -25,6 +26,43 @@ interface AIResponse {
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+async function getGroqResponse(query: string): Promise<string> {
+  const apiKey = Deno.env.get('GROQ_API_KEY');
+  if (!apiKey) {
+    throw new Error('GROQ_API_KEY non configurata');
+  }
+
+  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'mixtral-8x7b-32768',
+      messages: [
+        {
+          role: 'system',
+          content: 'Sei un assistente AI italiano utile e cordiale. Rispondi in modo conciso e chiaro.'
+        },
+        {
+          role: 'user',
+          content: query
+        }
+      ],
+      temperature: 0.7,
+      max_tokens: 1000,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error('Errore nella chiamata a Groq API');
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
 
 async function findMatchingFunction(query: string): Promise<{ code: string } | null> {
   const { data: functions, error } = await supabase
@@ -54,20 +92,22 @@ async function findMatchingFunction(query: string): Promise<{ code: string } | n
 
 async function processQuery(query: string): Promise<AIResponse> {
   try {
-    // Cerca una funzione corrispondente
+    // Prima cerca una funzione corrispondente
     const matchingFunction = await findMatchingFunction(query);
 
     if (matchingFunction) {
-      // Esegue la funzione trovata
+      // Se trova una funzione personalizzata, la esegue
       const functionCode = matchingFunction.code;
       const func = new Function('supabase', `return (${functionCode})();`);
       return await func(supabase);
     }
 
-    // Se non viene trovata nessuna funzione corrispondente
+    // Se non trova una funzione personalizzata, usa Groq per una risposta generica
+    const aiResponse = await getGroqResponse(query);
     return {
-      text: "Mi dispiace, non ho capito la tua richiesta. Puoi provare a riformularla?"
+      text: aiResponse
     };
+
   } catch (error: any) {
     console.error("Error processing query:", error);
     return {

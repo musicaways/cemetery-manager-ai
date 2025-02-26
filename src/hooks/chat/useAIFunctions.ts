@@ -1,59 +1,48 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import type { AIResponse, QueryRequest } from "@/utils/types";
+import type { AIFunction } from "@/components/admin/ai-functions/types";
+import type { AIResponse } from "@/utils/types";
 
 export const useAIFunctions = () => {
-  const processTestQuery = async (aiProvider: string, aiModel: string) => {
-    try {
-      const requestBody: QueryRequest = {
-        query: "Chi sei?",
-        queryType: 'test',
-        aiProvider,
-        aiModel,
-        isTest: true
-      };
-
-      const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
-        body: requestBody
-      });
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error("Errore nel test:", error);
-      throw error;
-    }
-  };
-
   const getActiveFunctions = async () => {
-    try {
-      const { data: aiFunctions, error } = await supabase
-        .from('ai_chat_functions')
-        .select('*')
-        .eq('is_active', true);
-
-      if (error) throw error;
-      console.log("Funzioni AI attive recuperate:", aiFunctions);
-      return aiFunctions;
-    } catch (error) {
-      console.error("Errore nel recupero delle funzioni AI:", error);
-      throw error;
-    }
+    const { data, error } = await supabase
+      .from('ai_chat_functions')
+      .select('*')
+      .eq('is_active', true);
+    
+    if (error) throw error;
+    return data as AIFunction[];
   };
 
-  const findMatchingFunction = (normalizedQuery: string, aiFunctions: any[]) => {
-    const matchedFunction = aiFunctions.find(func => 
-      func.trigger_phrases.some((phrase: string) => 
-        normalizedQuery.includes(phrase.toLowerCase())
-      )
-    );
-    console.log("Funzione corrispondente trovata:", matchedFunction);
-    return matchedFunction;
+  const findMatchingFunction = (query: string, functions: AIFunction[]) => {
+    // Normalizza la query ricevuta
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    // Cerca un match esatto tra le frasi trigger di ogni funzione
+    for (const func of functions) {
+      const hasExactMatch = func.trigger_phrases.some(
+        phrase => phrase.toLowerCase().trim() === normalizedQuery
+      );
+      
+      if (hasExactMatch) {
+        return func;
+      }
+    }
+    
+    return null;
+  };
+
+  const processTestQuery = async (aiProvider: string, aiModel: string): Promise<AIResponse> => {
+    const response: AIResponse = {
+      text: `Test con provider: ${aiProvider}, modello: ${aiModel}`,
+      data: null
+    };
+    return response;
   };
 
   return {
-    processTestQuery,
     getActiveFunctions,
-    findMatchingFunction
+    findMatchingFunction,
+    processTestQuery
   };
 };

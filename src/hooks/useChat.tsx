@@ -32,13 +32,8 @@ export const useChat = (): UseChatReturn => {
 
       // Verifica funzioni AI attive
       const aiFunctions = await getActiveFunctions();
-      const matchedFunction = findMatchingFunction(normalizedQuery, aiFunctions);
-
-      if (matchedFunction) {
-        console.log("Funzione AI trovata:", matchedFunction);
-      }
-
-      // Verifica lista cimiteri - ora usa confronto esatto
+      
+      // Prima controlla se c'è un match esatto per la lista cimiteri
       const listaCimiteriTriggers = [
         "mostra la lista dei cimiteri",
         "mostrami la lista dei cimiteri",
@@ -50,7 +45,11 @@ export const useChat = (): UseChatReturn => {
         "elenco dei cimiteri"
       ];
 
-      if (listaCimiteriTriggers.includes(normalizedQuery)) {
+      const isExactListaMatch = listaCimiteriTriggers.some(
+        trigger => trigger.toLowerCase() === normalizedQuery
+      );
+
+      if (isExactListaMatch) {
         const cimiteri = await getAllCimiteri();
         setMessages(prev => [...prev, { 
           type: 'response', 
@@ -65,6 +64,14 @@ export const useChat = (): UseChatReturn => {
         setIsProcessing(false);
         setTimeout(scrollToBottom, 100);
         return;
+      }
+
+      // Se non è un match esatto per la lista, cerca altre funzioni AI
+      const matchedFunction = findMatchingFunction(normalizedQuery, aiFunctions);
+
+      if (matchedFunction) {
+        console.log("Funzione AI trovata:", matchedFunction);
+        // Procedi con l'esecuzione della funzione AI...
       }
 
       // Verifica cimitero specifico

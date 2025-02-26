@@ -11,7 +11,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Tables from "./pages/admin/Tables";
 import Users from "./pages/admin/Users";
-import AIFunctions from "./pages/admin/AIFunctions";
+import { AIFunctions } from "./pages/admin/AIFunctions";
 import { Cimiteri } from "./pages/cimiteri/Cimiteri";
 import NotFound from "./pages/NotFound";
 import './styles/chat.css';

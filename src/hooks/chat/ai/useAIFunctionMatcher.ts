@@ -9,10 +9,16 @@ export const useAIFunctionMatcher = () => {
   const findMatchingFunction = (normalizedQuery: string, aiFunctions: AIFunction[]) => {
     console.log("\n=== INIZIO RICERCA FUNZIONE ===");
     console.log("Query utente:", normalizedQuery);
+    console.log("Numero di funzioni attive:", aiFunctions.length);
+    console.log("Funzioni disponibili:", aiFunctions.map(f => ({
+      nome: f.name,
+      frasi_trigger: f.trigger_phrases
+    })));
     
     // Per ogni funzione, cerchiamo una corrispondenza esatta con le sue frasi trigger
     for (const func of aiFunctions) {
       console.log(`\nControllo funzione: ${func.name}`);
+      console.log("Frasi trigger disponibili:", func.trigger_phrases);
       
       // Cerca una corrispondenza esatta tra la query e una delle frasi trigger
       const matchingPhrase = func.trigger_phrases.find(phrase => {

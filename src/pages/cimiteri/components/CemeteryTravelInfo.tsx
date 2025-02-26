@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -7,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { supabase } from "@/lib/supabase";
 
 interface CemeteryTravelInfoProps {
   address: string | null;
@@ -148,21 +148,14 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           const origin = `${position.coords.latitude},${position.coords.longitude}`;
           const destination = encodeURIComponent(`${address}, ${city}, Italy`);
           
-          const response = await fetch(
-            `/api/edge/distance-matrix?origin=${origin}&destination=${destination}`,
-            {
-              headers: {
-                'Content-Type': 'application/json',
-              }
-            }
-          );
+          const { data, error } = await supabase.functions.invoke('distance-matrix', {
+            body: { origin, destination }
+          });
           
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+          if (error) {
+            throw error;
           }
           
-          const data = await response.json();
-
           if (data.rows?.[0]?.elements?.[0]?.status === "OK") {
             setTravelInfo({
               duration: data.rows[0].elements[0].duration.text,

@@ -15,28 +15,20 @@ export const useAIFunctions = () => {
   };
 
   const findMatchingFunction = (query: string, functions: AIFunction[]) => {
-    // Normalizza la query e rimuovi spazi extra
-    const normalizedQuery = query.toLowerCase().trim().replace(/\s+/g, ' ');
-    console.log("AI Functions - Query normalizzata:", normalizedQuery);
+    // Normalizza la query ricevuta
+    const normalizedQuery = query.toLowerCase().trim();
     
+    // Cerca un match esatto tra le frasi trigger di ogni funzione
     for (const func of functions) {
-      // Normalizza tutte le frasi trigger
-      const normalizedTriggers = func.trigger_phrases.map(phrase => 
-        phrase.toLowerCase().trim().replace(/\s+/g, ' ')
+      const hasExactMatch = func.trigger_phrases.some(
+        phrase => phrase.toLowerCase().trim() === normalizedQuery
       );
       
-      console.log(`AI Functions - Confronto triggers per ${func.name}:`, normalizedTriggers);
-      
-      // Verifica match ESATTO
-      const hasExactMatch = normalizedTriggers.some(trigger => trigger === normalizedQuery);
-      
       if (hasExactMatch) {
-        console.log(`AI Functions - Match esatto trovato per ${func.name}`);
         return func;
       }
     }
     
-    console.log("AI Functions - Nessun match esatto trovato");
     return null;
   };
 

@@ -28,12 +28,13 @@ export const useChat = (): UseChatReturn => {
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
 
     try {
-      // Normalizza la query e rimuovi spazi extra
-      const normalizedQuery = finalQuery.toLowerCase().trim().replace(/\s+/g, ' ');
-      console.log("Query normalizzata:", normalizedQuery);
+      const normalizedQuery = finalQuery.toLowerCase().trim();
 
-      // Lista esatta delle frasi trigger per la lista cimiteri
-      const EXACT_CIMITERI_TRIGGERS = [
+      // Verifica funzioni AI attive
+      const aiFunctions = await getActiveFunctions();
+      
+      // Prima controlla se c'è un match esatto per la lista cimiteri
+      const listaCimiteriTriggers = [
         "mostra la lista dei cimiteri",
         "mostrami la lista dei cimiteri",
         "lista cimiteri",
@@ -42,16 +43,13 @@ export const useChat = (): UseChatReturn => {
         "visualizza la lista dei cimiteri",
         "elenco cimiteri",
         "elenco dei cimiteri"
-      ].map(trigger => trigger.toLowerCase().trim().replace(/\s+/g, ' '));
+      ];
 
-      console.log("Confronto con triggers:", EXACT_CIMITERI_TRIGGERS);
+      const isExactListaMatch = listaCimiteriTriggers.some(
+        trigger => trigger.toLowerCase() === normalizedQuery
+      );
 
-      // Verifica match ESATTO per la lista cimiteri
-      const isExactMatch = EXACT_CIMITERI_TRIGGERS.includes(normalizedQuery);
-      console.log("È un match esatto?", isExactMatch);
-
-      if (isExactMatch) {
-        console.log("Esecuzione funzione lista cimiteri");
+      if (isExactListaMatch) {
         const cimiteri = await getAllCimiteri();
         setMessages(prev => [...prev, { 
           type: 'response', 
@@ -68,8 +66,7 @@ export const useChat = (): UseChatReturn => {
         return;
       }
 
-      // Verifica match esatto per le altre funzioni AI
-      const aiFunctions = await getActiveFunctions();
+      // Se non è un match esatto per la lista, cerca altre funzioni AI
       const matchedFunction = findMatchingFunction(normalizedQuery, aiFunctions);
 
       if (matchedFunction) {
@@ -77,21 +74,12 @@ export const useChat = (): UseChatReturn => {
         // Procedi con l'esecuzione della funzione AI...
       }
 
-      // Verifica richiesta specifica di un cimitero
-      const EXACT_SHOW_CIMITERO_TRIGGERS = [
-        "mostra il cimitero di",
-        "mostrami il cimitero di",
-        "cerca il cimitero di",
-        "trovami il cimitero di"
-      ].map(trigger => trigger.toLowerCase().trim().replace(/\s+/g, ' '));
+      // Verifica cimitero specifico
+      const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
+      const cimiteroMatch = normalizedQuery.match(cimiteroRegex);
 
-      const matchedTrigger = EXACT_SHOW_CIMITERO_TRIGGERS.find(trigger => 
-        normalizedQuery.startsWith(trigger)
-      );
-
-      if (matchedTrigger) {
-        const nomeCimitero = normalizedQuery.slice(matchedTrigger.length).trim();
-        console.log("Ricerca cimitero:", nomeCimitero);
+      if (cimiteroMatch) {
+        const nomeCimitero = cimiteroMatch[3];
         const cimitero = await findCimiteroByName(nomeCimitero);
 
         if (cimitero) {
@@ -117,19 +105,13 @@ export const useChat = (): UseChatReturn => {
         return;
       }
 
-      // Se non è un comando specifico, procedi con la richiesta generica
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
+      let response;
+      
       if (finalQuery.toLowerCase().startsWith("/test-model")) {
-        const response = await processTestQuery(aiProvider, aiModel);
-        if (response) {
-          setMessages(prev => [...prev, { 
-            type: 'response', 
-            content: response.text || '',
-            data: response.data
-          }]);
-        }
+        response = await processTestQuery(aiProvider, aiModel);
       } else {
         const requestBody: QueryRequest = {
           query: finalQuery.trim(),
@@ -140,24 +122,27 @@ export const useChat = (): UseChatReturn => {
           allowGenericResponse: true
         };
 
-        console.log("Invio richiesta generica:", requestBody);
+        console.log("Invio richiesta:", requestBody);
         
-        const { data: response, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+        const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
           body: requestBody
         });
 
-        if (error) throw error;
+        console.log("Risposta ricevuta:", { data, error });
 
-        if (response) {
-          setMessages(prev => [...prev, { 
-            type: 'response', 
-            content: response.text || '',
-            data: response.data
-          }]);
-          
-          if (response.error) {
-            toast.error(response.error, { duration: 2000 });
-          }
+        if (error) throw error;
+        response = data;
+      }
+      
+      if (response) {
+        setMessages(prev => [...prev, { 
+          type: 'response', 
+          content: response.text || '',
+          data: response.data
+        }]);
+        
+        if (response.error) {
+          toast.error(response.error, { duration: 2000 });
         }
       }
       

@@ -1,9 +1,11 @@
+
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Clock, MapPin, Sun, Car, Calendar, Navigation, CloudRain, Cloud, CloudSnow, CloudLightning, Maximize2, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 
 interface CemeteryTravelInfoProps {
@@ -248,8 +250,8 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
                 Mostra previsioni complete
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl bg-[#1A1F2C] border border-white/10 rounded-xl p-6">
-              <div className="flex justify-between items-center border-b border-white/10 pb-4">
+            <DialogContent className="max-w-4xl bg-[#1A1F2C] border border-white/10 rounded-xl">
+              <div className="flex justify-between items-center border-b border-white/10 p-6 pb-4">
                 <div className="flex items-center gap-2">
                   <Navigation className="w-5 h-5 text-[var(--primary-color)]" />
                   <DialogTitle className="text-xl font-medium text-white">Previsioni meteo per {city}</DialogTitle>
@@ -259,68 +261,70 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
                 </DialogClose>
               </div>
 
-              <div className="space-y-6 py-4">
-                <div className="bg-black/20 rounded-xl p-4 border border-white/10">
-                  <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 flex items-center justify-center text-[var(--primary-color)]">
-                      {getWeatherIcon(weather.condition)}
-                    </div>
-                    <div>
-                      <div className="flex items-baseline gap-2">
-                        <p className="text-4xl font-medium text-white">{weather.temperature}</p>
-                        <p className="text-xl text-white/70">°C</p>
+              <ScrollArea className="max-h-[80vh] overflow-y-auto">
+                <div className="space-y-6 p-6">
+                  <div className="bg-black/20 rounded-xl p-4 border border-white/10">
+                    <div className="flex items-center gap-4">
+                      <div className="h-16 w-16 flex items-center justify-center text-[var(--primary-color)]">
+                        {getWeatherIcon(weather.condition)}
                       </div>
-                      <p className="text-lg text-white/80 mt-1">{weather.condition}</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <h4 className="text-base font-medium text-white flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-[var(--primary-color)]" />
-                    Previsioni orarie di oggi
-                  </h4>
-                  <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
-                    {futureHourlyForecast.slice(0, 6).map((hour, index) => (
-                      <div key={index} className="bg-black/20 rounded-lg p-2 border border-white/10">
-                        <div className="flex flex-col items-center">
-                          <p className="text-sm font-medium text-white">{hour.time}</p>
-                          <div className="h-5 w-5 text-[var(--primary-color)] my-1">
-                            {getWeatherIcon(hour.condition)}
-                          </div>
-                          <p className="text-sm font-medium text-white">{hour.temperature}°C</p>
-                          <p className="text-[10px] text-white/80 text-center mt-0.5">{hour.condition}</p>
+                      <div>
+                        <div className="flex items-baseline gap-2">
+                          <p className="text-4xl font-medium text-white">{weather.temperature}</p>
+                          <p className="text-xl text-white/70">°C</p>
                         </div>
+                        <p className="text-lg text-white/80 mt-1">{weather.condition}</p>
                       </div>
-                    ))}
+                    </div>
                   </div>
-                </div>
 
-                <Separator className="bg-white/10" />
-
-                <div className="space-y-3">
-                  <h4 className="text-base font-medium text-white flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[var(--primary-color)]" />
-                    Previsioni prossimi giorni
-                  </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {weather.forecast.map((day, index) => (
-                      <div key={index} className="bg-black/20 rounded-xl p-3 border border-white/10">
-                        <p className="text-sm font-medium text-white capitalize mb-2">{day.date}</p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className="h-6 w-6 text-[var(--primary-color)]">
-                              {getWeatherIcon(day.condition)}
+                  <div className="space-y-3">
+                    <h4 className="text-base font-medium text-white flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-[var(--primary-color)]" />
+                      Previsioni orarie di oggi
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
+                      {futureHourlyForecast.slice(0, 6).map((hour, index) => (
+                        <div key={index} className="bg-black/20 rounded-lg p-2 border border-white/10">
+                          <div className="flex flex-col items-center">
+                            <p className="text-sm font-medium text-white">{hour.time}</p>
+                            <div className="h-5 w-5 text-[var(--primary-color)] my-1">
+                              {getWeatherIcon(hour.condition)}
                             </div>
-                            <p className="text-sm text-white/80">{day.condition}</p>
+                            <p className="text-sm font-medium text-white">{hour.temperature}°C</p>
+                            <p className="text-[10px] text-white/80 text-center mt-0.5">{hour.condition}</p>
                           </div>
-                          <p className="text-lg font-medium text-white">{day.temperature}°C</p>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
+                  </div>
+
+                  <Separator className="bg-white/10" />
+
+                  <div className="space-y-3">
+                    <h4 className="text-base font-medium text-white flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-[var(--primary-color)]" />
+                      Previsioni prossimi giorni
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                      {weather.forecast.map((day, index) => (
+                        <div key={index} className="bg-black/20 rounded-xl p-3 border border-white/10">
+                          <p className="text-sm font-medium text-white capitalize mb-2">{day.date}</p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="h-6 w-6 text-[var(--primary-color)]">
+                                {getWeatherIcon(day.condition)}
+                              </div>
+                              <p className="text-sm text-white/80">{day.condition}</p>
+                            </div>
+                            <p className="text-lg font-medium text-white">{day.temperature}°C</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </ScrollArea>
             </DialogContent>
           </Dialog>
         </div>

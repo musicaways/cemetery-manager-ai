@@ -26,106 +26,74 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-async function processQuery(query: string): Promise<AIResponse> {
-  // Normalizza il testo della query (rimuovi punteggiatura e rendi minuscolo)
-  const normalizedQuery = query.toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "");
+async function findMatchingFunction(query: string): Promise<{ code: string } | null> {
+  const { data: functions, error } = await supabase
+    .from('ai_chat_functions')
+    .select('code, trigger_phrases')
+    .eq('is_active', true);
 
-  // Array di pattern per riconoscere la richiesta di visualizzazione cimiteri
-  const cimiteriPatterns = [
-    "mostrami i cimiteri",
-    "mostrami la lista dei cimiteri",
-    "mostra i cimiteri",
-    "mostra la lista dei cimiteri",
-    "visualizza i cimiteri",
-    "fammi vedere i cimiteri",
-    "vedi i cimiteri",
-    "lista dei cimiteri",
-    "elenco dei cimiteri",
-    "quali cimiteri ci sono",
-    "che cimiteri ci sono",
-    "vedi lista cimiteri",
-    "show me the cemeteries",
-    "show cemeteries",
-    "list cemeteries",
-    "view cemeteries",
-    "display cemeteries",
-    "cemetery list"
-  ];
+  if (error) {
+    console.error("Error fetching functions:", error);
+    return null;
+  }
 
-  // Verifica se la query corrisponde a una richiesta di visualizzazione cimiteri
-  const isCimiteriRequest = cimiteriPatterns.some(pattern => 
-    normalizedQuery.includes(pattern.toLowerCase())
-  );
+  const normalizedQuery = query.toLowerCase().trim();
 
-  if (isCimiteriRequest) {
-    try {
-      const { data: cimiteri, error } = await supabase
-        .from('Cimitero')
-        .select(`
-          *,
-          settori:Settore(
-            Id,
-            Codice,
-            Descrizione,
-            blocchi:Blocco(*)
-          ),
-          foto:CimiteroFoto(*),
-          documenti:CimiteroDocumenti(*)
-        `)
-        .order('Descrizione', { ascending: true });
-
-      if (error) throw error;
-
-      return {
-        text: "Ecco la lista dei cimiteri disponibili:",
-        data: {
-          type: 'cimiteri',
-          cimiteri: cimiteri
-        }
-      };
-    } catch (error: any) {
-      console.error("Errore nel recupero dei cimiteri:", error);
-      return {
-        text: "Mi dispiace, si è verificato un errore nel recupero dei cimiteri.",
-        error: error.message
-      };
+  for (const func of functions) {
+    const matches = func.trigger_phrases.some(phrase => 
+      normalizedQuery.includes(phrase.toLowerCase())
+    );
+    
+    if (matches) {
+      return { code: func.code };
     }
   }
 
-  if (query.startsWith("/test-model")) {
+  return null;
+}
+
+async function processQuery(query: string): Promise<AIResponse> {
+  try {
+    // Cerca una funzione corrispondente
+    const matchingFunction = await findMatchingFunction(query);
+
+    if (matchingFunction) {
+      // Esegue la funzione trovata
+      const functionCode = matchingFunction.code;
+      const func = new Function('supabase', `return (${functionCode})();`);
+      return await func(supabase);
+    }
+
+    // Se non viene trovata nessuna funzione corrispondente
     return {
-      text: "Test command executed successfully."
+      text: "Mi dispiace, non ho capito la tua richiesta. Puoi provare a riformularla?"
+    };
+  } catch (error: any) {
+    console.error("Error processing query:", error);
+    return {
+      text: "Si è verificato un errore durante l'elaborazione della richiesta.",
+      error: error.message
     };
   }
-
-  // If no special command is recognized, return a default response
-  return {
-    text: "Mi dispiace, non ho capito la tua richiesta. Puoi provare a riformularla?"
-  };
 }
 
 serve(async (req) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
   try {
     const requestBody: QueryRequest = await req.json();
-    const { query, queryType, aiProvider, aiModel, isTest } = requestBody;
+    const { query } = requestBody;
 
     console.log("Ricevuta query:", query);
-    console.log("Tipo di query:", queryType);
-    console.log("AI Provider:", aiProvider);
-    console.log("AI Model:", aiModel);
-    console.log("Is Test:", isTest);
 
     if (!query) {
       throw new Error("Query is required.");
     }
 
     const aiResponse = await processQuery(query);
-    console.log("Risposta AI:", aiResponse);
+    console.log("Risposta:", aiResponse);
 
     return new Response(
       JSON.stringify(aiResponse),

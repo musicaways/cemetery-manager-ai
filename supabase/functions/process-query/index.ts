@@ -1,8 +1,11 @@
-import { serve } from 'std/server';
-import { corsHeaders } from '../_shared/cors.ts';
-import { OpenAIStream } from './utils/openai.ts';
-import { SupabaseClient, createClient } from '@supabase/supabase-js';
-import { Database } from '../../src/utils/types.ts';
+
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
 
 interface QueryRequest {
   query: string;
@@ -17,6 +20,11 @@ interface AIResponse {
   data?: any;
   error?: string;
 }
+
+// Initialize Supabase client
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function processQuery(query: string): Promise<AIResponse> {
   // Normalizza il testo della query (rimuovi punteggiatura e rendi minuscolo)
@@ -51,7 +59,6 @@ async function processQuery(query: string): Promise<AIResponse> {
 
   if (isCimiteriRequest) {
     try {
-      // Recupera i dati dei cimiteri dal database
       const { data: cimiteri, error } = await supabase
         .from('Cimitero')
         .select(`
@@ -76,7 +83,7 @@ async function processQuery(query: string): Promise<AIResponse> {
           cimiteri: cimiteri
         }
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error("Errore nel recupero dei cimiteri:", error);
       return {
         text: "Mi dispiace, si è verificato un errore nel recupero dei cimiteri.",
@@ -91,23 +98,14 @@ async function processQuery(query: string): Promise<AIResponse> {
     };
   }
 
-  try {
-    const response = await OpenAIStream(query);
-    if (!response) {
-      throw new Error('Failed to get a response from OpenAI.');
-    }
-    return { text: response };
-  } catch (error: any) {
-    console.error("Errore OpenAI:", error);
-    return {
-      text: "Errore durante l'elaborazione della richiesta con OpenAI.",
-      error: error.message
-    };
-  }
+  // If no special command is recognized, return a default response
+  return {
+    text: "Mi dispiace, non ho capito la tua richiesta. Puoi provare a riformularla?"
+  };
 }
 
-Deno.serve(async (req) => {
-  // This is needed if you're planning to invoke your function from a browser.
+serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }

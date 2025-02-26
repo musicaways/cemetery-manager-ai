@@ -17,6 +17,15 @@ interface AIFunction {
   is_active: boolean;
 }
 
+// Definizione del tipo per i dati necessari per l'inserimento/aggiornamento
+type AIFunctionInput = {
+  name: string;
+  description: string | null;
+  trigger_phrases: string[];
+  code: string;
+  is_active: boolean;
+};
+
 interface AIFunctionEditorProps {
   open: boolean;
   onClose: () => void;
@@ -45,7 +54,7 @@ export const AIFunctionEditor = ({ open, onClose, initialData }: AIFunctionEdito
   }, [initialData]);
 
   const mutation = useMutation({
-    mutationFn: async (data: Partial<AIFunction>) => {
+    mutationFn: async (data: AIFunctionInput) => {
       if (initialData) {
         const { error } = await supabase
           .from('ai_chat_functions')
@@ -55,7 +64,7 @@ export const AIFunctionEditor = ({ open, onClose, initialData }: AIFunctionEdito
       } else {
         const { error } = await supabase
           .from('ai_chat_functions')
-          .insert([data]);
+          .insert(data);
         if (error) throw error;
       }
     },
@@ -86,13 +95,15 @@ export const AIFunctionEditor = ({ open, onClose, initialData }: AIFunctionEdito
       return;
     }
 
-    mutation.mutate({
+    const functionData: AIFunctionInput = {
       name,
       description: description || null,
       trigger_phrases: triggerPhrases,
       code,
       is_active: true
-    });
+    };
+
+    mutation.mutate(functionData);
   };
 
   const handleClose = () => {
@@ -193,4 +204,3 @@ export const AIFunctionEditor = ({ open, onClose, initialData }: AIFunctionEdito
     </Dialog>
   );
 };
-

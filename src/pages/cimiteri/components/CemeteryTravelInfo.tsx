@@ -19,6 +19,8 @@ interface TravelInfo {
   distance: string;
 }
 
+const OPENWEATHER_API_KEY = "bd5e378503939ddaee76f12ad7a97608";
+
 export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [travelInfo, setTravelInfo] = useState<TravelInfo | null>(null);
@@ -34,9 +36,13 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
 
         // Fetch weather data
         const weatherResponse = await fetch(
-          `https://api.openweathermap.org/data/2.5/weather?q=${city},IT&units=metric&appid=${process.env.OPENWEATHER_API_KEY}`
+          `https://api.openweathermap.org/data/2.5/weather?q=${city},IT&units=metric&appid=${OPENWEATHER_API_KEY}`
         );
         const weatherData = await weatherResponse.json();
+
+        if (weatherData.cod === "404") {
+          throw new Error("Città non trovata");
+        }
 
         setWeather({
           temperature: Math.round(weatherData.main.temp),
@@ -46,10 +52,10 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
         // Fetch travel info using Google Maps Distance Matrix API
         if (address) {
           const origin = `${position.coords.latitude},${position.coords.longitude}`;
-          const destination = encodeURIComponent(address);
+          const destination = encodeURIComponent(`${address}, ${city}, Italy`);
           
           const response = await fetch(
-            `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${origin}&destinations=${destination}&key=${process.env.GOOGLE_MAPS_API_KEY}`
+            `/api/distance-matrix?origin=${origin}&destination=${destination}`
           );
           const data = await response.json();
 
@@ -58,6 +64,8 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               duration: data.rows[0].elements[0].duration.text,
               distance: data.rows[0].elements[0].distance.text
             });
+          } else {
+            throw new Error("Impossibile calcolare il percorso");
           }
         }
       } catch (error) {

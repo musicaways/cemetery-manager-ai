@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -106,8 +105,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
         const todayHourly = weatherData.list
           .filter((item: any) => {
             const itemDate = new Date(item.dt * 1000);
-            return itemDate.getDate() === new Date().getDate() && 
-                   itemDate.getHours() >= currentHour;
+            return itemDate.getDate() === new Date().getDate();
           })
           .map((item: any) => ({
             time: new Date(item.dt * 1000).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
@@ -115,6 +113,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
             condition: weatherTranslations[item.weather[0].main] || item.weather[0].main
           }));
 
+        console.log("Previsioni orarie disponibili:", todayHourly);
         setHourlyForecast(todayHourly);
 
         const forecast = weatherData.list
@@ -179,10 +178,10 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
   }, [address, city]);
 
   const futureHourlyForecast = hourlyForecast.filter(hour => {
-    const hourTime = new Date();
-    const [hours, minutes] = hour.time.split(':');
-    hourTime.setHours(parseInt(hours), parseInt(minutes));
-    return hourTime > new Date();
+    const [hours, minutes] = hour.time.split(':').map(Number);
+    const forecastTime = new Date();
+    forecastTime.setHours(hours, minutes);
+    return forecastTime > new Date();
   });
 
   if (loading) {
@@ -209,7 +208,6 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
       {weather && (
         <div className="space-y-4">
           <div className="flex items-stretch">
-            {/* Current weather */}
             <div className="flex-1 pr-4">
               <div className="h-full flex items-center gap-3 bg-black/20 rounded-lg p-3">
                 <div className="h-10 w-10 flex items-center justify-center text-[var(--primary-color)]">
@@ -227,7 +225,6 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
 
             <Separator orientation="vertical" className="mx-4 h-auto bg-white/20" />
 
-            {/* Hourly forecast preview */}
             <div className="flex-1">
               <div className="space-y-1.5">
                 {futureHourlyForecast.slice(0, 3).map((hour, index) => (
@@ -264,7 +261,6 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               </div>
 
               <div className="space-y-6 py-4">
-                {/* Current Weather */}
                 <div className="bg-black/20 rounded-xl p-4 border border-white/10">
                   <div className="flex items-center gap-4">
                     <div className="h-16 w-16 flex items-center justify-center text-[var(--primary-color)]">
@@ -280,7 +276,6 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
                   </div>
                 </div>
 
-                {/* Hourly Forecast */}
                 <div className="space-y-3">
                   <h4 className="text-base font-medium text-white flex items-center gap-2">
                     <Clock className="w-4 h-4 text-[var(--primary-color)]" />
@@ -304,7 +299,6 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
 
                 <Separator className="bg-white/10" />
 
-                {/* Daily Forecast */}
                 <div className="space-y-3">
                   <h4 className="text-base font-medium text-white flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-[var(--primary-color)]" />

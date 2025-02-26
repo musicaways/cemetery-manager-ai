@@ -1,110 +1,45 @@
 
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import Index from "./pages/Index";
-import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
-import UsersAdmin from "./pages/admin/Users";
-import TablesAdmin from "./pages/admin/Tables";
-import Cimiteri from "./pages/cimiteri/Cimiteri";
-import { ThemeProvider } from '@/lib/themeContext';
-import { Layout } from "@/components/Layout";
-import './styles/chat.css';
+import { ThemeProvider } from "./lib/themeContext";
+import { Layout } from "./components/Layout";
+import { Toaster } from "./components/ui/sonner";
+import { Index } from "./pages/Index";
+import { Auth } from "./pages/Auth";
+import { Tables } from "./pages/admin/Tables";
+import { Users } from "./pages/admin/Users";
+import { AIFunctions } from "./pages/admin/AIFunctions";
+import { Cimiteri } from "./pages/cimiteri/Cimiteri";
+import { CimiteroDetails } from "./pages/cimiteri/components/CimiteroDetails/CimiteroDetails";
+import { BloccoDetails } from "./pages/cimiteri/components/BloccoDetails/BloccoDetails";
+import { NotFound } from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-    });
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-    });
-  }, []);
-
-  if (isAuthenticated === null) {
-    return null;
-  }
-
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider>
+        <Router>
+          <Layout>
             <Routes>
-              <Route
-                path="/auth"
-                element={
-                  !isAuthenticated ? (
-                    <Auth />
-                  ) : (
-                    <Navigate to="/" replace />
-                  )
-                }
-              />
-              <Route
-                path="/"
-                element={
-                  isAuthenticated ? (
-                    <Layout>
-                      <Index />
-                    </Layout>
-                  ) : (
-                    <Navigate to="/auth" replace />
-                  )
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  isAuthenticated ? (
-                    <Layout>
-                      <UsersAdmin />
-                    </Layout>
-                  ) : (
-                    <Navigate to="/auth" replace />
-                  )
-                }
-              />
-              <Route
-                path="/admin/tables"
-                element={
-                  isAuthenticated ? (
-                    <Layout>
-                      <TablesAdmin />
-                    </Layout>
-                  ) : (
-                    <Navigate to="/auth" replace />
-                  )
-                }
-              />
-              <Route
-                path="/cimiteri"
-                element={
-                  isAuthenticated ? (
-                    <Layout>
-                      <Cimiteri />
-                    </Layout>
-                  ) : (
-                    <Navigate to="/auth" replace />
-                  )
-                }
-              />
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/admin">
+                <Route path="tables" element={<Tables />} />
+                <Route path="users" element={<Users />} />
+                <Route path="ai-functions" element={<AIFunctions />} />
+              </Route>
+              <Route path="/cimiteri" element={<Cimiteri />} />
+              <Route path="/cimiteri/:id" element={<CimiteroDetails />} />
+              <Route path="/cimiteri/:cimiteroId/blocchi/:bloccoId" element={<BloccoDetails />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+          </Layout>
+          <Toaster />
+        </Router>
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }
 

@@ -101,20 +101,30 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           throw new Error("Città non trovata");
         }
 
-        const currentHour = new Date().getHours();
-        const todayHourly = weatherData.list
-          .filter((item: any) => {
-            const itemDate = new Date(item.dt * 1000);
-            return itemDate.getDate() === new Date().getDate();
-          })
-          .map((item: any) => ({
-            time: new Date(item.dt * 1000).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
-            temperature: Math.round(item.main.temp),
-            condition: weatherTranslations[item.weather[0].main] || item.weather[0].main
-          }));
+        console.log("Dati completi da OpenWeather:", weatherData.list);
 
-        console.log("Previsioni orarie disponibili:", todayHourly);
-        setHourlyForecast(todayHourly);
+        const todayHourly = weatherData.list
+          .map((item: any) => {
+            const itemDate = new Date(item.dt * 1000);
+            return {
+              time: itemDate.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+              temperature: Math.round(item.main.temp),
+              condition: weatherTranslations[item.weather[0].main] || item.weather[0].main,
+              fullDate: itemDate
+            };
+          });
+
+        console.log("Previsioni orarie mappate:", todayHourly);
+
+        const now = new Date();
+        const todayForecast = todayHourly.filter(item => {
+          const itemDate = item.fullDate;
+          return itemDate.getDate() === now.getDate() && itemDate > now;
+        });
+
+        console.log("Previsioni filtrate per oggi:", todayForecast);
+
+        setHourlyForecast(todayForecast);
 
         const forecast = weatherData.list
           .filter((item: any) => {
@@ -177,12 +187,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
     fetchData();
   }, [address, city]);
 
-  const futureHourlyForecast = hourlyForecast.filter(hour => {
-    const [hours, minutes] = hour.time.split(':').map(Number);
-    const forecastTime = new Date();
-    forecastTime.setHours(hours, minutes);
-    return forecastTime > new Date();
-  });
+  const futureHourlyForecast = hourlyForecast;
 
   if (loading) {
     return (

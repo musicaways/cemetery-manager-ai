@@ -1,7 +1,10 @@
+
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Clock, MapPin, Sun, Car, Calendar, Navigation, CloudRain, Cloud, CloudSnow, CloudLightning } from "lucide-react";
+import { Clock, MapPin, Sun, Car, Calendar, Navigation, CloudRain, Cloud, CloudSnow, CloudLightning, Maximize2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 interface CemeteryTravelInfoProps {
@@ -170,7 +173,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
 
   if (loading) {
     return (
-      <Card className="p-4 space-y-2 bg-black/20 border-[var(--primary-color)]/20 animate-pulse">
+      <Card className="p-4 space-y-2 bg-black/20 border-[var(--primary-color)]/20 animate-pulse rounded-xl">
         <div className="h-4 bg-gray-700 rounded w-3/4"></div>
         <div className="h-4 bg-gray-700 rounded w-1/2"></div>
       </Card>
@@ -178,7 +181,7 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
   }
 
   return (
-    <Card className="p-4 space-y-4 bg-gradient-to-br from-black/30 to-black/10 backdrop-blur-sm border-[var(--primary-color)]/20">
+    <Card className="p-4 space-y-4 bg-gradient-to-br from-black/30 to-black/10 backdrop-blur-sm border-[var(--primary-color)]/20 rounded-xl">
       <div className="border-b border-white/10 pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -191,8 +194,9 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
 
       {weather && (
         <div className="space-y-4">
-          <div className="flex gap-4">
-            <div className="flex-1">
+          <div className="flex">
+            {/* Meteo corrente */}
+            <div className="flex-1 pr-4">
               <div className="bg-black/20 rounded-lg p-3">
                 <div className="flex items-center gap-3">
                   <div className="h-10 w-10 flex items-center justify-center">
@@ -209,18 +213,19 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               </div>
             </div>
 
-            <Separator orientation="vertical" className="bg-white/10" />
+            <Separator orientation="vertical" className="bg-white" />
 
+            {/* Previsioni orarie */}
             {hourlyForecast.length > 0 && (
-              <div className="flex-1">
-                <div className="grid grid-cols-2 gap-2">
+              <div className="flex-1 pl-4">
+                <div className="space-y-2">
                   {hourlyForecast.slice(0, 4).map((hour, index) => (
-                    <div key={index} className="bg-black/20 rounded-lg p-2 text-center">
+                    <div key={index} className="flex items-center justify-between bg-black/20 rounded-lg px-3 py-2">
                       <p className="text-xs text-gray-400">{hour.time}</p>
-                      <p className="text-sm font-medium">{hour.temperature}°C</p>
-                      <div className="h-4 w-4 mx-auto mt-1">
+                      <div className="h-4 w-4">
                         {getWeatherIcon(hour.condition)}
                       </div>
+                      <p className="text-sm font-medium">{hour.temperature}°C</p>
                     </div>
                   ))}
                 </div>
@@ -245,6 +250,61 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               ))}
             </div>
           </div>
+
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="ghost" size="sm" className="w-full mt-2 text-xs text-gray-400 hover:text-white hover:bg-black/20">
+                <Maximize2 className="w-4 h-4 mr-2" />
+                Mostra previsioni complete
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl bg-gradient-to-br from-black/95 to-black/90 backdrop-blur-xl border-white/10">
+              <DialogHeader>
+                <DialogTitle>Previsioni meteo complete per {city}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6 py-4">
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-gray-400">Previsioni orarie di oggi</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {hourlyForecast.map((hour, index) => (
+                      <div key={index} className="bg-black/30 rounded-lg p-3 flex items-center justify-between">
+                        <div>
+                          <p className="text-sm">{hour.time}</p>
+                          <p className="text-xs text-gray-400">{hour.condition}</p>
+                        </div>
+                        <div className="text-right">
+                          <div className="h-6 w-6 mb-1">
+                            {getWeatherIcon(hour.condition)}
+                          </div>
+                          <p className="text-sm font-medium">{hour.temperature}°C</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-gray-400">Previsioni prossimi giorni</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {weather.forecast.map((day, index) => (
+                      <div key={index} className="bg-black/30 rounded-lg p-4">
+                        <p className="text-sm font-medium capitalize mb-2">{day.date}</p>
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="text-xs text-gray-400">{day.condition}</p>
+                            <p className="text-lg font-medium mt-1">{day.temperature}°C</p>
+                          </div>
+                          <div className="h-8 w-8">
+                            {getWeatherIcon(day.condition)}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       )}
 

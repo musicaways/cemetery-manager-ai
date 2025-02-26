@@ -39,8 +39,8 @@ export const useChat = (): UseChatReturn => {
           const result = await executeFunction(matchedFunction, finalQuery);
           setMessages(prev => [...prev, { 
             type: 'response', 
-            content: result.text || result,
-            data: result.data,
+            content: result?.text || result || "Nessun risultato dalla funzione",
+            data: result?.data,
             timestamp: new Date()
           }]);
           setQuery("");

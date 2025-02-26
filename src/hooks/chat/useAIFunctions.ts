@@ -65,10 +65,21 @@ export const useAIFunctions = () => {
       
       // Crea una funzione dalla stringa del codice
       const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-      const executableFunction = new AsyncFunction('query', functionBody);
+      const executableFunction = new AsyncFunction('supabase', 'query', functionBody);
       
-      // Esegue la funzione
-      return await executableFunction(query);
+      // Esegue la funzione passando l'istanza di supabase
+      const result = await executableFunction(supabase, query);
+      console.log("Risultato funzione:", result);
+      
+      // Se il risultato è una stringa, lo convertiamo in un oggetto
+      if (typeof result === 'string') {
+        return {
+          text: result,
+          data: null
+        };
+      }
+      
+      return result;
     } catch (error) {
       console.error("Errore nell'esecuzione della funzione:", error);
       throw error;

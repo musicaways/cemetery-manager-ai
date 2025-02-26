@@ -70,7 +70,9 @@ async function getGeminiResponse(query: string): Promise<string> {
     throw new Error('GEMINI_API_KEY non configurata');
   }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`, {
+  console.log("Using Gemini API Key:", apiKey);
+
+  const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -83,27 +85,60 @@ async function getGeminiResponse(query: string): Promise<string> {
       }],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 1000,
-      }
+        topK: 40,
+        topP: 0.95,
+        maxOutputTokens: 1024,
+      },
+      safetySettings: [
+        {
+          category: "HARM_CATEGORY_HARASSMENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_HATE_SPEECH",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        },
+        {
+          category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+          threshold: "BLOCK_MEDIUM_AND_ABOVE"
+        }
+      ]
     }),
   });
 
   if (!response.ok) {
-    throw new Error('Errore nella chiamata a Gemini API');
+    const errorData = await response.json();
+    console.error("Gemini API Error:", errorData);
+    throw new Error(`Errore nella chiamata a Gemini API: ${JSON.stringify(errorData)}`);
   }
 
   const data = await response.json();
+  console.log("Gemini Response:", data);
+
+  if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
+    throw new Error('Risposta non valida da Gemini API');
+  }
+
   return data.candidates[0].content.parts[0].text;
 }
 
 async function getAIResponse(query: string, provider: string): Promise<string> {
-  switch (provider.toLowerCase()) {
-    case 'groq':
-      return await getGroqResponse(query);
-    case 'gemini':
-      return await getGeminiResponse(query);
-    default:
-      return await getGroqResponse(query); // Fallback to Groq
+  try {
+    switch (provider.toLowerCase()) {
+      case 'groq':
+        return await getGroqResponse(query);
+      case 'gemini':
+        return await getGeminiResponse(query);
+      default:
+        return await getGroqResponse(query); // Fallback to Groq
+    }
+  } catch (error) {
+    console.error(`Error with ${provider} API:`, error);
+    throw error;
   }
 }
 
@@ -189,9 +224,12 @@ serve(async (req) => {
   } catch (error: any) {
     console.error("Errore durante l'elaborazione:", error);
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        text: "Si è verificato un errore durante l'elaborazione della richiesta.",
+        error: error.message
+      }),
       {
-        status: 400,
+        status: 200, // Cambiato da 400 a 200 per evitare errori di CORS
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );

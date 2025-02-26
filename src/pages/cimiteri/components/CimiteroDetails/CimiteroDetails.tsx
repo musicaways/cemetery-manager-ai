@@ -7,7 +7,6 @@ import { CoverImage } from "./components/CoverImage";
 import { EditButtons } from "./components/EditButtons";
 import { Breadcrumb } from "./components/Breadcrumb";
 import { CollapsibleSections } from "./components/CollapsibleSections";
-import { Footer } from "./components/Footer";
 import { X } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
@@ -88,8 +87,6 @@ export const CimiteroDetails = ({
               onInputChange={onInputChange}
               handleRefresh={handleRefresh}
             />
-
-            <Footer />
           </div>
         </div>
       </ScrollArea>

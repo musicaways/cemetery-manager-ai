@@ -60,16 +60,6 @@ export const useAPIKeys = (onSave: () => void) => {
     setIsTesting(provider);
     
     try {
-      // Prima aggiorniamo la chiave nelle Edge Functions
-      const { error: updateError } = await supabase.functions.invoke('update-ai-provider', {
-        body: { provider: provider.toLowerCase(), apiKey }
-      });
-
-      if (updateError) {
-        console.error('Update error:', updateError);
-        throw updateError;
-      }
-
       // Test specifici per tipo di API
       if (provider.toLowerCase() === 'googlemaps') {
         // Test di Google Maps API con una semplice richiesta di geocoding
@@ -81,8 +71,14 @@ export const useAPIKeys = (onSave: () => void) => {
         console.log('Google Maps test response:', data);
         
         if (data.status === 'OK' || data.status === 'ZERO_RESULTS') {
+          // Se il test ha successo, aggiorniamo la chiave nelle Edge Functions
+          const { error: updateError } = await supabase.functions.invoke('update-ai-provider', {
+            body: { provider: provider.toLowerCase(), apiKey }
+          });
+
+          if (updateError) throw updateError;
+          
           toast.success(`Test API di ${provider} completato con successo`);
-          setIsTesting(null);
           return;
         } else {
           throw new Error(`Google Maps API error: ${data.status}`);
@@ -99,8 +95,14 @@ export const useAPIKeys = (onSave: () => void) => {
         console.log('SerpStack test response:', data);
         
         if (!data.error) {
+          // Se il test ha successo, aggiorniamo la chiave nelle Edge Functions
+          const { error: updateError } = await supabase.functions.invoke('update-ai-provider', {
+            body: { provider: provider.toLowerCase(), apiKey }
+          });
+
+          if (updateError) throw updateError;
+          
           toast.success(`Test API di ${provider} completato con successo`);
-          setIsTesting(null);
           return;
         } else {
           throw new Error(`SerpStack API error: ${data.error.info}`);
@@ -132,29 +134,25 @@ export const useAPIKeys = (onSave: () => void) => {
       console.log(`Testing ${provider} with model ${testModel}`);
       
       // Test del modello linguistico
-      const { data, error } = await supabase.functions.invoke('process-query', {
+      const { data, error } = await supabase.functions.invoke('test-api-provider', {
         body: {
-          query: testQuery,
-          queryType: 'test',
-          aiProvider: provider.toLowerCase(),
-          aiModel: testModel,
-          isTest: true,
-          allowGenericResponse: true
+          provider: provider.toLowerCase(),
+          apiKey,
+          model: testModel
         }
       });
 
       if (error) {
-        console.error('Process query error:', error);
+        console.error('Test API error:', error);
         throw error;
       }
 
-      console.log(`Test response for ${provider}:`, data);
+      // Se il test ha successo, aggiorniamo la chiave nelle Edge Functions
+      const { error: updateError } = await supabase.functions.invoke('update-ai-provider', {
+        body: { provider: provider.toLowerCase(), apiKey }
+      });
 
-      // Verifichiamo la risposta
-      const response = data?.text?.toLowerCase() || '';
-      if (!response.includes('ok')) {
-        throw new Error('Test fallito: risposta non valida');
-      }
+      if (updateError) throw updateError;
 
       toast.success(`Test API di ${provider} completato con successo`);
     } catch (error) {
@@ -200,32 +198,6 @@ export const useAPIKeys = (onSave: () => void) => {
 
         if (error) throw error;
       }
-
-      // Aggiorniamo le chiavi nelle Edge Functions dopo il salvataggio
-      const updatePromises = [];
-
-      if (groqKey) {
-        updatePromises.push(supabase.functions.invoke('update-ai-provider', {
-          body: { provider: 'groq', apiKey: groqKey }
-        }));
-      }
-      if (geminiKey) {
-        updatePromises.push(supabase.functions.invoke('update-ai-provider', {
-          body: { provider: 'gemini', apiKey: geminiKey }
-        }));
-      }
-      if (perplexityKey) {
-        updatePromises.push(supabase.functions.invoke('update-ai-provider', {
-          body: { provider: 'perplexity', apiKey: perplexityKey }
-        }));
-      }
-      if (huggingfaceKey) {
-        updatePromises.push(supabase.functions.invoke('update-ai-provider', {
-          body: { provider: 'huggingface', apiKey: huggingfaceKey }
-        }));
-      }
-
-      await Promise.all(updatePromises);
 
       setHasChanges(false);
       toast.success('Chiavi API salvate con successo');

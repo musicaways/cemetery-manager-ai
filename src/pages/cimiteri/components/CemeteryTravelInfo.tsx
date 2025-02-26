@@ -1,7 +1,6 @@
-
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Clock, MapPin, Sun, Car, Calendar } from "lucide-react";
+import { Clock, MapPin, Sun, Car, Calendar, Navigation } from "lucide-react";
 import { toast } from "sonner";
 
 interface CemeteryTravelInfoProps {
@@ -28,7 +27,6 @@ interface TravelInfo {
 
 const OPENWEATHER_API_KEY = "bd5e378503939ddaee76f12ad7a97608";
 
-// Traduzione delle condizioni meteo
 const weatherTranslations: { [key: string]: string } = {
   'Clear': 'Sereno',
   'Clouds': 'Nuvoloso',
@@ -51,16 +49,20 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [travelInfo, setTravelInfo] = useState<TravelInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const currentDate = new Date().toLocaleDateString('it-IT', { 
+    weekday: 'long', 
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Ottieni la posizione corrente
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject);
         });
 
-        // Fetch weather data con forecast
         const weatherResponse = await fetch(
           `https://api.openweathermap.org/data/2.5/forecast?q=${city},IT&units=metric&appid=${OPENWEATHER_API_KEY}`
         );
@@ -70,10 +72,9 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           throw new Error("Città non trovata");
         }
 
-        // Organizziamo i dati del forecast per i prossimi 3 giorni
         const forecast = weatherData.list
-          .filter((_: any, index: number) => index % 8 === 0) // Prendiamo una previsione al giorno
-          .slice(0, 3) // Solo i prossimi 3 giorni
+          .filter((_: any, index: number) => index % 8 === 0)
+          .slice(0, 3)
           .map((day: any) => ({
             date: new Date(day.dt * 1000).toLocaleDateString('it-IT', { weekday: 'long' }),
             temperature: Math.round(day.main.temp),
@@ -86,7 +87,6 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           forecast
         });
 
-        // Fetch travel info using Google Maps Distance Matrix API
         if (address) {
           const origin = `${position.coords.latitude},${position.coords.longitude}`;
           const destination = encodeURIComponent(`${address}, ${city}, Italy`);
@@ -133,64 +133,86 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
   }
 
   return (
-    <Card className="p-4 space-y-4 bg-black/20 border-[var(--primary-color)]/20">
-      <div className="grid grid-cols-2 gap-4">
+    <Card className="p-6 space-y-6 bg-gradient-to-br from-black/30 to-black/10 backdrop-blur-sm border-[var(--primary-color)]/20">
+      <div className="border-b border-white/10 pb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Navigation className="w-5 h-5 text-[var(--primary-color)]" />
+            <h3 className="text-lg font-medium capitalize">{city}</h3>
+          </div>
+          <p className="text-sm text-gray-400 capitalize">{currentDate}</p>
+        </div>
+      </div>
+
+      <div className="grid gap-6">
         {weather && (
-          <>
-            <div className="flex items-center gap-2">
-              <Sun className="w-5 h-5 text-yellow-500" />
-              <div>
-                <p className="text-sm text-gray-400">Temperatura attuale</p>
-                <p className="text-lg">{weather.temperature}°C</p>
-                <p className="text-sm text-gray-400">{weather.condition}</p>
-              </div>
-            </div>
-            <div className="col-span-2">
-              <div className="mt-2">
-                <p className="text-sm text-gray-400 mb-2 flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  Previsioni prossimi giorni:
-                </p>
-                <div className="grid grid-cols-3 gap-2">
-                  {weather.forecast.map((day, index) => (
-                    <div key={index} className="text-center p-2 bg-black/10 rounded">
-                      <p className="text-xs text-gray-400 capitalize">{day.date}</p>
-                      <p className="text-sm font-medium">{day.temperature}°C</p>
-                      <p className="text-xs text-gray-400">{day.condition}</p>
-                    </div>
-                  ))}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between bg-black/20 rounded-xl p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-yellow-500/10 rounded-lg">
+                  <Sun className="w-8 h-8 text-yellow-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-gray-400">Temperatura attuale</p>
+                  <div className="flex items-end gap-1">
+                    <p className="text-3xl font-medium">{weather.temperature}</p>
+                    <p className="text-lg text-gray-400 mb-1">°C</p>
+                  </div>
                 </div>
               </div>
+              <p className="text-lg text-gray-300">{weather.condition}</p>
             </div>
-          </>
+
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Calendar className="w-4 h-4" />
+                <p className="text-sm">Previsioni prossimi giorni</p>
+              </div>
+              <div className="grid grid-cols-3 gap-3">
+                {weather.forecast.map((day, index) => (
+                  <div key={index} className="bg-black/20 rounded-lg p-3 text-center">
+                    <p className="text-sm text-gray-400 capitalize mb-2">{day.date}</p>
+                    <p className="text-lg font-medium mb-1">{day.temperature}°C</p>
+                    <p className="text-xs text-gray-400">{day.condition}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         )}
-        
+
         {travelInfo && (
-          <>
-            <div className="flex items-center gap-2">
-              <Clock className="w-5 h-5 text-blue-500" />
+          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <Clock className="w-5 h-5 text-blue-500" />
+              </div>
               <div>
                 <p className="text-sm text-gray-400">Tempo stimato</p>
                 <p className="text-lg">{travelInfo.duration}</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2">
-              <Car className="w-5 h-5 text-green-500" />
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/10 rounded-lg">
+                <Car className="w-5 h-5 text-green-500" />
+              </div>
               <div>
                 <p className="text-sm text-gray-400">Distanza</p>
                 <p className="text-lg">{travelInfo.distance}</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 col-span-2">
-              <MapPin className="w-5 h-5 text-red-500" />
+            <div className="flex items-center gap-3 col-span-2">
+              <div className="p-2 bg-red-500/10 rounded-lg">
+                <MapPin className="w-5 h-5 text-red-500" />
+              </div>
               <div>
                 <p className="text-sm text-gray-400">Indirizzo</p>
-                <p className="text-sm">{address}</p>
+                <p className="text-sm text-gray-300">{address}</p>
               </div>
             </div>
-          </>
+          </div>
         )}
       </div>
     </Card>

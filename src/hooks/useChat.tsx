@@ -77,6 +77,28 @@ export const useChat = () => {
     try {
       // Verifica se è richiesta la lista dei cimiteri (case insensitive)
       const normalizedQuery = finalQuery.toLowerCase();
+
+      // Recupera tutte le funzioni AI attive
+      const { data: aiFunctions, error: aiFunctionsError } = await supabase
+        .from('ai_chat_functions')
+        .select('*')
+        .eq('is_active', true);
+
+      if (aiFunctionsError) throw aiFunctionsError;
+
+      // Controlla se la query corrisponde a qualche trigger phrase delle funzioni AI
+      const matchedFunction = aiFunctions?.find(func => 
+        func.trigger_phrases.some(phrase => 
+          normalizedQuery.includes(phrase.toLowerCase())
+        )
+      );
+
+      if (matchedFunction) {
+        // Esegui la funzione AI corrispondente
+        console.log("Funzione AI trovata:", matchedFunction);
+        // Per ora continuiamo con la logica esistente per i cimiteri
+      }
+
       const listaCimiteriRegex = /mostra(mi)?\s+(la\s+)?lista\s+(dei\s+)?cimiteri/i;
       if (listaCimiteriRegex.test(normalizedQuery)) {
         const cimiteri = await getAllCimiteri();

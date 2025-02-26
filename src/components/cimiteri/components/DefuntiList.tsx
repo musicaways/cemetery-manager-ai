@@ -54,7 +54,23 @@ export const DefuntiList = ({ loculoId, loculoNumero, isOpen, onClose }: Defunti
         return;
       }
 
-      setDefunti(data || []);
+      // Validazione e trasformazione dei dati
+      const validatedDefunti: Defunto[] = (data || []).map(d => {
+        // Valida il campo sesso, se non è 'M' o 'F', impostiamo un valore di default 'M'
+        const validSesso = d.sesso === 'M' || d.sesso === 'F' ? d.sesso : 'M';
+        
+        return {
+          id: d.id,
+          nominativo: d.nominativo,
+          data_nascita: d.data_nascita,
+          data_decesso: d.data_decesso,
+          eta: d.eta,
+          sesso: validSesso,
+          annotazioni: d.annotazioni
+        };
+      });
+
+      setDefunti(validatedDefunti);
     } catch (error: any) {
       toast.error("Errore nel caricamento dei defunti: " + error.message);
     } finally {

@@ -4,8 +4,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 
 interface MediaViewerNavigationProps {
   showNavigation: boolean;
-  onPrevious: () => void;
-  onNext: () => void;
+  onPrevious: (e: React.MouseEvent) => void;
+  onNext: (e: React.MouseEvent) => void;
 }
 
 export const MediaViewerNavigation = ({ 
@@ -16,23 +16,27 @@ export const MediaViewerNavigation = ({
   if (!showNavigation) return null;
 
   return (
-    <>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute left-4 z-50 text-white hover:bg-white/20"
-        onClick={onPrevious}
-      >
-        <ChevronLeft className="h-8 w-8" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="absolute right-4 z-50 text-white hover:bg-white/20"
-        onClick={onNext}
-      >
-        <ChevronRight className="h-8 w-8" />
-      </Button>
-    </>
+    <div className="absolute inset-0 flex items-center justify-between z-10 pointer-events-none">
+      <div className="w-16 flex justify-start pointer-events-auto">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-white hover:bg-white/20"
+          onClick={onPrevious}
+        >
+          <ChevronLeft className="h-8 w-8" />
+        </Button>
+      </div>
+      <div className="w-16 flex justify-end pointer-events-auto">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-white hover:bg-white/20"
+          onClick={onNext}
+        >
+          <ChevronRight className="h-8 w-8" />
+        </Button>
+      </div>
+    </div>
   );
 };

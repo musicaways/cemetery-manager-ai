@@ -4,45 +4,54 @@ import type { AIFunction } from "@/components/admin/ai-functions/types";
 import type { AIResponse } from "@/utils/types";
 
 export const useAIFunctions = () => {
+  // Recupera solo le funzioni attive
   const getActiveFunctions = async () => {
     const { data, error } = await supabase
       .from('ai_chat_functions')
       .select('*')
       .eq('is_active', true);
     
-    if (error) throw error;
+    if (error) {
+      console.error("Errore nel recupero funzioni AI:", error);
+      throw error;
+    }
     return data as AIFunction[];
   };
 
-  const findMatchingFunction = (query: string, functions: AIFunction[]) => {
-    // Normalizza la query ricevuta
+  // Trova una funzione che ha un match ESATTO con una delle sue frasi trigger
+  const findExactMatchingFunction = (query: string, functions: AIFunction[]) => {
     const normalizedQuery = query.toLowerCase().trim();
+    console.log("Query normalizzata:", normalizedQuery);
     
-    // Cerca un match esatto tra le frasi trigger di ogni funzione
     for (const func of functions) {
-      const hasExactMatch = func.trigger_phrases.some(
-        phrase => phrase.toLowerCase().trim() === normalizedQuery
+      // Normalizza tutte le frasi trigger
+      const normalizedTriggers = func.trigger_phrases.map(phrase => 
+        phrase.toLowerCase().trim()
       );
       
-      if (hasExactMatch) {
+      console.log("Confronto con i trigger della funzione:", func.name, normalizedTriggers);
+      
+      // Cerca un match ESATTO
+      if (normalizedTriggers.includes(normalizedQuery)) {
+        console.log("Match esatto trovato per la funzione:", func.name);
         return func;
       }
     }
     
+    console.log("Nessun match esatto trovato");
     return null;
   };
 
   const processTestQuery = async (aiProvider: string, aiModel: string): Promise<AIResponse> => {
-    const response: AIResponse = {
+    return {
       text: `Test con provider: ${aiProvider}, modello: ${aiModel}`,
       data: null
     };
-    return response;
   };
 
   return {
     getActiveFunctions,
-    findMatchingFunction,
+    findMatchingFunction: findExactMatchingFunction,
     processTestQuery
   };
 };

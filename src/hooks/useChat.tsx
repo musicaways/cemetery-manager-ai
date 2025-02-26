@@ -29,89 +29,50 @@ export const useChat = (): UseChatReturn => {
 
     try {
       const normalizedQuery = finalQuery.toLowerCase().trim();
+      console.log("Elaborazione query:", normalizedQuery);
 
-      // Verifica funzioni AI attive
+      // 1. Prima cerca tra le funzioni AI attive
       const aiFunctions = await getActiveFunctions();
-      
-      // Prima controlla se c'è un match esatto per la lista cimiteri
-      const listaCimiteriTriggers = [
-        "mostra la lista dei cimiteri",
-        "mostrami la lista dei cimiteri",
-        "lista cimiteri",
-        "lista dei cimiteri",
-        "visualizza lista cimiteri",
-        "visualizza la lista dei cimiteri",
-        "elenco cimiteri",
-        "elenco dei cimiteri"
-      ];
-
-      const isExactListaMatch = listaCimiteriTriggers.some(
-        trigger => trigger.toLowerCase() === normalizedQuery
-      );
-
-      if (isExactListaMatch) {
-        const cimiteri = await getAllCimiteri();
-        setMessages(prev => [...prev, { 
-          type: 'response', 
-          content: 'Ecco la lista dei cimiteri disponibili:',
-          data: {
-            type: 'cimiteri',
-            cimiteri
-          },
-          timestamp: new Date()
-        }]);
-        setQuery("");
-        setIsProcessing(false);
-        setTimeout(scrollToBottom, 100);
-        return;
-      }
-
-      // Se non è un match esatto per la lista, cerca altre funzioni AI
       const matchedFunction = findMatchingFunction(normalizedQuery, aiFunctions);
 
+      // 2. Se trova una funzione AI con match esatto, la esegue
       if (matchedFunction) {
-        console.log("Funzione AI trovata:", matchedFunction);
-        // Procedi con l'esecuzione della funzione AI...
-      }
-
-      // Verifica cimitero specifico
-      const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
-      const cimiteroMatch = normalizedQuery.match(cimiteroRegex);
-
-      if (cimiteroMatch) {
-        const nomeCimitero = cimiteroMatch[3];
-        const cimitero = await findCimiteroByName(nomeCimitero);
-
-        if (cimitero) {
+        console.log("Esecuzione funzione:", matchedFunction.name);
+        
+        // Gestione specifica per la funzione "lista cimiteri"
+        if (matchedFunction.name === "Lista Cimiteri") {
+          const cimiteri = await getAllCimiteri();
           setMessages(prev => [...prev, { 
             type: 'response', 
-            content: `Ho trovato il cimitero "${cimitero.Descrizione}"`,
+            content: 'Ecco la lista dei cimiteri disponibili:',
             data: {
-              type: 'cimitero',
-              cimitero
+              type: 'cimiteri',
+              cimiteri
             },
             timestamp: new Date()
           }]);
-        } else {
-          setMessages(prev => [...prev, { 
-            type: 'response', 
-            content: `Non ho trovato nessun cimitero con il nome "${nomeCimitero}".`,
-            timestamp: new Date()
-          }]);
+          setQuery("");
+          setIsProcessing(false);
+          setTimeout(scrollToBottom, 100);
+          return;
         }
-        setQuery("");
-        setIsProcessing(false);
-        setTimeout(scrollToBottom, 100);
-        return;
+        
+        // Qui puoi aggiungere altri gestori per altre funzioni AI
       }
 
+      // 3. Se non trova funzioni AI, procede con la ricerca generica
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
-      let response;
-      
       if (finalQuery.toLowerCase().startsWith("/test-model")) {
-        response = await processTestQuery(aiProvider, aiModel);
+        const response = await processTestQuery(aiProvider, aiModel);
+        if (response) {
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: response.text || '',
+            data: response.data
+          }]);
+        }
       } else {
         const requestBody: QueryRequest = {
           query: finalQuery.trim(),
@@ -122,27 +83,24 @@ export const useChat = (): UseChatReturn => {
           allowGenericResponse: true
         };
 
-        console.log("Invio richiesta:", requestBody);
+        console.log("Invio richiesta generica:", requestBody);
         
-        const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
+        const { data: response, error } = await supabase.functions.invoke<AIResponse>('process-query', {
           body: requestBody
         });
 
-        console.log("Risposta ricevuta:", { data, error });
-
         if (error) throw error;
-        response = data;
-      }
-      
-      if (response) {
-        setMessages(prev => [...prev, { 
-          type: 'response', 
-          content: response.text || '',
-          data: response.data
-        }]);
-        
-        if (response.error) {
-          toast.error(response.error, { duration: 2000 });
+
+        if (response) {
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: response.text || '',
+            data: response.data
+          }]);
+          
+          if (response.error) {
+            toast.error(response.error, { duration: 2000 });
+          }
         }
       }
       
@@ -151,8 +109,7 @@ export const useChat = (): UseChatReturn => {
     } catch (error) {
       console.error("Errore dettagliato:", error);
       toast.error("Errore durante l'elaborazione della richiesta. " + (error as Error).message, {
-        duration: 2000
-      });
+        duration: 2000 });
     } finally {
       setIsProcessing(false);
       setTimeout(scrollToBottom, 100);

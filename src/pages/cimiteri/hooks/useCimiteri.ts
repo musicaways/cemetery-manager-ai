@@ -11,20 +11,6 @@ export const useCimiteri = () => {
 
   const loadCimiteri = async () => {
     try {
-      // Verifica diretta della relazione Settore-Blocco
-      const { data: testData, error: testError } = await supabase
-        .from('Settore')
-        .select(`
-          Id,
-          Descrizione,
-          blocchi:Blocco(*)
-        `)
-        .limit(1);
-      
-      console.log("Test relazione Settore-Blocco:", testData);
-      if (testError) console.error("Errore test:", testError);
-
-      // Query principale per i cimiteri
       const { data: cimiteriData, error: cimiteriError } = await supabase
         .from("Cimitero")
         .select(`
@@ -49,7 +35,7 @@ export const useCimiteri = () => {
 
       if (cimiteriError) throw cimiteriError;
 
-      console.log("Dati cimiteri completi:", JSON.stringify(cimiteriData, null, 2));
+      console.log("Dati cimiteri:", cimiteriData);
 
       setCimiteri(cimiteriData || []);
       return cimiteriData;

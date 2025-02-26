@@ -63,7 +63,7 @@ export type Database = {
           Annotazioni?: string | null
           Codice?: string | null
           Descrizione?: string | null
-          Id: number
+          Id?: number
           IdSettore?: number | null
           NumeroFile?: number | null
           NumeroFileInterrate?: number | null
@@ -327,13 +327,6 @@ export type Database = {
           TipoTomba?: number | null
         }
         Relationships: [
-          {
-            foreignKeyName: "Loculo_IdBlocco_fkey"
-            columns: ["IdBlocco"]
-            isOneToOne: false
-            referencedRelation: "Blocco"
-            referencedColumns: ["Id"]
-          },
           {
             foreignKeyName: "Loculo_TipoTomba_fkey"
             columns: ["TipoTomba"]

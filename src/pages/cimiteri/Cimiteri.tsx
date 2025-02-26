@@ -5,6 +5,7 @@ import { useSearch } from "./hooks/useSearch";
 import { CimiteriGrid } from "./components/CimiteriGrid";
 import { CimiteroEditor } from "./components/CimiteroEditor";
 import { Cimitero } from "./types";
+import { Breadcrumb } from "./components/Breadcrumb";
 
 export const Cimiteri = () => {
   const { cimiteri, loading, updateCimitero, loadCimiteri } = useCimiteri();
@@ -36,6 +37,7 @@ export const Cimiteri = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Breadcrumb />
       <CimiteriGrid 
         cimiteri={filteredCimiteri}
         onSelectCimitero={setSelectedCimitero}

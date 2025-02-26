@@ -38,7 +38,7 @@ export const Cimiteri = () => {
   return (
     <>
       <Breadcrumb />
-      <div className="container mx-auto px-4 py-8 mt-14">
+      <div className="container mx-auto px-4 py-4 mt-7">
         <CimiteriGrid 
           cimiteri={filteredCimiteri}
           onSelectCimitero={setSelectedCimitero}

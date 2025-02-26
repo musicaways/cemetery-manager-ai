@@ -239,6 +239,53 @@ export type Database = {
           },
         ]
       }
+      defunti: {
+        Row: {
+          annotazioni: string | null
+          created_at: string | null
+          data_decesso: string | null
+          data_nascita: string | null
+          eta: number | null
+          id: string
+          id_loculo: string | null
+          nominativo: string
+          sesso: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          annotazioni?: string | null
+          created_at?: string | null
+          data_decesso?: string | null
+          data_nascita?: string | null
+          eta?: number | null
+          id?: string
+          id_loculo?: string | null
+          nominativo: string
+          sesso?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          annotazioni?: string | null
+          created_at?: string | null
+          data_decesso?: string | null
+          data_nascita?: string | null
+          eta?: number | null
+          id?: string
+          id_loculo?: string | null
+          nominativo?: string
+          sesso?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "defunti_id_loculo_fkey"
+            columns: ["id_loculo"]
+            isOneToOne: false
+            referencedRelation: "loculi"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       Defunto: {
         Row: {
           DataDecesso: string | null

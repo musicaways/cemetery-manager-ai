@@ -91,24 +91,28 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
           "w-full max-w-xl mx-auto",
           isMobile ? "m-0 rounded-none" : "rounded-lg"
         )}>
-          <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
-            <X className="h-5 w-5 text-white" />
-          </DialogClose>
+          <div className="relative border-b border-gray-800/50">
+            <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
+              <X className="h-5 w-5 text-white" />
+            </DialogClose>
+
+            {/* Header con breadcrumb */}
+            <div className="px-4 py-6 mt-2">
+              <nav className="flex items-center space-x-1 text-sm text-gray-400">
+                <div className="flex items-center">
+                  <Home className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4" />
+                  <span>Cimiteri</span>
+                  <ChevronRight className="h-4 w-4" />
+                  <span className="text-gray-300">{selectedSettore?.Descrizione}</span>
+                </div>
+              </nav>
+            </div>
+          </div>
 
           <ScrollArea className="flex-grow">
             <div className="w-full">
-              {/* Header con breadcrumb */}
               <div className="px-4 py-4 space-y-4">
-                <nav className="flex items-center space-x-1 text-sm text-gray-400">
-                  <div className="flex items-center">
-                    <Home className="h-4 w-4" />
-                    <ChevronRight className="h-4 w-4" />
-                    <span>Cimiteri</span>
-                    <ChevronRight className="h-4 w-4" />
-                    <span className="text-gray-300">{selectedSettore?.Descrizione}</span>
-                  </div>
-                </nav>
-
                 {/* Search input per blocchi */}
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />

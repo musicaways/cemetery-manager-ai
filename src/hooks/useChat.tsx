@@ -28,7 +28,7 @@ export const useChat = (): UseChatReturn => {
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
 
     try {
-      const normalizedQuery = finalQuery.toLowerCase();
+      const normalizedQuery = finalQuery.toLowerCase().trim();
 
       // Verifica funzioni AI attive
       const aiFunctions = await getActiveFunctions();
@@ -38,9 +38,19 @@ export const useChat = (): UseChatReturn => {
         console.log("Funzione AI trovata:", matchedFunction);
       }
 
-      // Verifica lista cimiteri
-      const listaCimiteriRegex = /mostra(mi)?\s+(la\s+)?lista\s+(dei\s+)?cimiteri/i;
-      if (listaCimiteriRegex.test(normalizedQuery)) {
+      // Verifica lista cimiteri - ora usa confronto esatto
+      const listaCimiteriTriggers = [
+        "mostra la lista dei cimiteri",
+        "mostrami la lista dei cimiteri",
+        "lista cimiteri",
+        "lista dei cimiteri",
+        "visualizza lista cimiteri",
+        "visualizza la lista dei cimiteri",
+        "elenco cimiteri",
+        "elenco dei cimiteri"
+      ];
+
+      if (listaCimiteriTriggers.includes(normalizedQuery)) {
         const cimiteri = await getAllCimiteri();
         setMessages(prev => [...prev, { 
           type: 'response', 

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Search, X, ChevronRight, Home } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -54,9 +53,7 @@ export const DefuntiList = ({ loculoId, loculoNumero, isOpen, onClose }: Defunti
         return;
       }
 
-      // Validazione e trasformazione dei dati
       const validatedDefunti: Defunto[] = (data || []).map(d => {
-        // Valida il campo sesso, se non è 'M' o 'F', impostiamo un valore di default 'M'
         const validSesso = d.sesso === 'M' || d.sesso === 'F' ? d.sesso : 'M';
         
         return {
@@ -78,13 +75,11 @@ export const DefuntiList = ({ loculoId, loculoNumero, isOpen, onClose }: Defunti
     }
   };
 
-  // Filtra i defunti in base alla ricerca
   const filteredDefunti = defunti.filter(defunto =>
     defunto.nominativo.toLowerCase().includes(searchQuery.toLowerCase()) ||
     defunto.annotazioni?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Formatta la data in formato italiano
   const formatDate = (date: string | null) => {
     if (!date) return "-";
     return format(new Date(date), "d MMMM yyyy", { locale: it });
@@ -100,11 +95,10 @@ export const DefuntiList = ({ loculoId, loculoNumero, isOpen, onClose }: Defunti
         isMobile ? "m-0 rounded-none" : "rounded-lg"
       )}>
         <div className="relative border-b border-gray-800/50 pt-1">
-          <DialogClose className="absolute right-4 top-1 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
+          <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
             <X className="h-5 w-5 text-white" />
           </DialogClose>
           
-          {/* Header con breadcrumb */}
           <div className="px-4 py-4 mt-8">
             <nav className="flex items-center space-x-1 text-sm text-gray-400">
               <div className="flex items-center">
@@ -123,7 +117,6 @@ export const DefuntiList = ({ loculoId, loculoNumero, isOpen, onClose }: Defunti
         <ScrollArea className="flex-grow">
           <div className="w-full">
             <div className="px-4 py-4 space-y-4">
-              {/* Search input per defunti */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
                 <Input
@@ -143,7 +136,6 @@ export const DefuntiList = ({ loculoId, loculoNumero, isOpen, onClose }: Defunti
                 )}
               </div>
 
-              {/* Lista Defunti */}
               {loading ? (
                 <div className="flex items-center justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-color)]"></div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { Clock, MapPin, Sun, Car, Calendar, Navigation } from "lucide-react";
+import { Clock, MapPin, Sun, Car, Calendar, Navigation, CloudRain, Cloud, CloudSnow, CloudLightning } from "lucide-react";
 import { toast } from "sonner";
 
 interface CemeteryTravelInfoProps {
@@ -16,6 +16,12 @@ interface WeatherData {
 
 interface ForecastDay {
   date: string;
+  temperature: number;
+  condition: string;
+}
+
+interface WeatherHourly {
+  time: string;
   temperature: number;
   condition: string;
 }
@@ -45,8 +51,28 @@ const weatherTranslations: { [key: string]: string } = {
   'Overcast clouds': 'Coperto'
 };
 
+const getWeatherIcon = (condition: string) => {
+  switch (condition.toLowerCase()) {
+    case 'pioggia':
+    case 'pioggerella':
+      return <CloudRain className="h-full w-full" />;
+    case 'neve':
+      return <CloudSnow className="h-full w-full" />;
+    case 'temporale':
+      return <CloudLightning className="h-full w-full" />;
+    case 'nuvoloso':
+    case 'coperto':
+    case 'poco nuvoloso':
+    case 'nubi sparse':
+      return <Cloud className="h-full w-full" />;
+    default:
+      return <Sun className="h-full w-full" />;
+  }
+};
+
 export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) => {
   const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [hourlyForecast, setHourlyForecast] = useState<WeatherHourly[]>([]);
   const [travelInfo, setTravelInfo] = useState<TravelInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const currentDate = new Date().toLocaleDateString('it-IT', { 
@@ -72,6 +98,21 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           throw new Error("Città non trovata");
         }
 
+        const currentHour = new Date().getHours();
+        const todayHourly = weatherData.list
+          .filter((item: any) => {
+            const itemDate = new Date(item.dt * 1000);
+            return itemDate.getDate() === new Date().getDate() && 
+                   itemDate.getHours() >= currentHour;
+          })
+          .map((item: any) => ({
+            time: new Date(item.dt * 1000).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }),
+            temperature: Math.round(item.main.temp),
+            condition: weatherTranslations[item.weather[0].main] || item.weather[0].main
+          }));
+
+        setHourlyForecast(todayHourly);
+
         const forecast = weatherData.list
           .filter((_: any, index: number) => index % 8 === 0)
           .slice(0, 3)
@@ -92,7 +133,12 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           const destination = encodeURIComponent(`${address}, ${city}, Italy`);
           
           const response = await fetch(
-            `/api/edge/distance-matrix?origin=${origin}&destination=${destination}`
+            `/api/edge/distance-matrix?origin=${origin}&destination=${destination}`,
+            {
+              headers: {
+                'Content-Type': 'application/json',
+              }
+            }
           );
           
           if (!response.ok) {
@@ -146,11 +192,11 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
 
       <div className="grid gap-6">
         {weather && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="flex items-center justify-between bg-black/20 rounded-xl p-4">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-yellow-500/10 rounded-lg">
-                  <Sun className="w-8 h-8 text-yellow-500" />
+                <div className="p-3 bg-black/20 rounded-lg h-16 w-16 flex items-center justify-center">
+                  {getWeatherIcon(weather.condition)}
                 </div>
                 <div>
                   <p className="text-sm text-gray-400">Temperatura attuale</p>
@@ -163,6 +209,24 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
               <p className="text-lg text-gray-300">{weather.condition}</p>
             </div>
 
+            {hourlyForecast.length > 0 && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-gray-400">
+                  <Clock className="w-4 h-4" />
+                  <p className="text-sm">Previsioni orarie di oggi</p>
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {hourlyForecast.slice(0, 4).map((hour, index) => (
+                    <div key={index} className="bg-black/20 rounded-lg p-3 text-center">
+                      <p className="text-sm text-gray-400">{hour.time}</p>
+                      <p className="text-lg font-medium my-1">{hour.temperature}°C</p>
+                      <p className="text-xs text-gray-400">{hour.condition}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-gray-400">
                 <Calendar className="w-4 h-4" />
@@ -172,7 +236,10 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
                 {weather.forecast.map((day, index) => (
                   <div key={index} className="bg-black/20 rounded-lg p-3 text-center">
                     <p className="text-sm text-gray-400 capitalize mb-2">{day.date}</p>
-                    <p className="text-lg font-medium mb-1">{day.temperature}°C</p>
+                    <div className="h-8 w-8 mx-auto mb-2">
+                      {getWeatherIcon(day.condition)}
+                    </div>
+                    <p className="text-lg font-medium">{day.temperature}°C</p>
                     <p className="text-xs text-gray-400">{day.condition}</p>
                   </div>
                 ))}

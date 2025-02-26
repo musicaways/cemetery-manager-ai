@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { LoculiList } from "@/components/cimiteri/components/LoculiList";
 
 interface SectorsTabProps {
   settori: Settore[];
@@ -17,6 +18,7 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
   const [selectedSettore, setSelectedSettore] = useState<Settore | null>(null);
   const [searchBlocchi, setSearchBlocchi] = useState("");
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [selectedBlocco, setSelectedBlocco] = useState<{id: number, descrizione: string} | null>(null);
 
   // Ordina i settori alfabeticamente per descrizione
   const sortedSettori = [...settori].sort((a, b) => 
@@ -133,7 +135,11 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
                     filteredBlocchi.map((blocco) => (
                       <div 
                         key={blocco.Id}
-                        className="p-4 bg-black/20 rounded-lg border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors"
+                        className="p-4 bg-black/20 rounded-lg border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors cursor-pointer"
+                        onClick={() => setSelectedBlocco({
+                          id: blocco.Id,
+                          descrizione: blocco.Descrizione || `Blocco ${blocco.Codice}`
+                        })}
                       >
                         <div className="flex flex-col space-y-2">
                           <p className="text-sm font-medium text-white">
@@ -164,6 +170,14 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Lista loculi per il blocco selezionato */}
+      <LoculiList
+        bloccoId={selectedBlocco?.id || null}
+        bloccoDescrizione={selectedBlocco?.descrizione || ""}
+        isOpen={!!selectedBlocco}
+        onClose={() => setSelectedBlocco(null)}
+      />
     </>
   );
 };

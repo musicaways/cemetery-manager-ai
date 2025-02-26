@@ -301,6 +301,47 @@ export type Database = {
         }
         Relationships: []
       }
+      loculi: {
+        Row: {
+          annotazioni: string | null
+          created_at: string | null
+          fila: number | null
+          id: string
+          id_blocco: number | null
+          numero: number | null
+          tipo_tomba: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          annotazioni?: string | null
+          created_at?: string | null
+          fila?: number | null
+          id?: string
+          id_blocco?: number | null
+          numero?: number | null
+          tipo_tomba?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          annotazioni?: string | null
+          created_at?: string | null
+          fila?: number | null
+          id?: string
+          id_blocco?: number | null
+          numero?: number | null
+          tipo_tomba?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "loculi_id_blocco_fkey"
+            columns: ["id_blocco"]
+            isOneToOne: false
+            referencedRelation: "Blocco"
+            referencedColumns: ["Id"]
+          },
+        ]
+      }
       Loculo: {
         Row: {
           Annotazioni: string | null

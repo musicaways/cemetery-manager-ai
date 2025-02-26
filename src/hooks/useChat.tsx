@@ -75,9 +75,10 @@ export const useChat = () => {
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
 
     try {
-      // Verifica se è richiesta la lista dei cimiteri
+      // Verifica se è richiesta la lista dei cimiteri (case insensitive)
+      const normalizedQuery = finalQuery.toLowerCase();
       const listaCimiteriRegex = /mostra(mi)?\s+(la\s+)?lista\s+(dei\s+)?cimiteri/i;
-      if (listaCimiteriRegex.test(finalQuery)) {
+      if (listaCimiteriRegex.test(normalizedQuery)) {
         const cimiteri = await getAllCimiteri();
         setMessages(prev => [...prev, { 
           type: 'response', 
@@ -94,9 +95,9 @@ export const useChat = () => {
         return;
       }
 
-      // Verifica se è richiesto un cimitero specifico
+      // Verifica se è richiesto un cimitero specifico (case insensitive)
       const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
-      const cimiteroMatch = finalQuery.match(cimiteroRegex);
+      const cimiteroMatch = normalizedQuery.match(cimiteroRegex);
 
       if (cimiteroMatch) {
         const nomeCimitero = cimiteroMatch[3];
@@ -130,7 +131,7 @@ export const useChat = () => {
       
       let response;
       
-      if (finalQuery.startsWith("/test-model")) {
+      if (finalQuery.toLowerCase().startsWith("/test-model")) {
         response = await processTestQuery(aiProvider, aiModel);
       } else {
         const requestBody: QueryRequest = {

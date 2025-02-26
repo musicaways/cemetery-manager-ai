@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -285,16 +286,16 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
                     <Clock className="w-4 h-4 text-[var(--primary-color)]" />
                     Previsioni orarie di oggi
                   </h4>
-                  <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-6 gap-2">
                     {futureHourlyForecast.slice(0, 6).map((hour, index) => (
                       <div key={index} className="bg-black/20 rounded-lg p-2 border border-white/10">
-                        <p className="text-sm font-medium text-white text-center mb-2">{hour.time}</p>
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="h-6 w-6 text-[var(--primary-color)]">
+                        <div className="flex flex-col items-center">
+                          <p className="text-sm font-medium text-white">{hour.time}</p>
+                          <div className="h-5 w-5 text-[var(--primary-color)] my-1">
                             {getWeatherIcon(hour.condition)}
                           </div>
-                          <p className="text-lg font-medium text-white">{hour.temperature}°C</p>
-                          <p className="text-xs text-white/80 text-center">{hour.condition}</p>
+                          <p className="text-sm font-medium text-white">{hour.temperature}°C</p>
+                          <p className="text-[10px] text-white/80 text-center mt-0.5">{hour.condition}</p>
                         </div>
                       </div>
                     ))}

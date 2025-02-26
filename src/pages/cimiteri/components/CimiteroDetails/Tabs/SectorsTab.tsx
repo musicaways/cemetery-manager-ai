@@ -53,9 +53,18 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
             <button
               key={settore.Id}
               onClick={() => setSelectedSettore(settore)}
-              className="px-3 py-2 bg-black/20 rounded-md border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors text-left"
+              className="px-3 py-2 bg-black/20 rounded-md border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors text-left group"
             >
-              <span className="text-sm text-gray-300">{settore.Descrizione}</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
+                  {settore.Descrizione}
+                </span>
+                {settore.blocchi && settore.blocchi.length > 0 && (
+                  <span className="text-xs px-1.5 py-0.5 bg-[var(--primary-color)]/10 text-[var(--primary-color)] rounded">
+                    {settore.blocchi.length} {settore.blocchi.length === 1 ? 'blocco' : 'blocchi'}
+                  </span>
+                )}
+              </div>
             </button>
           ))}
         </div>

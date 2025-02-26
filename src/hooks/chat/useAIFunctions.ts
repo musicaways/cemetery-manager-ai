@@ -65,32 +65,10 @@ export const useAIFunctions = () => {
       
       // Crea una funzione dalla stringa del codice
       const AsyncFunction = Object.getPrototypeOf(async function(){}).constructor;
-      const executableFunction = new AsyncFunction('supabase', 'query', functionBody);
+      const executableFunction = new AsyncFunction('query', functionBody);
       
-      // Estrai il nome del cimitero dalla query
-      const matches = query.match(/cimitero\s+(?:di\s+)?(.+)/i);
-      const cimiteroName = matches ? matches[1] : query;
-      
-      // Esegue la funzione passando l'istanza di supabase e il nome del cimitero
-      const result = await executableFunction(supabase, cimiteroName);
-      console.log("Risultato funzione:", result);
-      
-      if (result === undefined || result === null) {
-        return {
-          text: "Nessun risultato trovato",
-          data: null
-        };
-      }
-      
-      // Se il risultato è una stringa, lo convertiamo in un oggetto
-      if (typeof result === 'string') {
-        return {
-          text: result,
-          data: null
-        };
-      }
-      
-      return result;
+      // Esegue la funzione
+      return await executableFunction(query);
     } catch (error) {
       console.error("Errore nell'esecuzione della funzione:", error);
       throw error;

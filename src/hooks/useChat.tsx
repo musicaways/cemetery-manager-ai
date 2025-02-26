@@ -1,70 +1,23 @@
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useChatCimitero } from "@/pages/cimiteri/hooks/useChatCimitero";
-import type { AIResponse, QueryRequest } from "@/utils/types";
+import { useChatMessages } from "./chat/useChatMessages";
+import { useAIFunctions } from "./chat/useAIFunctions";
+import type { UseChatReturn } from "./chat/types";
 import type { Cimitero } from "@/pages/cimiteri/types";
+import type { AIResponse, QueryRequest } from "@/utils/types";
 
-interface ChatMessage {
-  type: 'query' | 'response';
-  content: string;
-  data?: any;
-  timestamp?: Date;
-}
-
-export const useChat = () => {
+export const useChat = (): UseChatReturn => {
   const [query, setQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
+  
   const { findCimiteroByName, getAllCimiteri } = useChatCimitero();
-
-  const handleSearch = (searchText: string) => {
-    if (!searchText.trim()) return;
-    
-    const foundElement = messages.findIndex(message => 
-      message.content.toLowerCase().includes(searchText.toLowerCase())
-    );
-
-    if (foundElement !== -1) {
-      const element = document.querySelector(`[data-message-index="${foundElement}"]`);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-        element.classList.add("bg-[#9b87f5]/10");
-        setTimeout(() => {
-          element.classList.remove("bg-[#9b87f5]/10");
-        }, 2000);
-      }
-    } else {
-      toast.error("Nessun risultato trovato");
-    }
-  };
-
-  const processTestQuery = async (aiProvider: string, aiModel: string) => {
-    try {
-      const requestBody: QueryRequest = {
-        query: "Chi sei?",
-        queryType: 'test',
-        aiProvider,
-        aiModel,
-        isTest: true
-      };
-
-      const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
-        body: requestBody
-      });
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error("Errore nel test:", error);
-      throw error;
-    }
-  };
+  const { messages, setMessages, messagesEndRef, scrollAreaRef, handleSearch, scrollToBottom } = useChatMessages();
+  const { processTestQuery, getActiveFunctions, findMatchingFunction } = useAIFunctions();
 
   const handleSubmit = async (e?: React.FormEvent, submittedQuery?: string) => {
     e?.preventDefault();
@@ -75,30 +28,17 @@ export const useChat = () => {
     setMessages(prev => [...prev, { type: 'query', content: finalQuery }]);
 
     try {
-      // Verifica se è richiesta la lista dei cimiteri (case insensitive)
       const normalizedQuery = finalQuery.toLowerCase();
 
-      // Recupera tutte le funzioni AI attive
-      const { data: aiFunctions, error: aiFunctionsError } = await supabase
-        .from('ai_chat_functions')
-        .select('*')
-        .eq('is_active', true);
-
-      if (aiFunctionsError) throw aiFunctionsError;
-
-      // Controlla se la query corrisponde a qualche trigger phrase delle funzioni AI
-      const matchedFunction = aiFunctions?.find(func => 
-        func.trigger_phrases.some(phrase => 
-          normalizedQuery.includes(phrase.toLowerCase())
-        )
-      );
+      // Verifica funzioni AI attive
+      const aiFunctions = await getActiveFunctions();
+      const matchedFunction = findMatchingFunction(normalizedQuery, aiFunctions);
 
       if (matchedFunction) {
-        // Esegui la funzione AI corrispondente
         console.log("Funzione AI trovata:", matchedFunction);
-        // Per ora continuiamo con la logica esistente per i cimiteri
       }
 
+      // Verifica lista cimiteri
       const listaCimiteriRegex = /mostra(mi)?\s+(la\s+)?lista\s+(dei\s+)?cimiteri/i;
       if (listaCimiteriRegex.test(normalizedQuery)) {
         const cimiteri = await getAllCimiteri();
@@ -117,7 +57,7 @@ export const useChat = () => {
         return;
       }
 
-      // Verifica se è richiesto un cimitero specifico (case insensitive)
+      // Verifica cimitero specifico
       const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
       const cimiteroMatch = normalizedQuery.match(cimiteroRegex);
 
@@ -200,10 +140,6 @@ export const useChat = () => {
       setIsProcessing(false);
       setTimeout(scrollToBottom, 100);
     }
-  };
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   const toggleWebSearch = () => {

@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Search, X, ChevronRight, Home } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -62,14 +63,14 @@ export const SectorsTab = ({ settori }: SectorsTabProps) => {
             <button
               key={settore.Id}
               onClick={() => setSelectedSettore(settore)}
-              className="px-3 py-2 bg-black/20 rounded-md border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors text-left group"
+              className="p-3 bg-black/20 rounded-md border border-gray-800/50 hover:border-[var(--primary-color)] transition-colors text-left group"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col space-y-2">
                 <span className="text-sm text-gray-300 group-hover:text-white transition-colors">
                   {settore.Descrizione}
                 </span>
                 {settore.blocchi && settore.blocchi.length > 0 && (
-                  <span className="text-xs px-1.5 py-0.5 bg-[var(--primary-color)]/10 text-[var(--primary-color)] rounded">
+                  <span className="text-xs text-gray-500">
                     {settore.blocchi.length} {settore.blocchi.length === 1 ? 'blocco' : 'blocchi'}
                   </span>
                 )}

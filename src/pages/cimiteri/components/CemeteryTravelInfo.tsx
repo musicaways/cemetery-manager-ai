@@ -55,16 +55,22 @@ export const CemeteryTravelInfo = ({ address, city }: CemeteryTravelInfoProps) =
           const destination = encodeURIComponent(`${address}, ${city}, Italy`);
           
           const response = await fetch(
-            `/api/distance-matrix?origin=${origin}&destination=${destination}`
+            `/api/edge/distance-matrix?origin=${origin}&destination=${destination}`
           );
+          
+          if (!response.ok) {
+            throw new Error("Errore nella risposta del server");
+          }
+          
           const data = await response.json();
 
-          if (data.rows[0]?.elements[0]?.status === "OK") {
+          if (data.rows?.[0]?.elements?.[0]?.status === "OK") {
             setTravelInfo({
               duration: data.rows[0].elements[0].duration.text,
               distance: data.rows[0].elements[0].distance.text
             });
           } else {
+            console.error("Errore risposta Distance Matrix:", data);
             throw new Error("Impossibile calcolare il percorso");
           }
         }

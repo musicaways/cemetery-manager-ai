@@ -2,6 +2,7 @@
 import { ImagePlus, MapPin, Image, MapPinned, FileText, WifiOff } from "lucide-react";
 import { Cimitero } from "../types";
 import { cn } from "@/lib/utils";
+import { useState, useRef, useEffect } from "react";
 
 interface CimiteroCardProps {
   cimitero: Cimitero;
@@ -10,6 +11,37 @@ interface CimiteroCardProps {
 }
 
 export const CimiteroCard = ({ cimitero, onClick, isOffline = false }: CimiteroCardProps) => {
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const imageRef = useRef<HTMLImageElement>(null);
+  const imageUrl = cimitero.FotoCopertina || cimitero.foto?.[0]?.Url;
+
+  // Utilizziamo IntersectionObserver per il lazy loading
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting && imageRef.current) {
+            // Quando il componente è visibile, carica l'immagine
+            imageRef.current.src = imageRef.current.dataset.src || '';
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: '200px' } // Precarica l'immagine quando è a 200px dalla viewport
+    );
+
+    if (imageRef.current) {
+      observer.observe(imageRef.current);
+    }
+
+    return () => {
+      if (imageRef.current) {
+        observer.unobserve(imageRef.current);
+      }
+    };
+  }, []);
+
   return (
     <div
       onClick={onClick}
@@ -20,13 +52,27 @@ export const CimiteroCard = ({ cimitero, onClick, isOffline = false }: CimiteroC
       )}
     >
       <div className="aspect-video relative overflow-hidden">
-        {(cimitero.FotoCopertina || cimitero.foto?.[0]?.Url) ? (
-          <img
-            src={cimitero.FotoCopertina || cimitero.foto[0].Url}
-            alt={cimitero.Descrizione || "Immagine cimitero"}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
+        {imageUrl ? (
+          <>
+            {/* Skeleton di caricamento */}
+            <div className={cn(
+              "absolute inset-0 bg-gray-800/50 animate-pulse",
+              imageLoaded && "hidden"
+            )} />
+            
+            <img
+              ref={imageRef}
+              data-src={imageUrl}
+              alt={cimitero.Descrizione || "Immagine cimitero"}
+              className={cn(
+                "w-full h-full object-cover transition-transform duration-300 group-hover:scale-105",
+                !imageLoaded && "opacity-0"
+              )}
+              loading="lazy"
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+            />
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-black/20">
             <ImagePlus className="w-8 h-8 text-gray-400" />

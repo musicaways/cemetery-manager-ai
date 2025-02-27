@@ -54,6 +54,7 @@ const Index = () => {
           scrollAreaRef={scrollAreaRef}
           messagesEndRef={messagesEndRef}
           onCimiteroSelect={setSelectedCimitero}
+          isOnline={isOnline}
         />
       </main>
 

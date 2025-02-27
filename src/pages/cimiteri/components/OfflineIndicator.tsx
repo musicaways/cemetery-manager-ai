@@ -2,8 +2,14 @@
 import { AlertCircle, Wifi, WifiOff } from "lucide-react";
 import { useOnlineStatus } from "@/hooks/chat/useOnlineStatus";
 
-export const OfflineIndicator = () => {
-  const { isOnline } = useOnlineStatus();
+interface OfflineIndicatorProps {
+  isOnline?: boolean;
+}
+
+export const OfflineIndicator = ({ isOnline: propIsOnline }: OfflineIndicatorProps = {}) => {
+  // Use the prop if provided, otherwise use the hook
+  const { isOnline: hookIsOnline } = useOnlineStatus();
+  const isOnline = propIsOnline !== undefined ? propIsOnline : hookIsOnline;
   
   if (isOnline) {
     return (

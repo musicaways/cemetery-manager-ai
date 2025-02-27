@@ -17,16 +17,10 @@ export const useOnlineStatus = () => {
       console.log("Online status: connected");
       
       // Mostriamo un toast di ripristino connessione solo se eravamo offline prima
+      // ma lo facciamo in modo più discreto
       if (wasOffline.current) {
-        const aiProvider = localStorage.getItem('ai_provider') || 'groq';
-        const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
-        
-        toast.success('Connessione ripristinata', {
-          description: `Tornati online. Utilizziamo ${aiProvider} (${aiModel}).`,
-          duration: 3000
-        });
-        
         wasOffline.current = false;
+        // Non mostreremo nessun toast al ripristino della connessione
       }
     };
 
@@ -35,15 +29,15 @@ export const useOnlineStatus = () => {
       console.log("Online status: disconnected");
       wasOffline.current = true;
       
-      // Quando si va offline, inizializza il modello locale
+      // Quando si va offline, inizializza il modello locale senza mostrare toast
       const localLLM = LocalLLMManager.getInstance();
       localLLM.initialize().catch(error => {
         console.error('Errore durante l\'inizializzazione del modello in modalità offline:', error);
       });
       
-      toast.error('Connessione persa', {
-        description: 'Sei passato in modalità offline. Verrà utilizzato il modello locale per le risposte.',
-        duration: 5000
+      // Toast più discreto solo quando si passa in modalità offline
+      toast.info('Modalità offline attivata', {
+        duration: 3000
       });
     };
 

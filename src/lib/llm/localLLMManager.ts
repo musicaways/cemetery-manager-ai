@@ -22,11 +22,7 @@ class LocalLLMManager {
 
   private handleOnline() {
     if (this.wasOfflineMode && this.isInitialized) {
-      // Mostra il toast solo se prima eravamo offline e il modello è stato inizializzato
-      toast.success('Connessione ripristinata', {
-        description: `Tornati online. Utilizziamo il provider precedente.`,
-        duration: 3000
-      });
+      // Non mostriamo più il toast al ripristino della connessione
       this.wasOfflineMode = false;
     }
   }
@@ -95,22 +91,16 @@ class LocalLLMManager {
       console.log('Modello LLM locale inizializzato con successo!');
       this.isInitialized = true;
       
-      // Mostra il toast solo se siamo offline
-      if (!navigator.onLine) {
-        toast.success('Modello AI locale pronto', {
-          description: 'Il modello locale è stato caricato e sarà utilizzato in modalità offline',
-          duration: 3000
-        });
-      }
+      // Non mostriamo più toast quando si inizializza il modello
       return true;
     } catch (error) {
       console.error('Errore durante l\'inizializzazione del modello LLM locale:', error);
       
-      // Mostra il toast di errore solo se siamo offline
+      // Mostriamo un toast solo in caso di errore critico
       if (!navigator.onLine) {
-        toast.error('Errore di inizializzazione AI locale', {
-          description: 'Non è stato possibile caricare il modello locale. Le funzionalità offline saranno limitate.',
-          duration: 5000
+        toast.error('Errore critico', {
+          description: 'Funzionalità offline limitate',
+          duration: 3000
         });
       }
       return false;

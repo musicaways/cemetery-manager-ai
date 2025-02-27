@@ -22,7 +22,6 @@ export const useAIFunctions = () => {
 
       if (error) throw error;
       
-      // Cast the data to AIFunction[] to ensure type compatibility
       setFunctions(data as unknown as AIFunction[]);
     } catch (error) {
       console.error('Errore nel caricamento delle funzioni AI:', error);
@@ -45,7 +44,6 @@ export const useAIFunctions = () => {
     functions.forEach(func => {
       if (!func.trigger_phrases) return;
       
-      // Ensure trigger_phrases is treated as an array
       const phrases = func.trigger_phrases.map(p => p.trim().toLowerCase());
       
       phrases.forEach(phrase => {
@@ -61,7 +59,6 @@ export const useAIFunctions = () => {
     return bestMatch;
   };
 
-  // Add the exactMatchTriggerPhrases function
   const exactMatchTriggerPhrases = (normalizedQuery: string, triggerPhrases: string[]): boolean => {
     return triggerPhrases.some(phrase => normalizedQuery === phrase.trim().toLowerCase());
   };
@@ -83,7 +80,6 @@ export const useAIFunctions = () => {
   };
   
   const extractCimiteroName = (query: string): string | null => {
-    // Pattern per estrarre il nome del cimitero da frasi come "mostra cimitero centrale"
     const pattern = /cimitero\s+([a-zA-Z\s]+)/i;
     const match = query.match(pattern);
     
@@ -93,6 +89,20 @@ export const useAIFunctions = () => {
     
     return null;
   };
+
+  const isListaCimiteriQuery = (query: string): boolean => {
+    const normalizedQuery = query.toLowerCase().trim();
+    const listTriggers = [
+      'mostra elenco dei cimiteri',
+      'mostra lista cimiteri',
+      'elenco cimiteri',
+      'lista cimiteri',
+      'vedi tutti i cimiteri',
+      'mostra tutti i cimiteri'
+    ];
+    
+    return listTriggers.some(trigger => normalizedQuery.includes(trigger));
+  };
   
   const executeAIFunction = async (functionId: string, query: string) => {
     const func = functions.find(f => f.id === functionId);
@@ -101,9 +111,33 @@ export const useAIFunctions = () => {
     }
 
     try {
-      // Implementazione effettiva delle funzioni basate sul nome della funzione
-      if (func.name.toLowerCase().includes("dettagli cimitero")) {
-        // Estrai il nome del cimitero dalla query
+      // Identifica prima se è una richiesta di lista cimiteri
+      if (isListaCimiteriQuery(query) || func.name.toLowerCase().includes("elenco cimiteri")) {
+        console.log("Esecuzione funzione lista cimiteri");
+        const { data: cimiteri, error } = await supabase
+          .from('Cimitero')
+          .select('*')
+          .order('Descrizione');
+          
+        if (error) throw error;
+        
+        if (cimiteri && cimiteri.length > 0) {
+          return {
+            message: "Ecco l'elenco di tutti i cimiteri disponibili:",
+            data: { 
+              type: "cimiteri",
+              cimiteri: cimiteri
+            }
+          };
+        } else {
+          return {
+            message: "Non ho trovato cimiteri nel database.",
+            data: { type: "generic_response" }
+          };
+        }
+      } 
+      // Gestione dettagli singolo cimitero
+      else if (func.name.toLowerCase().includes("dettagli cimitero")) {
         const nomeCimitero = extractCimiteroName(query);
         
         if (!nomeCimitero) {
@@ -113,7 +147,6 @@ export const useAIFunctions = () => {
           };
         }
         
-        // Cerca il cimitero nel database
         const { data: cimiteri, error } = await supabase
           .from('Cimitero')
           .select('*')
@@ -136,34 +169,10 @@ export const useAIFunctions = () => {
             data: { type: "generic_response" }
           };
         }
-      } else if (func.name.toLowerCase().includes("elenco cimiteri")) {
-        // Recupera l'elenco di tutti i cimiteri
-        const { data: cimiteri, error } = await supabase
-          .from('Cimitero')
-          .select('*')
-          .order('Descrizione');
-          
-        if (error) throw error;
-        
-        if (cimiteri && cimiteri.length > 0) {
-          return {
-            message: "Ecco l'elenco di tutti i cimiteri disponibili:",
-            data: { 
-              type: "cimiteri",
-              cimiteri: cimiteri
-            }
-          };
-        } else {
-          return {
-            message: "Non ho trovato cimiteri nel database.",
-            data: { type: "generic_response" }
-          };
-        }
       } else {
-        // Per le altre funzioni, restituisci un messaggio generico
         return {
-          message: `Funzione ${func.name} eseguita con successo. [Simulazione]`,
-          data: { functionResult: true, functionName: func.name }
+          message: `Non ho capito quale funzione eseguire. Puoi riprovare con una richiesta più chiara?`,
+          data: { type: "generic_response" }
         };
       }
     } catch (error) {
@@ -199,10 +208,19 @@ export const useAIFunctions = () => {
     const normalizedQuery = query.toLowerCase().trim();
     const activeFunctions = await getActiveFunctions();
     
+    // Controllo specifico per la funzione lista cimiteri
+    if (isListaCimiteriQuery(normalizedQuery)) {
+      const listFunction = activeFunctions.find(f => 
+        f.name.toLowerCase().includes("elenco cimiteri") || 
+        f.name.toLowerCase().includes("lista cimiteri")
+      );
+      if (listFunction) return listFunction.id;
+    }
+    
+    // Controllo generale per altre funzioni
     for (const func of activeFunctions) {
       if (!func.trigger_phrases) continue;
       
-      // Ensure trigger_phrases is treated as an array
       const phrases = func.trigger_phrases.map(p => p.trim().toLowerCase());
       
       if (phrases.some(phrase => normalizedQuery.includes(phrase))) {

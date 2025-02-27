@@ -29,54 +29,52 @@ export const useChat = (): UseChatReturn => {
 
     try {
       const normalizedQuery = finalQuery.toLowerCase().trim();
-
-      // Verifica funzioni AI attive
-      const aiFunctions = await getActiveFunctions();
       
-      // Cerchiamo le corrispondenze utilizzando il nuovo sistema di matching
-      const matchResult = findMatchingFunction(normalizedQuery, aiFunctions);
-
-      // Se abbiamo trovato un match per una funzione
-      if (matchResult) {
-        console.log("Funzione AI trovata:", matchResult.function.name);
-        console.log("Punteggio di matching:", matchResult.score);
-        console.log("Frase trigger:", matchResult.matchedPhrase);
-        
-        // Se la funzione è "Lista cimiteri", eseguiamo direttamente il codice
-        if (matchResult.function.name.toLowerCase() === "lista cimiteri" || 
-            matchResult.function.name.toLowerCase() === "lista dei cimiteri") {
-          const cimiteri = await getAllCimiteri();
-          setMessages(prev => [...prev, { 
-            type: 'response', 
-            content: 'Ecco la lista dei cimiteri disponibili:',
-            data: {
-              type: 'cimiteri',
-              cimiteri
-            },
-            timestamp: new Date()
-          }]);
-          setQuery("");
-          setIsProcessing(false);
-          setTimeout(scrollToBottom, 100);
-          return;
-        }
-        
-        // Per le altre funzioni, possiamo implementare l'esecuzione del codice specifico
-        // TODO: implementare l'esecuzione del codice della funzione
-        // const result = await executeFunction(matchResult.function, finalQuery);
-        // setMessages(prev => [...prev, { 
-        //   type: 'response', 
-        //   content: result.text || '',
-        //   data: result.data
-        // }]);
-        // setQuery("");
-        // setIsProcessing(false);
-        // setTimeout(scrollToBottom, 100);
-        // return;
+      // Lista esatta delle frasi che devono attivare la funzione "Lista cimiteri"
+      const listaCimiteriExactPhrases = [
+        "mostrami tutti i cimiteri",
+        "mostrami la lista dei cimiteri",
+        "mostrami la lista di tutti i cimiteri",
+        "mostra tutti i cimiteri",
+        "mostra la lista dei cimiteri",
+        "mostra la lista di tutti i cimiteri",
+        "visualizza i cimiteri",
+        "visualizza tutti i cimiteri",
+        "fammi vedere i cimiteri",
+        "fammi vedere tutti i cimiteri",
+        "vedi i cimiteri",
+        "vedi tutti i cimiteri",
+        "lista dei cimiteri",
+        "lista di tutti i cimiteri",
+        "elenco dei cimiteri",
+        "elenco di tutti i cimiteri"
+      ];
+      
+      // Verifica diretta per la funzione "Lista cimiteri" prima di qualsiasi altra cosa
+      console.log(`Query normalizzata: "${normalizedQuery}"`);
+      const isListaCimiteriExactMatch = listaCimiteriExactPhrases.includes(normalizedQuery);
+      console.log(`È un match esatto per lista cimiteri? ${isListaCimiteriExactMatch}`);
+      
+      if (isListaCimiteriExactMatch) {
+        console.log("MATCH ESATTO trovato per la funzione 'Lista cimiteri'");
+        const cimiteri = await getAllCimiteri();
+        setMessages(prev => [...prev, { 
+          type: 'response', 
+          content: 'Ecco la lista dei cimiteri disponibili:',
+          data: {
+            type: 'cimiteri',
+            cimiteri
+          },
+          timestamp: new Date()
+        }]);
+        setQuery("");
+        setIsProcessing(false);
+        setTimeout(scrollToBottom, 100);
+        return;
       }
 
-      // Verifica cimitero specifico 
-      const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
+      // Verifica cimitero specifico con una regex più rigida
+      const cimiteroRegex = /^mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)$/i;
       const cimiteroMatch = normalizedQuery.match(cimiteroRegex);
 
       if (cimiteroMatch) {
@@ -104,6 +102,36 @@ export const useChat = (): UseChatReturn => {
         setIsProcessing(false);
         setTimeout(scrollToBottom, 100);
         return;
+      }
+
+      // Solo dopo aver verificato i casi speciali, procediamo con il sistema di matching generale
+      // Verifica funzioni AI attive
+      const aiFunctions = await getActiveFunctions();
+      
+      // Cerchiamo le corrispondenze utilizzando il sistema generale (esclusa la lista cimiteri che abbiamo già gestito)
+      const filteredFunctions = aiFunctions.filter(
+        f => f.name.toLowerCase() !== "lista cimiteri" && 
+             f.name.toLowerCase() !== "lista dei cimiteri"
+      );
+      
+      const matchResult = findMatchingFunction(normalizedQuery, filteredFunctions);
+
+      if (matchResult) {
+        console.log("Funzione AI trovata:", matchResult.function.name);
+        console.log("Punteggio di matching:", matchResult.score);
+        console.log("Frase trigger:", matchResult.matchedPhrase);
+        
+        // TODO: implementare l'esecuzione del codice della funzione
+        // const result = await executeFunction(matchResult.function, finalQuery);
+        // setMessages(prev => [...prev, { 
+        //   type: 'response', 
+        //   content: result.text || '',
+        //   data: result.data
+        // }]);
+        // setQuery("");
+        // setIsProcessing(false);
+        // setTimeout(scrollToBottom, 100);
+        // return;
       }
 
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';

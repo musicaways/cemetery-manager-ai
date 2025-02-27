@@ -73,29 +73,99 @@ export const useChat = (): UseChatReturn => {
         return;
       }
 
-      // Verifica cimitero specifico - pattern migliorato per catturare tutte le varianti
-      // Spiegazione dei gruppi di cattura:
-      // 1. Il verbo iniziale: mostra(mi), apri, visualizza, dettagli, informazioni, etc.
-      // 2. La parola "cimitero" potenzialmente preceduta da "il", "del", etc.
-      // 3. Il nome specifico del cimitero (opzionale)
-      const cimiteroPattern = /^(mostra(?:mi)?|apri|vedi|visualizza|(?:mostra\s+)?(?:dettagli|informazioni)|fammi\s+vedere|voglio\s+vedere)(?:\s+(?:il|del|sul))?(?:\s+cimitero(?:\s+di\s+)?(.*)?)?$/i;
-      const cimiteroMatch = normalizedQuery.match(cimiteroPattern);
+      // Lista di pattern per riconoscere richieste di dettagli cimitero
+      const cimiteroPatterns = [
+        "mostrami il cimitero ",
+        "mostra il cimitero ",
+        "mostrami cimitero ",
+        "mostra cimitero ",
+        "apri il cimitero ",
+        "apri cimitero ",
+        "dettagli cimitero ",
+        "informazioni cimitero ",
+        "mostra informazioni cimitero ",
+        "mostra informazioni sul cimitero ",
+        "mostra informazioni del cimitero ",
+        "voglio vedere il cimitero ",
+        "fammi vedere il cimitero ",
+        "visualizza cimitero ",
+        "visualizza il cimitero "
+      ];
       
-      console.log("Risultato regex cimitero:", cimiteroMatch);
+      // Verifica se la query inizia con uno dei pattern
+      let matchedPattern = null;
+      let nomeCimitero = null;
       
-      if (cimiteroMatch) {
-        // Se il nome del cimitero non è specificato nella query
-        if (!cimiteroMatch[1] || !cimiteroMatch[1].trim()) {
+      for (const pattern of cimiteroPatterns) {
+        if (normalizedQuery.startsWith(pattern)) {
+          matchedPattern = pattern;
+          nomeCimitero = normalizedQuery.substring(pattern.length).trim();
+          break;
+        }
+      }
+      
+      // Log per debugging
+      console.log("Pattern corrispondente:", matchedPattern);
+      console.log("Nome cimitero estratto:", nomeCimitero);
+      
+      if (matchedPattern) {
+        if (nomeCimitero && nomeCimitero.length > 0) {
+          // L'utente ha specificato un cimitero
+          console.log(`Cercando cimitero con nome: "${nomeCimitero}"`);
+          const cimitero = await findCimiteroByName(nomeCimitero);
+
+          if (cimitero) {
+            setMessages(prev => [...prev, { 
+              type: 'response', 
+              content: `Ho trovato il cimitero "${cimitero.Descrizione}"`,
+              data: {
+                type: 'cimitero',
+                cimitero
+              },
+              timestamp: new Date()
+            }]);
+          } else {
+            setMessages(prev => [...prev, { 
+              type: 'response', 
+              content: `Non ho trovato nessun cimitero con il nome "${nomeCimitero}".`,
+              timestamp: new Date()
+            }]);
+          }
+        } else {
           // L'utente ha chiesto genericamente di vedere un cimitero senza specificare quale
           setMessages(prev => [...prev, { 
             type: 'response', 
-            content: `Per favore, specifica quale cimitero desideri visualizzare. Puoi chiedere "mostrami il cimitero di [nome]" oppure chiedere "lista dei cimiteri" per vedere tutti i cimiteri disponibili.`,
+            content: `Per favore, specifica quale cimitero desideri visualizzare. Puoi chiedere "mostrami il cimitero [nome]" oppure chiedere "lista dei cimiteri" per vedere tutti i cimiteri disponibili.`,
+            timestamp: new Date()
+          }]);
+        }
+        
+        setQuery("");
+        setIsProcessing(false);
+        setTimeout(scrollToBottom, 100);
+        return;
+      }
+      
+      // Fallback per il vecchio pattern in caso i nuovi non abbiano trovato match
+      // Verifica cimitero specifico - pattern alternativo per casi non coperti dai pattern sopra
+      const cimiteroPattern = /^(mostra(?:mi)?|apri|vedi|visualizza|(?:mostra\s+)?(?:dettagli|informazioni)|fammi\s+vedere|voglio\s+vedere)(?:\s+(?:il|del|sul))?(?:\s+cimitero(?:\s+di\s+)?(.*)?)?$/i;
+      const cimiteroMatch = normalizedQuery.match(cimiteroPattern);
+      
+      console.log("Risultato regex cimitero (fallback):", cimiteroMatch);
+      
+      if (cimiteroMatch) {
+        // Se il nome del cimitero non è specificato nella query
+        if (!cimiteroMatch[2] || !cimiteroMatch[2].trim()) {
+          // L'utente ha chiesto genericamente di vedere un cimitero senza specificare quale
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: `Per favore, specifica quale cimitero desideri visualizzare. Puoi chiedere "mostrami il cimitero [nome]" oppure chiedere "lista dei cimiteri" per vedere tutti i cimiteri disponibili.`,
             timestamp: new Date()
           }]);
         } else {
           // L'utente ha specificato un cimitero
-          const nomeCimitero = cimiteroMatch[1].trim();
-          console.log(`Cercando cimitero con nome: "${nomeCimitero}"`);
+          const nomeCimitero = cimiteroMatch[2].trim();
+          console.log(`Cercando cimitero con nome (fallback): "${nomeCimitero}"`);
           const cimitero = await findCimiteroByName(nomeCimitero);
 
           if (cimitero) {
@@ -131,7 +201,7 @@ export const useChat = (): UseChatReturn => {
       if (genericMatch) {
         setMessages(prev => [...prev, { 
           type: 'response', 
-          content: `Per favore, specifica quale cimitero desideri visualizzare. Puoi chiedere "mostrami il cimitero di [nome]" oppure chiedere "lista dei cimiteri" per vedere tutti i cimiteri disponibili.`,
+          content: `Per favore, specifica quale cimitero desideri visualizzare. Puoi chiedere "mostrami il cimitero [nome]" oppure chiedere "lista dei cimiteri" per vedere tutti i cimiteri disponibili.`,
           timestamp: new Date()
         }]);
         

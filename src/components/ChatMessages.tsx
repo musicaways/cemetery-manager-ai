@@ -109,13 +109,18 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                       </div>
                     )}
                     
-                    {message.data?.type === 'cimiteri' && message.data.cimiteri && (
+                    {message.data?.type === 'cimiteri' && message.data.cimiteri && message.data.cimiteri.length > 0 && (
                       <div className="mt-4 pl-2">
-                        <CimiteriGrid 
-                          cimiteri={message.data.cimiteri}
-                          onSelectCimitero={(cimitero) => onCimiteroSelect?.(cimitero)}
-                          isOnline={isOnline}
-                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {message.data.cimiteri.map((cimitero: any, idx: number) => (
+                            <CimiteroCard 
+                              key={`cim-${idx}`}
+                              cimitero={cimitero}
+                              onClick={() => onCimiteroSelect?.(cimitero)}
+                              isOffline={!isOnline}
+                            />
+                          ))}
+                        </div>
                       </div>
                     )}
                     

@@ -8,6 +8,7 @@ import { SuggestedQuestions } from "./SuggestedQuestions";
 import { CimiteroCard } from "@/pages/cimiteri/components/CimiteroCard";
 import { CimiteriGrid } from "@/pages/cimiteri/components/CimiteriGrid";
 import { CemeteryTravelInfo } from "@/pages/cimiteri/components/CemeteryTravelInfo";
+import { cn } from "@/lib/utils";
 
 interface ChatMessagesProps {
   messages: {
@@ -38,11 +39,11 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
       ref={scrollAreaRef}
       className="h-[calc(100vh-8.5rem)]"
     >
-      <div className="space-y-6">
+      <div className="space-y-6 px-2 md:px-4 pb-4 max-w-4xl mx-auto">
         {messages.length === 0 && !isProcessing && (
           <div className="flex flex-col items-center justify-center h-full">
             {!isOnline ? (
-              <div className="flex flex-col items-center text-center p-6 max-w-md">
+              <div className="flex flex-col items-center text-center p-6 max-w-md animate-fade-in">
                 <WifiOff className="h-12 w-12 text-amber-400 mb-4" />
                 <p className="text-amber-200 text-lg font-medium">Modalità offline attiva</p>
                 <p className="text-gray-400 text-sm mt-2">
@@ -56,9 +57,21 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                 </div>
               </div>
             ) : (
-              <p className="text-gray-400 text-sm">
-                Inizia una nuova conversazione.
-              </p>
+              <div className="mt-12 md:mt-20 animate-fade-in">
+                <div className="text-center space-y-4 max-w-md mx-auto">
+                  <Bot className="w-16 h-16 text-[#8B5CF6] mx-auto" />
+                  <h2 className="text-2xl font-bold text-gradient">Assistente Cimiteri</h2>
+                  <p className="text-gray-400 text-sm">
+                    Benvenuto! Puoi chiedermi informazioni sui cimiteri, cercando per nome, località o altre caratteristiche. Posso anche fornirti dettagli su orari di apertura, disponibilità loculi e molto altro.
+                  </p>
+                  <div className="mt-8">
+                    <SuggestedQuestions 
+                      onSelect={onQuestionSelect}
+                      offline={false}
+                    />
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -67,8 +80,8 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
           <div key={index} data-message-index={index} className="animate-fade-in">
             {message.type === 'query' && (
               <div className="flex justify-end pr-2">
-                <div className="max-w-[95%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-3 border border-[var(--primary-color)]/30 backdrop-blur-sm">
-                  <p className="text-sm text-gray-100 whitespace-pre-wrap">{message.content}</p>
+                <div className="max-w-[90%] sm:max-w-[85%] md:max-w-[75%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-3 border border-[var(--primary-color)]/30 backdrop-blur-sm">
+                  <p className="text-sm text-gray-100 whitespace-pre-wrap break-words">{message.content}</p>
                 </div>
               </div>
             )}
@@ -88,30 +101,39 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                       </div>
                     </div>
                     
-                    <div className="mt-2 text-sm text-gray-100 whitespace-pre-wrap pl-2">
+                    <div className="mt-2 text-sm text-gray-100 whitespace-pre-wrap pl-2 max-w-[95%] sm:max-w-[85%] md:max-w-[75%] break-words">
                       {message.content}
                     </div>
                     
                     {message.data?.type === 'cimitero' && message.data.cimitero && (
-                      <div className="mt-4 pl-2 space-y-4">
-                        <CimiteroCard 
-                          cimitero={message.data.cimitero}
-                          onClick={() => onCimiteroSelect?.(message.data.cimitero)}
-                          isOffline={!isOnline}
-                        />
+                      <div className="mt-4 pl-2 space-y-4 w-full">
+                        <div className="max-w-md">
+                          <CimiteroCard 
+                            cimitero={message.data.cimitero}
+                            onClick={() => onCimiteroSelect?.(message.data.cimitero)}
+                            isOffline={!isOnline}
+                          />
+                        </div>
                         
                         {message.data.cimitero.Indirizzo && isOnline && (
-                          <CemeteryTravelInfo
-                            address={message.data.cimitero.Indirizzo}
-                            city={message.data.cimitero.Descrizione.split(' ')[0]} // Assume che la prima parola sia la città
-                          />
+                          <div className="max-w-xl">
+                            <CemeteryTravelInfo
+                              address={message.data.cimitero.Indirizzo}
+                              city={message.data.cimitero.Descrizione.split(' ')[0]} // Assume che la prima parola sia la città
+                            />
+                          </div>
                         )}
                       </div>
                     )}
                     
                     {message.data?.type === 'cimiteri' && message.data.cimiteri && message.data.cimiteri.length > 0 && (
-                      <div className="mt-4 pl-2">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="mt-4 pl-2 w-full">
+                        <div className={cn(
+                          "grid gap-4",
+                          message.data.cimiteri.length > 1 ? "sm:grid-cols-2" : "",
+                          message.data.cimiteri.length > 2 ? "lg:grid-cols-3" : "",
+                          message.data.cimiteri.length > 4 ? "xl:grid-cols-4" : ""
+                        )}>
                           {message.data.cimiteri.map((cimitero: any, idx: number) => (
                             <CimiteroCard 
                               key={`cim-${idx}`}
@@ -125,7 +147,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                     )}
                     
                     {message.data?.suggestions && (
-                      <div className="mt-4 pl-2">
+                      <div className="mt-4 pl-2 w-full">
                         <SuggestedQuestions 
                           onSelect={onQuestionSelect}
                           offline={!isOnline}

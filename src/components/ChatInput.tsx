@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { VoiceRecorder } from "./VoiceRecorder";
+import { cn } from "@/lib/utils";
 
 interface ChatInputProps {
   query: string;
@@ -60,93 +61,116 @@ export const ChatInput = ({
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ bottom: 0, position: 'fixed', width: '100%' }}>
-      <div className="max-w-5xl mx-auto space-y-3">
+    <footer className="fixed bottom-0 left-0 right-0 bg-[#1A1F2C]/95 border-t border-white/5 backdrop-blur-xl p-4 z-10" style={{ bottom: 0, position: 'fixed', width: '100%' }}>
+      <div className="mx-auto space-y-3 max-w-4xl">
         {!isOnline && (
           <div className="bg-amber-800/40 text-amber-200 px-3 py-2 rounded-lg text-sm flex items-center mb-3">
-            <WifiOff className="h-4 w-4 mr-2" />
+            <WifiOff className="h-4 w-4 mr-2 flex-shrink-0" />
             <span>Modalità offline - Funzionalità limitate disponibili</span>
           </div>
         )}
-        <div className="relative flex items-start">
-          <TextareaAutosize
-            value={query}
-            onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Chiedi qualcosa..."
-            className="w-full bg-[#333333] text-white placeholder-gray-400 focus:outline-none resize-none pr-12 transition-all duration-200 ease-in-out"
-            style={{ textAlign: 'left' }}
-            disabled={isProcessing}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleSubmit(e);
-              }
-            }}
-            minRows={1}
-            maxRows={5}
-          />
-          {query.trim() && (
-            <Button 
-              type="submit" 
-              size="sm"
-              onClick={handleSubmit}
-              className="absolute right-0 top-0 h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+        
+        <form onSubmit={handleSubmit} className="relative">
+          <div className="relative flex glass-panel rounded-xl overflow-hidden transition-all duration-200 border-2 focus-within:border-[var(--primary-color)] hover:border-white/30 border-white/10">
+            <TextareaAutosize
+              value={query}
+              onChange={(e) => onQueryChange(e.target.value)}
+              placeholder="Chiedi qualcosa..."
+              className="w-full bg-transparent text-white placeholder-gray-400 focus:outline-none resize-none p-3 pr-12 transition-all duration-200 ease-in-out"
+              style={{ textAlign: 'left' }}
               disabled={isProcessing}
-              variant="ghost"
-            >
-              <SendHorizonal className="h-4 w-4" />
-            </Button>
-          )}
-        </div>
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit(e);
+                }
+              }}
+              minRows={1}
+              maxRows={4}
+            />
+            
+            {query.trim() && (
+              <Button 
+                type="submit" 
+                size="sm"
+                className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 rounded-full bg-primary text-white hover:bg-primary/90 transition-all duration-200"
+                disabled={isProcessing}
+              >
+                <SendHorizonal className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+          
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-8 w-8 p-0 rounded-full border transition-all duration-200",
+                  webSearchEnabled 
+                    ? "text-primary border-primary bg-primary/10" 
+                    : "text-gray-400 border-white/20 hover:text-primary hover:border-primary hover:bg-primary/10",
+                  !isOnline && "opacity-50 cursor-not-allowed"
+                )}
+                onClick={onWebSearchToggle}
+                title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
+                disabled={!isOnline}
+              >
+                <Globe className="h-4 w-4" />
+                <span className="sr-only">{webSearchEnabled ? "Internet attivo" : "Database locale"}</span>
+              </Button>
 
-        <div className="flex items-center justify-between w-full">
-          <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-8 w-8 p-0 rounded-full border border-white/20 text-gray-400 hover:text-primary hover:border-primary hover:bg-primary/10 transition-all duration-200",
+                  !isOnline && "opacity-50 cursor-not-allowed"
+                )}
+                onClick={handleMediaUploadClick}
+                disabled={!isOnline}
+              >
+                <Paperclip className="h-4 w-4" />
+                <span className="sr-only">Allega file</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 rounded-full border border-white/20 text-gray-400 hover:text-primary hover:border-primary hover:bg-primary/10 transition-all duration-200"
+                onClick={onFunctionsClick}
+              >
+                <Settings className="h-4 w-4" />
+                <span className="sr-only">Funzioni</span>
+              </Button>
+            </div>
+
             <Button
+              type="button"
               variant="ghost"
               size="sm"
-              className={`h-8 w-8 p-0 rounded-full border-2 transition-all duration-200 ${
-                webSearchEnabled 
-                  ? "text-[#9b87f5] border-[#9b87f5] bg-[#9b87f5]/10" 
-                  : "text-gray-400 border-white/20 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
-              }`}
-              onClick={onWebSearchToggle}
-              title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
+              className={cn(
+                "h-8 w-8 p-0 rounded-full border border-white/20 text-gray-400 hover:text-primary hover:border-primary hover:bg-primary/10 transition-all duration-200",
+                "[&_svg]:h-4 [&_svg]:w-4 [&_.recording]:bg-primary/10 [&_.recording]:text-primary [&_.recording]:border-primary",
+                !isOnline && "opacity-50 cursor-not-allowed"
+              )}
               disabled={!isOnline}
             >
-              <Globe className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 ${!isOnline ? 'opacity-50' : ''}`}
-              onClick={handleMediaUploadClick}
-              disabled={!isOnline}
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
-              onClick={onFunctionsClick}
-            >
-              <Settings className="h-4 w-4" />
+              <VoiceRecorder 
+                onRecordingComplete={onVoiceRecord}
+                disabled={!isOnline}
+              />
+              <span className="sr-only">Registra messaggio vocale</span>
             </Button>
           </div>
+        </form>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 [&_svg]:h-4 [&_svg]:w-4 [&_.recording]:bg-[#9b87f5]/10 [&_.recording]:text-[#9b87f5] [&_.recording]:border-[#9b87f5] ${!isOnline ? 'opacity-50' : ''}`}
-            disabled={!isOnline}
-          >
-            <VoiceRecorder 
-              onRecordingComplete={onVoiceRecord}
-              disabled={!isOnline}
-            />
-          </Button>
+        <div className="md:hidden h-12">
+          {/* Spazio extra per evitare che il footer mobile copra il contenuto */}
         </div>
       </div>
     </footer>

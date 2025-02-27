@@ -19,10 +19,13 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { useOnlineStatus } from "@/hooks/chat/useOnlineStatus";
+import { cn } from "@/lib/utils";
 
 interface HeaderProps {
   onSettingsClick: () => void;
+  onSidebarToggle: () => void;
   onSearch: (text: string) => void;
+  isSidebarOpen?: boolean;
 }
 
 const notificationTypes = {
@@ -46,7 +49,7 @@ const notificationTypes = {
   }
 } as const;
 
-export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
+export const Header = ({ onSettingsClick, onSidebarToggle, onSearch, isSidebarOpen = false }: HeaderProps) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [showSearch, setShowSearch] = useState(false);
@@ -151,114 +154,29 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
     <header className="border-b border-[#2A2F3C]/40 bg-black/80 backdrop-blur-xl sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center h-16">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
-              >
-                <Menu className="h-4 w-4" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-80 bg-black border-r border-[#2A2F3C]/40">
-              <div className="mt-4 space-y-4">
-                <div className="space-y-2">
-                  <SheetClose asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
-                      onClick={() => navigate("/")}
-                    >
-                      <MessageCircle className="mr-2 h-4 w-4" />
-                      Assistente
-                    </Button>
-                  </SheetClose>
+          {/* Pulsante menu hamburger per dispositivi mobili e desktop */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onSidebarToggle}
+            className={cn(
+              "h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200",
+              isSidebarOpen && "lg:text-[#9b87f5] lg:border-[#9b87f5] lg:bg-[#9b87f5]/10"
+            )}
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
 
-                  <SheetClose asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
-                      onClick={() => navigate("/cimiteri")}
-                    >
-                      <Database className="mr-2 h-4 w-4" />
-                      Cimiteri
-                    </Button>
-                  </SheetClose>
-                </div>
-
-                <div className="absolute bottom-4 left-4 right-4 space-y-2">
-                  <SheetClose asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
-                      onClick={onSettingsClick}
-                    >
-                      <Settings className="mr-2 h-4 w-4" />
-                      Impostazioni
-                    </Button>
-                  </SheetClose>
-                  
-                  <Collapsible open={isAdminOpen} onOpenChange={setIsAdminOpen}>
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        className={`w-full justify-start text-gray-400 hover:text-[var(--primary-color)] ${
-                          isAdminOpen ? 'text-[var(--primary-color)]' : ''
-                        }`}
-                      >
-                        <Users className="mr-2 h-4 w-4" />
-                        Amministrazione
-                      </Button>
-                    </CollapsibleTrigger>
-                    <CollapsibleContent className="ml-6 space-y-2 mt-2">
-                      <SheetClose asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
-                          onClick={() => navigate("/admin/tables")}
-                        >
-                          <Database className="mr-2 h-4 w-4" />
-                          Tabelle
-                        </Button>
-                      </SheetClose>
-                      <SheetClose asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
-                          onClick={() => navigate("/admin/users")}
-                        >
-                          <Users className="mr-2 h-4 w-4" />
-                          Utenti
-                        </Button>
-                      </SheetClose>
-                      <SheetClose asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
-                          onClick={() => navigate("/admin/ai-functions")}
-                        >
-                          <Code className="mr-2 h-4 w-4" />
-                          Funzioni AI
-                        </Button>
-                      </SheetClose>
-                    </CollapsibleContent>
-                  </Collapsible>
-
-                  <SheetClose asChild>
-                    <Button
-                      variant="ghost"
-                      className="w-full justify-start text-gray-400 hover:text-[var(--primary-color)]"
-                      onClick={handleLogout}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      Logout
-                    </Button>
-                  </SheetClose>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
+          {/* Breadcrumb o titolo della pagina - visibile su desktop */}
+          <div className="hidden md:block ml-4">
+            <h1 className="text-lg font-medium text-gradient">
+              {location.pathname === '/' && 'Assistente AI'}
+              {location.pathname.startsWith('/cimiteri') && 'Gestione Cimiteri'}
+              {location.pathname.startsWith('/admin/tables') && 'Amministrazione Tabelle'}
+              {location.pathname.startsWith('/admin/users') && 'Gestione Utenti'}
+              {location.pathname.startsWith('/admin/ai-functions') && 'Funzioni AI'}
+            </h1>
+          </div>
 
           <div className="flex-1 flex items-center justify-end gap-2 pr-0">
             {showSearch && (
@@ -269,7 +187,7 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                   onChange={(e) => setSearchText(e.target.value)}
                   onKeyDown={handleSearch}
                   placeholder="Cerca nella chat..."
-                  className="bg-[#1A1F2C] text-white text-sm rounded-full px-4 py-1.5 border-2 border-white/20 focus:border-[#9b87f5] focus:outline-none w-48 transition-all duration-200"
+                  className="bg-[#1A1F2C] text-white text-sm rounded-full px-4 py-1.5 border-2 border-white/20 focus:border-[#9b87f5] focus:outline-none w-48 transition-all duration-200 sm:w-64 md:w-80"
                   autoFocus
                 />
                 {searchText && (
@@ -348,7 +266,7 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                   )}
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right" className="w-80 bg-black/95 border-l border-[#2A2F3C]/40">
+              <SheetContent side="right" className="w-80 bg-black/95 border-l border-[#2A2F3C]/40 sm:max-w-md">
                 <SheetHeader className="space-y-4">
                   <div className="flex items-center justify-between">
                     <SheetTitle className="text-lg font-semibold text-gradient">Notifiche</SheetTitle>

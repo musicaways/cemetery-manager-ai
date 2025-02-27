@@ -66,12 +66,28 @@ export const useChat = (): UseChatReturn => {
         return;
       }
 
-      // Se non è un match esatto per la lista, cerca altre funzioni AI
-      const matchedFunction = findMatchingFunction(normalizedQuery, aiFunctions);
+      // Se non è un match esatto per la lista, cerca altre funzioni AI con il nuovo algoritmo
+      const matchResult = findMatchingFunction(normalizedQuery, aiFunctions);
 
-      if (matchedFunction) {
-        console.log("Funzione AI trovata:", matchedFunction);
-        // Procedi con l'esecuzione della funzione AI...
+      if (matchResult) {
+        console.log("Funzione AI trovata:", matchResult.function.name);
+        console.log("Punteggio di matching:", matchResult.score);
+        console.log("Frase trigger:", matchResult.matchedPhrase);
+        
+        // Qui possiamo aggiungere il codice per eseguire la funzione AI
+        // Per ora, logghiamo solo che l'abbiamo trovata
+        
+        // TODO: implementare l'esecuzione del codice della funzione
+        // const result = await executeFunction(matchResult.function, finalQuery);
+        // setMessages(prev => [...prev, { 
+        //   type: 'response', 
+        //   content: result.text || '',
+        //   data: result.data
+        // }]);
+        // setQuery("");
+        // setIsProcessing(false);
+        // setTimeout(scrollToBottom, 100);
+        // return;
       }
 
       // Verifica cimitero specifico

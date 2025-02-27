@@ -1,32 +1,27 @@
 
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
+import { useState, useEffect } from 'react';
 
 export const useOnlineStatus = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [webSearchEnabled, setWebSearchEnabled] = useState(false);
-  
-  // Gestione dello stato online/offline
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+  const [webSearchEnabled, setWebSearchEnabled] = useState<boolean>(
+    localStorage.getItem('web_search_enabled') === 'true'
+  );
+
   useEffect(() => {
+    // Update online status
     const handleOnline = () => {
       setIsOnline(true);
-      toast.success("Connessione ristabilita", {
-        description: "Sei tornato online. Tutte le funzionalità sono disponibili.",
-        duration: 3000
-      });
+      console.log("Online status: connected");
     };
-    
+
     const handleOffline = () => {
       setIsOnline(false);
-      toast.error("Connessione persa", {
-        description: "Sei passato in modalità offline. Alcune funzionalità potrebbero non essere disponibili.",
-        duration: 3000
-      });
+      console.log("Online status: disconnected");
     };
-    
+
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
-    
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
@@ -34,23 +29,10 @@ export const useOnlineStatus = () => {
   }, []);
 
   const toggleWebSearch = () => {
-    if (!isOnline && !webSearchEnabled) {
-      toast.error("La modalità Internet non è disponibile offline", { duration: 2000 });
-      return;
-    }
-    
-    setWebSearchEnabled(!webSearchEnabled);
-    toast.success(
-      !webSearchEnabled 
-        ? "Modalità Internet attivata" 
-        : "Modalità Database attivata",
-      { duration: 2000 }
-    );
+    const newValue = !webSearchEnabled;
+    setWebSearchEnabled(newValue);
+    localStorage.setItem('web_search_enabled', newValue.toString());
   };
 
-  return {
-    isOnline,
-    webSearchEnabled,
-    toggleWebSearch
-  };
+  return { isOnline, webSearchEnabled, toggleWebSearch };
 };

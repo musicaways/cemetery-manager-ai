@@ -17,9 +17,6 @@ export interface UseChatReturn {
   webSearchEnabled: boolean;
   messagesEndRef: MutableRefObject<HTMLDivElement | null>;
   scrollAreaRef: MutableRefObject<HTMLDivElement | null>;
-  selectedCimitero: Cimitero | null;
-  setSelectedCimitero: (cimitero: Cimitero | null) => void;
-  handleSearch: (text: string) => void;
   handleSubmit: (e?: React.FormEvent, query?: string) => void;
   toggleWebSearch: () => void;
   isOnline: boolean;

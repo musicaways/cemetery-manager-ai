@@ -101,19 +101,11 @@ export const AIFunctionTester = ({ func }: AIFunctionTesterProps) => {
           <div className="p-3 rounded bg-[#2A2F3C]">
             <h4 className="font-medium mb-2">Frasi Trigger Configurate:</h4>
             <div className="flex flex-wrap gap-2">
-              {Array.isArray(func.trigger_phrases) ? 
-                func.trigger_phrases.map((phrase, index) => (
-                  <Badge key={index} variant="outline" className="bg-[var(--primary-color)]/20 text-[var(--primary-color)]">
-                    {phrase}
-                  </Badge>
-                )) : 
-                (typeof func.trigger_phrases === 'string' ? 
-                  func.trigger_phrases.split(',').map((p, index) => (
-                    <Badge key={index} variant="outline" className="bg-[var(--primary-color)]/20 text-[var(--primary-color)]">
-                      {p.trim()}
-                    </Badge>
-                  )) : null)
-              }
+              {(func.trigger_phrases || []).map((phrase, index) => (
+                <Badge key={index} variant="outline" className="bg-[var(--primary-color)]/20 text-[var(--primary-color)]">
+                  {phrase}
+                </Badge>
+              ))}
             </div>
           </div>
         </div>

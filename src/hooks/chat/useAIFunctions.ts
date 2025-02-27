@@ -16,7 +16,7 @@ export const useAIFunctions = () => {
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('ai_chat_functions') // Corrected table name
+        .from('ai_chat_functions')
         .select('*')
         .eq('is_active', true);
 
@@ -45,12 +45,8 @@ export const useAIFunctions = () => {
     functions.forEach(func => {
       if (!func.trigger_phrases) return;
       
-      // Handle both string and string[] types for trigger_phrases
-      const phrases = Array.isArray(func.trigger_phrases)
-        ? func.trigger_phrases.map(p => p.trim().toLowerCase())
-        : typeof func.trigger_phrases === 'string'
-          ? func.trigger_phrases.split(',').map(p => p.trim().toLowerCase())
-          : [];
+      // Ensure trigger_phrases is treated as an array
+      const phrases = func.trigger_phrases.map(p => p.trim().toLowerCase());
       
       phrases.forEach(phrase => {
         if (normalizedQuery.includes(phrase)) {
@@ -65,31 +61,20 @@ export const useAIFunctions = () => {
     return bestMatch;
   };
 
-  // Add the missing exactMatchTriggerPhrases function
-  const exactMatchTriggerPhrases = (normalizedQuery: string, triggerPhrasesInput: string | string[]): boolean => {
-    const phrases = Array.isArray(triggerPhrasesInput)
-      ? triggerPhrasesInput.map(p => p.trim().toLowerCase())
-      : typeof triggerPhrasesInput === 'string'
-        ? triggerPhrasesInput.split(',').map(p => p.trim().toLowerCase())
-        : [];
-      
-    return phrases.some(phrase => normalizedQuery === phrase);
+  // Add the exactMatchTriggerPhrases function
+  const exactMatchTriggerPhrases = (normalizedQuery: string, triggerPhrases: string[]): boolean => {
+    return triggerPhrases.some(phrase => normalizedQuery === phrase.trim().toLowerCase());
   };
 
-  const matchTriggerPhrases = (normalizedQuery: string, triggerPhrasesInput: string | string[]): { matched: boolean; score: number; matchedPhrase?: string } => {
-    const phrases = Array.isArray(triggerPhrasesInput)
-      ? triggerPhrasesInput.map(p => p.trim().toLowerCase())
-      : typeof triggerPhrasesInput === 'string'
-        ? triggerPhrasesInput.split(',').map(p => p.trim().toLowerCase())
-        : [];
-    
+  const matchTriggerPhrases = (normalizedQuery: string, triggerPhrases: string[]): { matched: boolean; score: number; matchedPhrase?: string } => {
     let bestMatch = { matched: false, score: 0, matchedPhrase: undefined as string | undefined };
     
-    phrases.forEach(phrase => {
-      if (normalizedQuery.includes(phrase)) {
-        const score = phrase.length / normalizedQuery.length;
+    triggerPhrases.forEach(phrase => {
+      const normalizedPhrase = phrase.trim().toLowerCase();
+      if (normalizedQuery.includes(normalizedPhrase)) {
+        const score = normalizedPhrase.length / normalizedQuery.length;
         if (score > bestMatch.score) {
-          bestMatch = { matched: true, score, matchedPhrase: phrase };
+          bestMatch = { matched: true, score, matchedPhrase: normalizedPhrase };
         }
       }
     });
@@ -148,12 +133,8 @@ export const useAIFunctions = () => {
     for (const func of activeFunctions) {
       if (!func.trigger_phrases) continue;
       
-      // Handle both string and string[] types for trigger_phrases
-      const phrases = Array.isArray(func.trigger_phrases)
-        ? func.trigger_phrases.map(p => p.trim().toLowerCase())
-        : typeof func.trigger_phrases === 'string'
-          ? func.trigger_phrases.split(',').map(p => p.trim().toLowerCase())
-          : [];
+      // Ensure trigger_phrases is treated as an array
+      const phrases = func.trigger_phrases.map(p => p.trim().toLowerCase());
       
       if (phrases.some(phrase => normalizedQuery.includes(phrase))) {
         return func.id;

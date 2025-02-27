@@ -28,9 +28,8 @@ class LocalLLMManager {
       
       // Carica il modello per embedding (più leggero di un modello di generazione)
       this.model = await pipeline('feature-extraction', this.modelName, {
-        // Rimuoviamo l'opzione quantized che non è supportata
-        revision: 'main',
-        cache: true
+        // Utilizziamo solo opzioni supportate
+        revision: 'main'
       });
       
       this.modelReady = true;

@@ -1,21 +1,17 @@
 
-import { Wifi, WifiOff } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { WifiOff } from 'lucide-react';
 
 interface OfflineIndicatorProps {
   isOnline: boolean;
 }
 
 export const OfflineIndicator = ({ isOnline }: OfflineIndicatorProps) => {
-  if (isOnline) return null; // Non mostrare nulla se siamo online
-  
+  if (isOnline) return null;
+
   return (
-    <div className={cn(
-      "fixed top-16 left-0 right-0 p-2 z-50 flex items-center justify-center",
-      "bg-amber-600/90 text-white text-sm shadow-md backdrop-blur-sm"
-    )}>
+    <div className="bg-amber-600/90 text-white p-2 flex items-center justify-center">
       <WifiOff className="h-4 w-4 mr-2" />
-      <span>Modalità offline - Alcune funzionalità potrebbero essere limitate</span>
+      <span>Modalità offline attiva - Alcune funzionalità potrebbero non essere disponibili</span>
     </div>
   );
 };

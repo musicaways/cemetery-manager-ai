@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { localLLM } from "@/lib/llm/localLLMManager";
 import type { ChatMessage } from "./types";
 import type { AIResponse, QueryRequest } from "@/utils/types";
 import type { useAIFunctions } from "./useAIFunctions";
@@ -25,13 +26,25 @@ export const useAIRequestHandler = ({
   
   const handleAIRequest = async (query: string): Promise<void> => {
     try {
-      // Se non siamo online, rispondi con un messaggio di errore
+      // Se non siamo online, proviamo a usare il modello locale
       if (!isOnline) {
-        setMessages(prev => [...prev, { 
-          type: 'response', 
-          content: `Mi dispiace, ma non posso rispondere a questa domanda in modalità offline. Puoi comunque visualizzare la lista dei cimiteri disponibili o cercare un cimitero specifico.`,
-          timestamp: new Date()
-        }]);
+        // Verifica se il modello locale è disponibile
+        if (await localLLM.isAvailable()) {
+          const localResponse = await localLLM.processQuery(query);
+          setMessages(prev => [...prev, {
+            type: 'response',
+            content: localResponse.text || 'Non ho potuto generare una risposta locale.',
+            data: localResponse.data,
+            timestamp: new Date()
+          }]);
+        } else {
+          // Risposta di fallback se il modello locale non è disponibile
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: `Mi dispiace, ma non posso rispondere a questa domanda in modalità offline. Puoi comunque visualizzare la lista dei cimiteri disponibili o cercare un cimitero specifico.`,
+            timestamp: new Date()
+          }]);
+        }
         setTimeout(scrollToBottom, 100);
         return;
       }

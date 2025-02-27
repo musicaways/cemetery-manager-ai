@@ -334,21 +334,22 @@ class OfflineManager {
       for (const change of pendingChanges) {
         try {
           if (change.operation === 'update') {
+            // Usa l'operatore 'as' per dire a TypeScript che stiamo usando un tipo valido
             const { error } = await supabase
-              .from(change.table)
+              .from(change.table as "Cimitero")
               .update(change.data)
               .eq('Id', change.data.Id);
               
             if (error) throw error;
           } else if (change.operation === 'insert') {
             const { error } = await supabase
-              .from(change.table)
+              .from(change.table as "Cimitero")
               .insert([change.data]);
               
             if (error) throw error;
           } else if (change.operation === 'delete') {
             const { error } = await supabase
-              .from(change.table)
+              .from(change.table as "Cimitero")
               .delete()
               .eq('Id', change.data.Id);
               

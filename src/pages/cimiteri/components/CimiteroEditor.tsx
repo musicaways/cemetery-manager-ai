@@ -11,13 +11,15 @@ interface CimiteroEditorProps {
   onClose: () => void;
   onSave: (data: Partial<Cimitero>, coverImage?: File) => Promise<void>;
   onUploadComplete: (url: string) => Promise<void>;
+  isOnline?: boolean;
 }
 
 export const CimiteroEditor = ({
   cimitero,
   onClose,
   onSave,
-  onUploadComplete
+  onUploadComplete,
+  isOnline = true
 }: CimiteroEditorProps) => {
   const [editMode, setEditMode] = useState(false);
   const [editedData, setEditedData] = useState<Partial<Cimitero>>({});

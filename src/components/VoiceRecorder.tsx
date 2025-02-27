@@ -1,105 +1,105 @@
 
-import { useState, useRef } from 'react';
-import { Button } from "@/components/ui/button";
-import { Mic, X, MicOff } from "lucide-react";
-import { toast } from "sonner";
+import React, { useState, useRef } from 'react';
+import { Mic, Square } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 
 interface VoiceRecorderProps {
   onRecordingComplete: (text: string) => void;
+  disabled?: boolean;
 }
 
-export const VoiceRecorder = ({ onRecordingComplete }: VoiceRecorderProps) => {
+export const VoiceRecorder = ({ onRecordingComplete, disabled = false }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
-  const [duration, setDuration] = useState(0);
-  const recognition = useRef<SpeechRecognition | null>(null);
-  const timerRef = useRef<number>();
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const { toast } = useToast();
 
-  const startRecording = async () => {
-    try {
-      if (!('webkitSpeechRecognition' in window)) {
-        throw new Error('Il tuo browser non supporta il riconoscimento vocale');
-      }
-
-      if (recognition.current) {
-        recognition.current.stop();
-      }
-
-      const SpeechRecognition = window.webkitSpeechRecognition;
-      recognition.current = new SpeechRecognition();
-      recognition.current.continuous = false;
-      recognition.current.interimResults = false;
-      recognition.current.lang = 'it-IT';
-
-      recognition.current.onresult = (event: SpeechRecognitionEvent) => {
-        const transcript = event.results[0][0].transcript;
-        onRecordingComplete(transcript);
-        stopRecording();
-      };
-
-      recognition.current.onerror = (event: Event) => {
-        console.error('Errore riconoscimento:', event);
-        toast.error('Errore durante il riconoscimento vocale');
-        stopRecording();
-      };
-
-      recognition.current.onend = () => {
-        stopRecording();
-      };
-
-      recognition.current.start();
-      setIsRecording(true);
-      
-      timerRef.current = window.setInterval(() => {
-        setDuration(d => d + 1);
-      }, 1000);
-      
-    } catch (error) {
-      console.error('Errore microfono:', error);
-      toast.error('Errore accesso al microfono');
-      stopRecording();
+  const startRecording = () => {
+    if (disabled) {
+      toast({
+        title: "Registrazione non disponibile",
+        description: "La registrazione vocale non è disponibile in modalità offline",
+        variant: "destructive"
+      });
+      return;
     }
+
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+      toast({
+        title: "Browser non supportato",
+        description: "Il tuo browser non supporta la registrazione vocale",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Inizializza la riconoscimento vocale
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognitionRef.current = new SpeechRecognition();
+    
+    // Configura il riconoscimento
+    recognitionRef.current.lang = 'it-IT';
+    recognitionRef.current.continuous = false;
+    recognitionRef.current.interimResults = false;
+    
+    // Gestisci il risultato
+    recognitionRef.current.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      onRecordingComplete(transcript);
+      setIsRecording(false);
+    };
+    
+    // Gestisci gli errori
+    recognitionRef.current.onerror = (event) => {
+      console.error('Errore durante la registrazione vocale:', event.error);
+      toast({
+        title: "Errore",
+        description: `Si è verificato un errore: ${event.error}`,
+        variant: "destructive"
+      });
+      setIsRecording(false);
+    };
+    
+    // Fine della registrazione
+    recognitionRef.current.onend = () => {
+      setIsRecording(false);
+    };
+    
+    // Inizia la registrazione
+    recognitionRef.current.start();
+    setIsRecording(true);
+    
+    toast({
+      title: "Registrazione avviata",
+      description: "Parla ora...",
+    });
   };
 
   const stopRecording = () => {
-    if (recognition.current) {
-      recognition.current.stop();
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
     }
-    clearInterval(timerRef.current);
-    setIsRecording(false);
-    setDuration(0);
+  };
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
   };
 
   return (
-    <div className="relative flex items-center">
-      {isRecording && (
-        <div className="absolute right-full mr-2 flex items-center space-x-2 bg-[#333333]/50 px-3 py-1 rounded-full border border-[#9b87f5]/20">
-          <div className="w-2 h-2 rounded-full bg-[#9b87f5] animate-[pulse_1.5s_ease-in-out_infinite]" />
-          <span className="text-sm text-[#9b87f5]">{duration}s</span>
-        </div>
+    <button
+      onClick={toggleRecording}
+      className={cn(
+        "flex items-center justify-center w-full h-full",
+        isRecording ? "recording" : "",
+        disabled ? "opacity-50 cursor-not-allowed" : ""
       )}
-      
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={isRecording ? stopRecording : startRecording}
-        className={`relative h-8 w-8 rounded-full transition-all duration-200 ${
-          isRecording 
-            ? "border-2 border-[#9b87f5] bg-[#9b87f5]/10 text-[#9b87f5]"
-            : "border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
-        }`}
-      >
-        {isRecording && (
-          <div className="absolute inset-0 rounded-full animate-[ping_2s_cubic-bezier(0,0,0.2,1)_infinite] bg-[#9b87f5]/30" />
-        )}
-        {isRecording ? (
-          <MicOff className="h-4 w-4 relative z-10" />
-        ) : (
-          <Mic className="h-4 w-4" />
-        )}
-        <span className="sr-only">
-          {isRecording ? "Interrompi registrazione" : "Avvia registrazione vocale"}
-        </span>
-      </Button>
-    </div>
+      disabled={disabled}
+    >
+      {isRecording ? <Square /> : <Mic />}
+    </button>
   );
 };

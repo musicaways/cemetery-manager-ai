@@ -1,5 +1,6 @@
+
 import { Button } from "@/components/ui/button";
-import { Globe, Paperclip, Settings, Mic, SendHorizonal } from "lucide-react";
+import { Globe, Paperclip, Settings, Mic, SendHorizonal, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import TextareaAutosize from "react-textarea-autosize";
 import {
@@ -20,6 +21,7 @@ interface ChatInputProps {
   onVoiceRecord: (text: string) => void;
   onWebSearchToggle: () => void;
   onFunctionsClick: () => void;
+  isOnline?: boolean;
 }
 
 export const ChatInput = ({
@@ -31,7 +33,8 @@ export const ChatInput = ({
   onMediaUploadClick,
   onVoiceRecord,
   onWebSearchToggle,
-  onFunctionsClick
+  onFunctionsClick,
+  isOnline = true
 }: ChatInputProps) => {
   const handleCommandSelect = (command: string) => {
     onQueryChange(command);
@@ -48,9 +51,23 @@ export const ChatInput = ({
     onSubmit(e);
   };
 
+  const handleMediaUploadClick = () => {
+    if (!isOnline) {
+      toast.error("L'upload di immagini non è disponibile in modalità offline", { duration: 2000 });
+      return;
+    }
+    onMediaUploadClick();
+  };
+
   return (
     <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ bottom: 0, position: 'fixed', width: '100%' }}>
       <div className="max-w-5xl mx-auto space-y-3">
+        {!isOnline && (
+          <div className="bg-amber-800/40 text-amber-200 px-3 py-2 rounded-lg text-sm flex items-center mb-3">
+            <WifiOff className="h-4 w-4 mr-2" />
+            <span>Modalità offline - Funzionalità limitate disponibili</span>
+          </div>
+        )}
         <div className="relative flex items-start">
           <TextareaAutosize
             value={query}
@@ -94,6 +111,7 @@ export const ChatInput = ({
               }`}
               onClick={onWebSearchToggle}
               title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
+              disabled={!isOnline}
             >
               <Globe className="h-4 w-4" />
             </Button>
@@ -101,8 +119,9 @@ export const ChatInput = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
-              onClick={onMediaUploadClick}
+              className={`h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 ${!isOnline ? 'opacity-50' : ''}`}
+              onClick={handleMediaUploadClick}
+              disabled={!isOnline}
             >
               <Paperclip className="h-4 w-4" />
             </Button>
@@ -120,10 +139,12 @@ export const ChatInput = ({
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 [&_svg]:h-4 [&_svg]:w-4 [&_.recording]:bg-[#9b87f5]/10 [&_.recording]:text-[#9b87f5] [&_.recording]:border-[#9b87f5]"
+            className={`h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 [&_svg]:h-4 [&_svg]:w-4 [&_.recording]:bg-[#9b87f5]/10 [&_.recording]:text-[#9b87f5] [&_.recording]:border-[#9b87f5] ${!isOnline ? 'opacity-50' : ''}`}
+            disabled={!isOnline}
           >
             <VoiceRecorder 
               onRecordingComplete={onVoiceRecord}
+              disabled={!isOnline}
             />
           </Button>
         </div>

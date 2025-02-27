@@ -5,6 +5,7 @@ import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
 import { ChatModals } from "@/components/chat/ChatModals";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
+import { OfflineIndicator } from "@/pages/cimiteri/components/OfflineIndicator";
 import type { Cimitero } from "@/pages/cimiteri/types";
 
 const Index = () => {
@@ -21,7 +22,8 @@ const Index = () => {
     messagesEndRef,
     scrollAreaRef,
     handleSubmit,
-    toggleWebSearch
+    toggleWebSearch,
+    isOnline
   } = useChat();
 
   const handleFunctionSelect = (functionType: string) => {
@@ -43,6 +45,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-[var(--chat-bg)] text-gray-100 overflow-hidden flex flex-col">
       <Breadcrumb items={[{ label: "Chat" }]} />
+      <OfflineIndicator isOnline={isOnline} />
       <main className="flex-1 pb-20 mt-7">
         <ChatMessages
           messages={messages}
@@ -64,6 +67,7 @@ const Index = () => {
         onVoiceRecord={(text) => handleSubmit(undefined, text)}
         webSearchEnabled={webSearchEnabled}
         onWebSearchToggle={toggleWebSearch}
+        isOnline={isOnline}
       />
 
       <ChatModals

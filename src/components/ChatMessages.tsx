@@ -1,7 +1,7 @@
 
 import { forwardRef } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot } from "lucide-react";
+import { Bot, WifiOff } from "lucide-react";
 import { format } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { SuggestedQuestions } from "./SuggestedQuestions";
@@ -21,6 +21,7 @@ interface ChatMessagesProps {
   scrollAreaRef: React.RefObject<HTMLDivElement>;
   messagesEndRef: React.RefObject<HTMLDivElement>;
   onCimiteroSelect?: (cimitero: any) => void;
+  isOnline?: boolean;
 }
 
 export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
@@ -29,7 +30,8 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
   onQuestionSelect,
   scrollAreaRef,
   messagesEndRef,
-  onCimiteroSelect
+  onCimiteroSelect,
+  isOnline = true
 }, ref) => {
   return (
     <ScrollArea 
@@ -39,9 +41,25 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
       <div className="space-y-6">
         {messages.length === 0 && !isProcessing && (
           <div className="flex flex-col items-center justify-center h-full">
-            <p className="text-gray-400 text-sm">
-              Inizia una nuova conversazione.
-            </p>
+            {!isOnline ? (
+              <div className="flex flex-col items-center text-center p-6 max-w-md">
+                <WifiOff className="h-12 w-12 text-amber-400 mb-4" />
+                <p className="text-amber-200 text-lg font-medium">Modalità offline attiva</p>
+                <p className="text-gray-400 text-sm mt-2">
+                  Le funzionalità sono limitate ma puoi comunque chiedere informazioni sui cimiteri disponibili localmente.
+                </p>
+                <div className="mt-6 w-full">
+                  <SuggestedQuestions 
+                    onSelect={onQuestionSelect}
+                    offline={true}
+                  />
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm">
+                Inizia una nuova conversazione.
+              </p>
+            )}
           </div>
         )}
 
@@ -65,6 +83,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                         <span className="text-sm font-medium text-gray-200">Assistente AI</span>
                         <span className="text-xs text-gray-400">
                           {format(message.timestamp || new Date(), "d MMMM yyyy, HH:mm", { locale: it })}
+                          {!isOnline && <span className="ml-2 text-amber-400">(offline)</span>}
                         </span>
                       </div>
                     </div>
@@ -78,9 +97,10 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                         <CimiteroCard 
                           cimitero={message.data.cimitero}
                           onClick={() => onCimiteroSelect?.(message.data.cimitero)}
+                          isOffline={!isOnline}
                         />
                         
-                        {message.data.cimitero.Indirizzo && (
+                        {message.data.cimitero.Indirizzo && isOnline && (
                           <CemeteryTravelInfo
                             address={message.data.cimitero.Indirizzo}
                             city={message.data.cimitero.Descrizione.split(' ')[0]} // Assume che la prima parola sia la città
@@ -94,6 +114,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                         <CimiteriGrid 
                           cimiteri={message.data.cimiteri}
                           onSelectCimitero={(cimitero) => onCimiteroSelect?.(cimitero)}
+                          isOnline={isOnline}
                         />
                       </div>
                     )}
@@ -102,6 +123,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                       <div className="mt-4 pl-2">
                         <SuggestedQuestions 
                           onSelect={onQuestionSelect}
+                          offline={!isOnline}
                         />
                       </div>
                     )}

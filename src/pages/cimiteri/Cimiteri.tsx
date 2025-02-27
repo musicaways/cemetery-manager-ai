@@ -1,14 +1,15 @@
 
 import { useState } from "react";
-import { useCimiteri } from "./hooks/useCimiteri";
+import { useOfflineCimiteri } from "./hooks/useOfflineCimiteri";
 import { useSearch } from "./hooks/useSearch";
 import { CimiteriGrid } from "./components/CimiteriGrid";
 import { CimiteroEditor } from "./components/CimiteroEditor";
 import { Cimitero } from "./types";
 import { Breadcrumb } from "./components/Breadcrumb";
+import { OfflineIndicator } from "./components/OfflineIndicator";
 
 export const Cimiteri = () => {
-  const { cimiteri, loading, updateCimitero, loadCimiteri } = useCimiteri();
+  const { cimiteri, loading, updateCimitero, loadCimiteri, isOnline } = useOfflineCimiteri();
   const { searchTerm } = useSearch();
   const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
 
@@ -38,10 +39,12 @@ export const Cimiteri = () => {
   return (
     <>
       <Breadcrumb />
+      <OfflineIndicator isOnline={isOnline} />
       <div className="container mx-auto px-4 py-4 mt-7">
         <CimiteriGrid 
           cimiteri={filteredCimiteri}
           onSelectCimitero={setSelectedCimitero}
+          isOnline={isOnline}
         />
 
         <CimiteroEditor
@@ -49,6 +52,7 @@ export const Cimiteri = () => {
           onClose={() => setSelectedCimitero(null)}
           onSave={handleSave}
           onUploadComplete={handleUploadComplete}
+          isOnline={isOnline}
         />
       </div>
     </>

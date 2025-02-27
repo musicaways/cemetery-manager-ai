@@ -1,4 +1,5 @@
 
+import { MutableRefObject } from "react";
 import type { Cimitero } from "@/pages/cimiteri/types";
 
 export interface ChatMessage {
@@ -8,20 +9,18 @@ export interface ChatMessage {
   timestamp?: Date;
 }
 
-export interface ChatState {
+export interface UseChatReturn {
   query: string;
+  setQuery: (query: string) => void;
   isProcessing: boolean;
   messages: ChatMessage[];
   webSearchEnabled: boolean;
+  messagesEndRef: MutableRefObject<HTMLDivElement | null>;
+  scrollAreaRef: MutableRefObject<HTMLDivElement | null>;
   selectedCimitero: Cimitero | null;
-}
-
-export interface UseChatReturn extends ChatState {
-  setQuery: (query: string) => void;
-  messagesEndRef: React.RefObject<HTMLDivElement>;
-  scrollAreaRef: React.RefObject<HTMLDivElement>;
   setSelectedCimitero: (cimitero: Cimitero | null) => void;
-  handleSearch: (searchText: string) => void;
-  handleSubmit: (e?: React.FormEvent, submittedQuery?: string) => Promise<void>;
+  handleSearch: (text: string) => void;
+  handleSubmit: (e?: React.FormEvent, query?: string) => void;
   toggleWebSearch: () => void;
+  isOnline: boolean;
 }

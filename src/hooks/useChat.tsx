@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useChatCimitero } from "@/pages/cimiteri/hooks/useChatCimitero";
@@ -8,16 +8,32 @@ import { useAIFunctions } from "./chat/useAIFunctions";
 import type { UseChatReturn } from "./chat/types";
 import type { Cimitero } from "@/pages/cimiteri/types";
 import type { AIResponse, QueryRequest } from "@/utils/types";
+import { offlineManager } from "@/lib/offline/offlineManager";
 
 export const useChat = (): UseChatReturn => {
   const [query, setQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [webSearchEnabled, setWebSearchEnabled] = useState(false);
   const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
   
   const { findCimiteroByName, getAllCimiteri } = useChatCimitero();
   const { messages, setMessages, messagesEndRef, scrollAreaRef, handleSearch, scrollToBottom } = useChatMessages();
   const { processTestQuery, getActiveFunctions, findMatchingFunction } = useAIFunctions();
+
+  // Gestione dello stato online/offline
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Funzione per verificare e gestire la richiesta di lista cimiteri
   const handleListaCimiteriRequest = async (normalizedQuery: string): Promise<boolean> => {
@@ -44,7 +60,15 @@ export const useChat = (): UseChatReturn => {
     
     if (isListaCimiteriExactMatch) {
       console.log("MATCH ESATTO trovato per la funzione 'Lista cimiteri'");
-      const cimiteri = await getAllCimiteri();
+      
+      let cimiteri;
+      if (isOnline) {
+        cimiteri = await getAllCimiteri();
+      } else {
+        // In modalità offline, usa il manager offline
+        cimiteri = await offlineManager.getCimiteri();
+      }
+      
       setMessages(prev => [...prev, { 
         type: 'response', 
         content: 'Ecco la lista dei cimiteri disponibili:',
@@ -95,7 +119,18 @@ export const useChat = (): UseChatReturn => {
     if (matchedPattern) {
       if (nomeCimitero && nomeCimitero.length > 0) {
         console.log(`Cercando cimitero con nome: "${nomeCimitero}"`);
-        const cimitero = await findCimiteroByName(nomeCimitero);
+        
+        let cimitero;
+        if (isOnline) {
+          cimitero = await findCimiteroByName(nomeCimitero);
+        } else {
+          // In modalità offline, cerca tra i cimiteri disponibili localmente
+          const cimiteri = await offlineManager.getCimiteri();
+          cimitero = cimiteri.find(c => 
+            c.Descrizione?.toLowerCase().includes(nomeCimitero.toLowerCase()) ||
+            c.Codice?.toLowerCase().includes(nomeCimitero.toLowerCase())
+          );
+        }
 
         if (cimitero) {
           setMessages(prev => [...prev, { 
@@ -157,6 +192,19 @@ export const useChat = (): UseChatReturn => {
         return;
       }
 
+      // Se non siamo online, rispondi con un messaggio di errore
+      if (!isOnline) {
+        setMessages(prev => [...prev, { 
+          type: 'response', 
+          content: `Mi dispiace, ma non posso rispondere a questa domanda in modalità offline. Puoi comunque visualizzare la lista dei cimiteri disponibili o cercare un cimitero specifico.`,
+          timestamp: new Date()
+        }]);
+        setQuery("");
+        setIsProcessing(false);
+        setTimeout(scrollToBottom, 100);
+        return;
+      }
+
       // Se nessuna delle funzioni speciali è stata attivata, procedi con la richiesta AI standard
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
@@ -201,7 +249,8 @@ export const useChat = (): UseChatReturn => {
         setMessages(prev => [...prev, { 
           type: 'response', 
           content: response.text || '',
-          data: response.data
+          data: response.data,
+          timestamp: new Date()
         }]);
         
         if (response.error) {
@@ -223,6 +272,11 @@ export const useChat = (): UseChatReturn => {
   };
 
   const toggleWebSearch = () => {
+    if (!isOnline && !webSearchEnabled) {
+      toast.error("La modalità Internet non è disponibile offline", { duration: 2000 });
+      return;
+    }
+    
     setWebSearchEnabled(!webSearchEnabled);
     toast.success(
       !webSearchEnabled 
@@ -244,6 +298,7 @@ export const useChat = (): UseChatReturn => {
     setSelectedCimitero,
     handleSearch,
     handleSubmit,
-    toggleWebSearch
+    toggleWebSearch,
+    isOnline
   };
 };

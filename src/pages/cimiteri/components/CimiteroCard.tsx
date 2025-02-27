@@ -1,17 +1,23 @@
 
-import { ImagePlus, MapPin, Image, MapPinned, FileText } from "lucide-react";
+import { ImagePlus, MapPin, Image, MapPinned, FileText, WifiOff } from "lucide-react";
 import { Cimitero } from "../types";
+import { cn } from "@/lib/utils";
 
 interface CimiteroCardProps {
   cimitero: Cimitero;
   onClick: () => void;
+  isOffline?: boolean;
 }
 
-export const CimiteroCard = ({ cimitero, onClick }: CimiteroCardProps) => {
+export const CimiteroCard = ({ cimitero, onClick, isOffline = false }: CimiteroCardProps) => {
   return (
     <div
       onClick={onClick}
-      className="group relative bg-[#1A1F2C] backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 hover:border-[var(--primary-color)] transition-all duration-300 cursor-pointer hover:scale-[0.98]"
+      className={cn(
+        "group relative bg-[#1A1F2C] backdrop-blur-xl rounded-xl overflow-hidden border border-white/10",
+        "hover:border-[var(--primary-color)] transition-all duration-300 cursor-pointer hover:scale-[0.98]",
+        isOffline && "border-amber-800/30"
+      )}
     >
       <div className="aspect-video relative overflow-hidden">
         {(cimitero.FotoCopertina || cimitero.foto?.[0]?.Url) ? (
@@ -19,6 +25,7 @@ export const CimiteroCard = ({ cimitero, onClick }: CimiteroCardProps) => {
             src={cimitero.FotoCopertina || cimitero.foto[0].Url}
             alt={cimitero.Descrizione || "Immagine cimitero"}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+            loading="lazy"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-black/20">
@@ -26,6 +33,13 @@ export const CimiteroCard = ({ cimitero, onClick }: CimiteroCardProps) => {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+        
+        {isOffline && (
+          <div className="absolute top-2 right-2 bg-amber-600/90 text-white p-1 rounded-md text-xs flex items-center">
+            <WifiOff className="h-3 w-3 mr-1" />
+            <span>Offline</span>
+          </div>
+        )}
       </div>
 
       <div className="p-4">

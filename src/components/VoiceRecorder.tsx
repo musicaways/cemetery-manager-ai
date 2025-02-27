@@ -9,13 +9,8 @@ interface VoiceRecorderProps {
   disabled?: boolean;
 }
 
-// Estensione dell'interfaccia Window per il supporto di SpeechRecognition
-declare global {
-  interface Window {
-    webkitSpeechRecognition: any;
-    SpeechRecognition: any;
-  }
-}
+// Utilizziamo il file di definizione dei tipi esistente
+// Non ridichiareremo l'interfaccia global per Window
 
 export const VoiceRecorder = ({ onRecordingComplete, disabled = false }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);

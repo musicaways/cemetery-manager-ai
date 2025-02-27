@@ -38,4 +38,5 @@ interface SpeechRecognitionConstructor {
 
 interface Window {
   webkitSpeechRecognition: SpeechRecognitionConstructor;
+  SpeechRecognition: SpeechRecognitionConstructor;
 }

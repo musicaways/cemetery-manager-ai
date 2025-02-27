@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -51,6 +52,9 @@ export const useAISettings = (onSave: () => void) => {
       case "gemini":
         newModel = "gemini-pro";
         break;
+      case "huggingface":
+        newModel = "onnx-community/mxbai-embed-small";
+        break;
       default:
         newModel = "mixtral-8x7b-32768";
     }
@@ -98,12 +102,21 @@ export const useAISettings = (onSave: () => void) => {
       }
 
       toast.success('Test del modello completato', {
-        description: `${MODEL_DESCRIPTIONS[model]?.name} ha risposto correttamente.`
+        description: `${MODEL_DESCRIPTIONS[model]?.name || model} ha risposto correttamente.`
       });
       
       return true;
     } catch (error) {
       console.error('Errore nel test del modello:', error);
+      
+      // Se il provider è huggingface, consideriamo il test riuscito anche se offline
+      if (provider === 'huggingface') {
+        toast.success('Modello locale selezionato', {
+          description: 'Il modello locale verrà utilizzato in caso di disconnessione.'
+        });
+        return true;
+      }
+      
       toast.error('Errore nel test del modello', {
         description: 'Il modello selezionato non ha risposto correttamente. Prova a selezionare un altro modello.'
       });
@@ -128,7 +141,7 @@ export const useAISettings = (onSave: () => void) => {
       
       toast.dismiss(toastLoading);
       toast.success('Impostazioni AI salvate con successo', {
-        description: `Provider: ${provider.toUpperCase()}, Modello: ${MODEL_DESCRIPTIONS[model]?.name}`
+        description: `Provider: ${provider.toUpperCase()}, Modello: ${MODEL_DESCRIPTIONS[model]?.name || model}`
       });
       
       onSave();

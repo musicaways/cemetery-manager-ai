@@ -1,4 +1,5 @@
-import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle, Database, Code } from "lucide-react";
+
+import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle, Database, Code, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -17,6 +18,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { useOnlineStatus } from "@/hooks/chat/useOnlineStatus";
 
 interface HeaderProps {
   onSettingsClick: () => void;
@@ -56,6 +58,7 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
     { id: 1, title: "Nuovo messaggio", message: "Hai ricevuto una nuova risposta", read: false, type: "info" },
     { id: 2, title: "Errore", message: "Si è verificato un errore durante l'elaborazione", read: false, type: "error" },
   ]);
+  const { isOnline } = useOnlineStatus();
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
@@ -300,6 +303,21 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
                 )}
               </div>
             )}
+
+            {/* Indicatore di stato offline nella topbar */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`h-8 w-8 p-0 rounded-full border-2 transition-all duration-200 ${
+                !isOnline 
+                  ? "text-amber-400 border-amber-400 bg-amber-400/10" 
+                  : "text-green-400 border-green-400/30 bg-green-400/5"
+              }`}
+              title={isOnline ? "Connesso" : "Modalità offline"}
+            >
+              <WifiOff className={`h-4 w-4 ${isOnline ? "opacity-0" : "opacity-100"}`} />
+            </Button>
+
             <Button
               variant="ghost"
               size="sm"

@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
 import { Mic, Square } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from "sonner";
 import { cn } from '@/lib/utils';
 
 interface VoiceRecorderProps {
@@ -9,27 +9,26 @@ interface VoiceRecorderProps {
   disabled?: boolean;
 }
 
+// Estensione dell'interfaccia Window per il supporto di SpeechRecognition
+declare global {
+  interface Window {
+    webkitSpeechRecognition: any;
+    SpeechRecognition: any;
+  }
+}
+
 export const VoiceRecorder = ({ onRecordingComplete, disabled = false }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
-  const { toast } = useToast();
+  const recognitionRef = useRef<any>(null);
 
   const startRecording = () => {
     if (disabled) {
-      toast({
-        title: "Registrazione non disponibile",
-        description: "La registrazione vocale non è disponibile in modalità offline",
-        variant: "destructive"
-      });
+      toast.error("La registrazione vocale non è disponibile in modalità offline");
       return;
     }
 
     if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-      toast({
-        title: "Browser non supportato",
-        description: "Il tuo browser non supporta la registrazione vocale",
-        variant: "destructive"
-      });
+      toast.error("Il tuo browser non supporta la registrazione vocale");
       return;
     }
 
@@ -43,20 +42,16 @@ export const VoiceRecorder = ({ onRecordingComplete, disabled = false }: VoiceRe
     recognitionRef.current.interimResults = false;
     
     // Gestisci il risultato
-    recognitionRef.current.onresult = (event) => {
+    recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
       onRecordingComplete(transcript);
       setIsRecording(false);
     };
     
     // Gestisci gli errori
-    recognitionRef.current.onerror = (event) => {
+    recognitionRef.current.onerror = (event: any) => {
       console.error('Errore durante la registrazione vocale:', event.error);
-      toast({
-        title: "Errore",
-        description: `Si è verificato un errore: ${event.error}`,
-        variant: "destructive"
-      });
+      toast.error(`Si è verificato un errore: ${event.error || 'sconosciuto'}`);
       setIsRecording(false);
     };
     
@@ -69,10 +64,7 @@ export const VoiceRecorder = ({ onRecordingComplete, disabled = false }: VoiceRe
     recognitionRef.current.start();
     setIsRecording(true);
     
-    toast({
-      title: "Registrazione avviata",
-      description: "Parla ora...",
-    });
+    toast.info("Registrazione avviata, parla ora...");
   };
 
   const stopRecording = () => {

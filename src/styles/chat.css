@@ -1,37 +1,17 @@
-/* Stili per il tema moderno */
-.chat-modern .message {
-  @apply rounded-lg shadow-md mb-4;
+
+/* Stili base per l'interfaccia chat */
+:root {
+  --chat-bg: #1A1F2C;
+  --primary-color: #8B5CF6;
+  --secondary-color: #6D28D9;
+  --chat-bubble-user: rgba(139, 92, 246, 0.2);
+  --chat-bubble-assistant: #2A2F3C;
+  --chat-text: #E5E7EB;
+  --chat-text-muted: #9CA3AF;
+  --chat-border: rgba(255, 255, 255, 0.1);
 }
 
-/* Stili per il tema classico */
-.chat-classic .message {
-  @apply rounded-none border-b border-gray-200 mb-2;
-}
-
-/* Stili per il tema compatto */
-.chat-compact .message {
-  @apply rounded-sm shadow-sm mb-1 p-2;
-}
-
-/* Stili per le forme degli avatar */
-.avatar-circle {
-  border-radius: 50%;
-}
-
-.avatar-square {
-  border-radius: 0.5rem;
-}
-
-.avatar-hexagon {
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-}
-
-/* Animazioni messaggi */
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
+@keyframes fade-in {
   from {
     opacity: 0;
     transform: translateY(10px);
@@ -42,34 +22,113 @@
   }
 }
 
-/* Animazioni notifiche */
-@keyframes slideOut {
-  from {
-    transform: translateX(0);
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out forwards;
+}
+
+@keyframes typing {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
   }
-  to {
-    transform: translateX(100%);
+  50% {
+    transform: translateY(-4px);
   }
 }
 
-.notification-slide {
-  transform: translateX(0);
-  transition: transform 0.3s ease-out;
+.animate-bounce {
+  animation: bounce 1s infinite;
 }
 
-.notification-slide.sliding {
-  animation: slideOut 0.3s ease-out forwards;
+/* Stili per la visualizzazione offline */
+.offline-banner {
+  background-color: rgba(146, 64, 14, 0.2);
+  border-bottom: 1px solid rgba(146, 64, 14, 0.3);
+  color: #FBBF24;
 }
 
-/* Stili per il testo formattato */
-.whitespace-pre-wrap {
-  white-space: pre-wrap;
-  word-break: break-word;
+/* Stili per le citazioni nei messaggi */
+blockquote {
+  border-left: 3px solid var(--primary-color);
+  padding-left: 1rem;
+  color: var(--chat-text-muted);
+  margin: 1rem 0;
 }
 
-/* Stile per evidenziare le corrispondenze di ricerca */
-.search-highlight {
-  background: rgba(139, 92, 246, 0.2);
-  border-radius: 0.25rem;
-  transition: background-color 0.3s ease;
+/* Stili per i frammenti di codice */
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 0.85em;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+pre {
+  background-color: rgba(0, 0, 0, 0.3);
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto;
+  margin: 1rem 0;
+}
+
+pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  display: block;
+  color: #e5e7eb;
+}
+
+/* Stili per i link nei messaggi */
+.chat-message a {
+  color: var(--primary-color);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.chat-message a:hover {
+  text-decoration: none;
+}
+
+/* Stili per le liste nei messaggi */
+.chat-message ul,
+.chat-message ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.chat-message li {
+  margin-bottom: 0.25rem;
+}
+
+.chat-message ul > li {
+  list-style-type: disc;
+}
+
+.chat-message ol > li {
+  list-style-type: decimal;
+}
+
+/* Stili per il caricamento di immagini */
+.image-loading {
+  background: linear-gradient(90deg, rgba(255,255,255,0.05) 25%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.05) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }

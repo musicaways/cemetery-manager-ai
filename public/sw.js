@@ -1,277 +1,325 @@
+// Service Worker for cemetery management app
+const CACHE_NAME = 'cemetery-app-v1';
 
-const CACHE_VERSION = 'cemetery-ai-v2';
-const STATIC_CACHE = `${CACHE_VERSION}-static`;
-const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
-const IMAGE_CACHE = `${CACHE_VERSION}-images`;
-const API_CACHE = `${CACHE_VERSION}-api`;
-
-// Risorse essenziali che devono essere cachate immediatamente all'installazione
-const STATIC_RESOURCES = [
+// Assets to cache on install
+const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/src/main.tsx',
-  '/src/App.tsx',
+  '/manifest.json',
   '/favicon.ico',
-  '/site.webmanifest',
-  '/lovable-uploads/70f38dc4-7f3e-43f2-8eed-da8d17a4fd4a.png'
+  '/placeholder.svg',
+  '/assets/index.js', // Main app bundle
+  '/assets/index.css', // Main styles
 ];
 
-// Installazione del service worker
+// Dynamic cache for runtime resources
+const DYNAMIC_CACHE = 'cemetery-dynamic-v1';
+
+// DB table names to cache offline
+const DB_TABLES = ['Cimitero', 'Settore', 'Blocco', 'CimiteroFoto', 'CimiteroDocumenti', 'defunti', 'loculi'];
+
+// Install event - cache static assets
 self.addEventListener('install', event => {
-  console.log('[Service Worker] Installazione...');
+  console.log('[Service Worker] Installing...');
   
-  // Skip waiting per attivare immediatamente questo service worker
+  // Skip waiting to activate immediately
   self.skipWaiting();
   
   event.waitUntil(
-    // Apri la cache statica e aggiungi tutte le risorse essenziali
-    caches.open(STATIC_CACHE)
+    caches.open(CACHE_NAME)
       .then(cache => {
-        console.log('[Service Worker] Precaricamento della cache statica');
-        return cache.addAll(STATIC_RESOURCES);
+        console.log('[Service Worker] Caching static assets');
+        return cache.addAll(STATIC_ASSETS);
       })
   );
 });
 
-// Attivazione del service worker
+// Activate event - cleanup old caches
 self.addEventListener('activate', event => {
-  console.log('[Service Worker] Attivazione...');
+  console.log('[Service Worker] Activating...');
   
-  // Pulizia delle cache vecchie quando si attiva una nuova versione
+  // Claim clients to control all tabs immediately
+  event.waitUntil(clients.claim());
+  
+  // Remove old caches
   event.waitUntil(
-    caches.keys().then(keyList => {
+    caches.keys().then(cacheNames => {
       return Promise.all(
-        keyList.map(key => {
-          // Se la chiave non corrisponde alla versione attuale della cache, eliminala
-          if (key !== STATIC_CACHE && 
-              key !== DYNAMIC_CACHE && 
-              key !== IMAGE_CACHE && 
-              key !== API_CACHE) {
-            console.log('[Service Worker] Rimozione cache vecchia', key);
-            return caches.delete(key);
+        cacheNames.map(name => {
+          if (name !== CACHE_NAME && name !== DYNAMIC_CACHE) {
+            console.log('[Service Worker] Deleting old cache:', name);
+            return caches.delete(name);
           }
         })
       );
     })
   );
-  
-  // Controlla immediatamente le pagine dei client
-  return self.clients.claim();
 });
 
-// Intercetta tutte le richieste fetch
+// Listen for messages from clients
+self.addEventListener('message', event => {
+  const { type, data } = event.data;
+  
+  switch (type) {
+    case 'CACHE_CIMITERI_DATA':
+      // Cache cimiteri data received from the app
+      console.log('[Service Worker] Caching cimiteri data');
+      cacheCimiteriData(data);
+      break;
+      
+    case 'CLEAR_CACHE':
+      // Clear specific or all caches
+      console.log('[Service Worker] Clearing cache');
+      caches.delete(DYNAMIC_CACHE);
+      break;
+      
+    case 'SYNC_PENDING_CHANGES':
+      // Trigger sync of pending changes
+      console.log('[Service Worker] Syncing pending changes');
+      syncPendingChanges();
+      break;
+  }
+});
+
+// Cache cimiteri data for offline use
+async function cacheCimiteriData(cimiteri) {
+  if (!cimiteri || !Array.isArray(cimiteri)) return;
+  
+  const cache = await caches.open(DYNAMIC_CACHE);
+  
+  // Store a JSON representation for the IndexedDB data
+  const cimiteriBlob = new Blob([JSON.stringify(cimiteri)], { type: 'application/json' });
+  const cimiteriResponse = new Response(cimiteriBlob);
+  
+  await cache.put('/api/cached-cimiteri', cimiteriResponse);
+  
+  // Cache cemetery images
+  cimiteri.forEach(cimitero => {
+    // Cache cover image
+    if (cimitero.FotoCopertina) {
+      fetch(cimitero.FotoCopertina)
+        .then(response => {
+          if (response.ok) {
+            cache.put(cimitero.FotoCopertina, response.clone());
+          }
+        })
+        .catch(err => console.error('[SW] Failed to cache image:', err));
+    }
+    
+    // Cache additional photos
+    if (cimitero.foto && Array.isArray(cimitero.foto)) {
+      cimitero.foto.forEach(foto => {
+        if (foto.Url) {
+          fetch(foto.Url)
+            .then(response => {
+              if (response.ok) {
+                cache.put(foto.Url, response.clone());
+              }
+            })
+            .catch(err => console.error('[SW] Failed to cache photo:', err));
+        }
+      });
+    }
+  });
+}
+
+// Sync pending changes with the server
+async function syncPendingChanges() {
+  // Handled by the IndexedDB manager in the app
+  // This function is a hook for future implementations
+  console.log('[Service Worker] Sync functionality called');
+}
+
+// Fetch event - serve from cache or network
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   
-  // Gestisci richieste di immagini (cache-first con fallback a rete)
-  if (
-    event.request.url.includes('.jpg') || 
-    event.request.url.includes('.jpeg') || 
-    event.request.url.includes('.png') || 
-    event.request.url.includes('.webp') || 
-    event.request.url.includes('.svg')
-  ) {
-    event.respondWith(handleImageRequest(event.request));
-    return;
-  }
+  // Skip non-GET requests or those not on our origin
+  if (event.request.method !== 'GET') return;
   
-  // Gestisci le richieste API supabase (network-first con fallback a cache)
-  if (event.request.url.includes('supabase.co')) {
-    event.respondWith(handleApiRequest(event.request));
-    return;
-  }
-  
-  // Per le risorse statiche, usa la strategia cache-first
-  if (isStaticAsset(event.request.url)) {
-    event.respondWith(handleStaticRequest(event.request));
-    return;
-  }
-  
-  // Strategia generica per tutte le altre richieste
-  event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      
-      return fetch(event.request)
-        .then(response => {
-          // Ignora le risposte non valide o non-get
-          if (!response || response.status !== 200 || response.type !== 'basic' || event.request.method !== 'GET') {
-            return response;
-          }
-          
-          // Crea una copia della risposta perché i body possono essere letti una sola volta
-          const responseToCache = response.clone();
-          
-          caches.open(DYNAMIC_CACHE).then(cache => {
-            cache.put(event.request, responseToCache);
-          });
-          
-          return response;
-        })
-        .catch(err => {
-          console.error('[Service Worker] Errore di fetch:', err);
-          
-          // Servi una pagina di fallback per le richieste di navigazione
-          if (event.request.mode === 'navigate') {
-            return caches.match('/');
-          }
-          
-          return new Response('Contenuto non disponibile offline', {
-            status: 503,
-            statusText: 'Servizio non disponibile'
-          });
-        });
-    })
-  );
-});
-
-// Gestione messaggi dal client
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'CLEAR_CACHE') {
-    console.log('[Service Worker] Pulizia cache su richiesta');
+  // Strategy: Cache-First then Network with Dynamic Caching
+  // Exception: Supabase API calls
+  if (event.request.url.includes('supabase.co/rest/v1')) {
+    // For Supabase API calls, check if it's a DB_TABLE request first
+    const isDbTableRequest = DB_TABLES.some(table => 
+      event.request.url.includes(`/rest/v1/${table}`)
+    );
     
-    event.waitUntil(
-      caches.keys().then(keyList => {
-        return Promise.all(
-          keyList.map(key => {
-            return caches.delete(key).then(() => {
-              console.log(`[Service Worker] Cache ${key} eliminata`);
-            });
+    if (isDbTableRequest) {
+      // For DB tables, try cached data first, then network
+      event.respondWith(
+        caches.match(event.request)
+          .then(cachedResponse => {
+            // Return cached response if available and still valid
+            if (cachedResponse) {
+              // Check if cache is less than 1 hour old
+              const headers = cachedResponse.headers;
+              const cacheDate = headers.get('sw-cache-date');
+              
+              if (cacheDate) {
+                const cacheTime = new Date(cacheDate).getTime();
+                const now = Date.now();
+                const oneHour = 1000 * 60 * 60;
+                
+                if (now - cacheTime < oneHour) {
+                  return cachedResponse;
+                }
+              }
+            }
+            
+            // Otherwise fetch from network
+            return fetch(event.request.clone())
+              .then(response => {
+                if (!response || response.status !== 200) {
+                  return response;
+                }
+                
+                // Cache the new response
+                const responseToCache = response.clone();
+                caches.open(DYNAMIC_CACHE)
+                  .then(cache => {
+                    // Add cache timestamp header
+                    const headers = new Headers(responseToCache.headers);
+                    headers.append('sw-cache-date', new Date().toISOString());
+                    
+                    // Create a new response with the timestamp header
+                    const timestampedResponse = new Response(
+                      responseToCache.body, 
+                      {
+                        status: responseToCache.status,
+                        statusText: responseToCache.statusText,
+                        headers: headers
+                      }
+                    );
+                    
+                    cache.put(event.request, timestampedResponse);
+                  });
+                
+                return response;
+              })
+              .catch(() => {
+                // If network fails and we have a cached response, return it even if expired
+                if (cachedResponse) {
+                  console.log('[SW] Returning expired cached response for:', event.request.url);
+                  return cachedResponse;
+                }
+                
+                // Otherwise return a custom offline response for API requests
+                return new Response(
+                  JSON.stringify({ 
+                    error: true, 
+                    message: 'You are offline', 
+                    offline: true 
+                  }),
+                  { headers: { 'Content-Type': 'application/json' } }
+                );
+              });
           })
-        );
-      })
+      );
+      return;
+    }
+    
+    // For other Supabase API calls, try network first, then fallback to custom response
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => {
+          return new Response(
+            JSON.stringify({ 
+              error: true, 
+              message: 'You are offline', 
+              offline: true 
+            }),
+            { headers: { 'Content-Type': 'application/json' } }
+          );
+        })
     );
+    return;
   }
   
-  if (event.data && event.data.type === 'CACHE_CIMITERI') {
-    const cimiteriData = event.data.cimiteri;
+  // For static assets and other requests
+  event.respondWith(
+    caches.match(event.request)
+      .then(cachedResponse => {
+        if (cachedResponse) {
+          // Return the cached response
+          return cachedResponse;
+        }
+        
+        // Otherwise fetch from network
+        return fetch(event.request)
+          .then(response => {
+            // Don't cache if response is not valid
+            if (!response || response.status !== 200) {
+              return response;
+            }
+            
+            // Cache successful responses
+            const responseToCache = response.clone();
+            caches.open(DYNAMIC_CACHE)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+            
+            return response;
+          })
+          .catch(error => {
+            // Check if this is a navigation request
+            if (event.request.mode === 'navigate') {
+              // Return the offline page
+              return caches.match('/');
+            }
+            
+            // Otherwise just propagate the error
+            throw error;
+          });
+      })
+  );
+});
+
+// Handle push notifications
+self.addEventListener('push', event => {
+  if (!event.data) return;
+  
+  try {
+    const data = event.data.json();
+    
+    const options = {
+      body: data.body || 'Nuova notifica',
+      icon: '/favicon.ico',
+      badge: '/favicon.ico',
+      data: data.data || {},
+      actions: data.actions || []
+    };
     
     event.waitUntil(
-      caches.open(API_CACHE).then(cache => {
-        // Creiamo una risposta simulata per i dati dei cimiteri
-        const response = new Response(JSON.stringify({
-          data: cimiteriData,
-          error: null
-        }), {
-          headers: { 'Content-Type': 'application/json' }
-        });
-        
-        cache.put('/cached-cimiteri', response);
-        console.log('[Service Worker] Dati cimiteri salvati nella cache');
-      })
+      self.registration.showNotification(data.title || 'Gestione Cimiteri', options)
     );
+  } catch (error) {
+    console.error('[SW] Push notification error:', error);
   }
 });
 
-// Funzione per gestire le richieste di immagini (cache-first)
-async function handleImageRequest(request) {
-  // Prima prova dalla cache
-  const cachedResponse = await caches.match(request);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
+// Handle notification clicks
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
   
-  // Se non in cache, prova dalla rete
-  try {
-    const networkResponse = await fetch(request);
-    
-    // Clona la risposta prima di memorizzarla nella cache
-    const responseToCache = networkResponse.clone();
-    
-    // Memorizza in cache
-    const cache = await caches.open(IMAGE_CACHE);
-    await cache.put(request, responseToCache);
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('[Service Worker] Errore immagine:', error);
-    
-    // Potresti fornire un'immagine di fallback
-    return caches.match('/placeholder.svg') || new Response('Immagine non disponibile', { status: 404 });
-  }
-}
-
-// Funzione per gestire le richieste API (network-first)
-async function handleApiRequest(request) {
-  try {
-    // Prima prova dalla rete
-    const networkResponse = await fetch(request);
-    
-    // Clona la risposta prima di memorizzarla nella cache
-    const responseToCache = networkResponse.clone();
-    
-    // Memorizza in cache
-    const cache = await caches.open(API_CACHE);
-    if (request.method === 'GET') {
-      await cache.put(request, responseToCache);
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('[Service Worker] Errore API:', error);
-    
-    // Se rete non disponibile, prova dalla cache
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Se è una richiesta per i cimiteri, prova a recuperare i dati dalla cache speciale
-    if (request.url.includes('Cimitero')) {
-      const cachedCimiteri = await caches.match('/cached-cimiteri');
-      if (cachedCimiteri) {
-        return cachedCimiteri;
-      }
-    }
-    
-    // Se tutto fallisce, restituisci un errore
-    return new Response(JSON.stringify({ error: 'Dati non disponibili offline' }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 503
-    });
-  }
-}
-
-// Funzione per gestire le richieste statiche (cache-first)
-async function handleStaticRequest(request) {
-  const cachedResponse = await caches.match(request);
-  if (cachedResponse) {
-    return cachedResponse;
-  }
+  const urlToOpen = event.notification.data?.url || '/';
   
-  try {
-    const networkResponse = await fetch(request);
-    
-    // Memorizza in cache se è una risposta valida
-    if (networkResponse.ok) {
-      const cache = await caches.open(STATIC_CACHE);
-      cache.put(request, networkResponse.clone());
-    }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('[Service Worker] Errore risorsa statica:', error);
-    
-    // Fallback alla home page per richieste di navigazione
-    if (request.mode === 'navigate') {
-      return caches.match('/');
-    }
-    
-    return new Response('Risorsa non disponibile offline', { status: 503 });
-  }
-}
-
-// Funzione per verificare se una URL è una risorsa statica
-function isStaticAsset(url) {
-  return (
-    url.endsWith('.js') ||
-    url.endsWith('.css') ||
-    url.endsWith('.woff') ||
-    url.endsWith('.woff2') ||
-    url.endsWith('.ttf') ||
-    url.endsWith('.json') ||
-    url.endsWith('.ico')
+  event.waitUntil(
+    clients.matchAll({ type: 'window' })
+      .then(windowClients => {
+        // Check if there is already a window open
+        for (const client of windowClients) {
+          if (client.url === urlToOpen && 'focus' in client) {
+            return client.focus();
+          }
+        }
+        // Otherwise open a new window
+        if (clients.openWindow) {
+          return clients.openWindow(urlToOpen);
+        }
+      })
   );
-}
+});
+
+console.log('[Service Worker] Initialized');

@@ -1,117 +1,67 @@
 
 import { useState } from "react";
-import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { localLLM } from "@/lib/llm/localLLMManager";
-import type { ChatMessage } from "./types";
-import type { AIResponse, QueryRequest } from "@/utils/types";
-import type { useAIFunctions } from "./useAIFunctions";
+import { toast } from "sonner";
+import LocalLLMManager from "@/lib/llm/localLLMManager";
 
-interface UseAIRequestHandlerParams {
-  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  webSearchEnabled: boolean;
-  isOnline: boolean;
-  aiHandlers: Pick<ReturnType<typeof useAIFunctions>, 'processTestQuery'>;
-  scrollToBottom: () => void;
-}
-
-export const useAIRequestHandler = ({
-  setMessages,
-  webSearchEnabled,
-  isOnline,
-  aiHandlers,
-  scrollToBottom
-}: UseAIRequestHandlerParams) => {
+export const useAIRequestHandler = () => {
   const [isProcessing, setIsProcessing] = useState(false);
-  
-  const handleAIRequest = async (query: string): Promise<void> => {
-    try {
-      // Se non siamo online, proviamo a usare il modello locale
-      if (!isOnline) {
-        // Verifica se il modello locale è disponibile
-        if (await localLLM.isAvailable()) {
-          const localResponse = await localLLM.processQuery(query);
-          setMessages(prev => [...prev, {
-            type: 'response',
-            content: localResponse.text || 'Non ho potuto generare una risposta locale.',
-            data: localResponse.data,
-            timestamp: new Date()
-          }]);
-        } else {
-          // Risposta di fallback se il modello locale non è disponibile
-          setMessages(prev => [...prev, { 
-            type: 'response', 
-            content: `Mi dispiace, ma non posso rispondere a questa domanda in modalità offline. Puoi comunque visualizzare la lista dei cimiteri disponibili o cercare un cimitero specifico.`,
-            timestamp: new Date()
-          }]);
-        }
-        setTimeout(scrollToBottom, 100);
-        return;
-      }
 
-      // Se siamo online, procedi con la richiesta AI standard
+  const handleAIRequest = async (query: string) => {
+    setIsProcessing(true);
+    
+    try {
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
-      let response;
+      const response = await processAIRequest(query, false, aiProvider, aiModel);
       
-      if (query.toLowerCase().startsWith("/test-model")) {
-        response = await aiHandlers.processTestQuery(aiProvider, aiModel);
-      } else {
-        const requestBody: QueryRequest = {
-          query: query.trim(),
-          queryType: webSearchEnabled ? 'web' : 'database',
-          aiProvider,
-          aiModel,
-          isTest: false,
-          allowGenericResponse: true
-        };
-
-        console.log("Invio richiesta:", requestBody);
-        
-        const { data, error } = await supabase.functions.invoke<AIResponse>('process-query', {
-          body: requestBody
+      return response;
+    } catch (error) {
+      console.error('Errore nella richiesta AI:', error);
+      toast.error('Errore nella risposta', {
+        description: 'Si è verificato un errore durante l\'elaborazione della richiesta.'
+      });
+      
+      return "Mi dispiace, si è verificato un errore nell'elaborazione della richiesta. Riprova più tardi.";
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+  
+  const processAIRequest = async (query: string, webSearchEnabled: boolean, aiProvider: string, aiModel: string) => {
+    try {
+      // Se è richiesta la ricerca web o se stiamo usando un provider cloud
+      if (webSearchEnabled || (aiProvider !== 'huggingface' && navigator.onLine)) {
+        const response = await supabase.functions.invoke('process-query', {
+          body: { 
+            query,
+            webSearch: webSearchEnabled,
+            aiProvider,
+            aiModel
+          }
         });
-
-        console.log("Risposta ricevuta:", { data, error });
-
-        if (error) throw error;
-        response = data;
-      }
-      
-      if (response) {
-        // Verifica di sicurezza per le risposte di tipo 'cimiteri'
-        if (response.data && response.data.type === 'cimiteri') {
-          // Se la risposta contiene dati di tipo 'cimiteri' ma non era una richiesta esplicita,
-          // sostituisci con una risposta generica
-          response = {
-            text: `Mi dispiace, non ho capito la tua richiesta. Se vuoi vedere la lista dei cimiteri, prova a chiedere "lista dei cimiteri".`,
-            data: null
-          };
-        }
-        
-        setMessages(prev => [...prev, { 
-          type: 'response', 
-          content: response.text || '',
-          data: response.data,
-          timestamp: new Date()
-        }]);
         
         if (response.error) {
-          toast.error(response.error, { duration: 2000 });
+          throw response.error;
         }
+        
+        return response.data;
+      } else {
+        // Utilizziamo il modello locale
+        const localLLM = LocalLLMManager.getInstance();
+        return await localLLM.processQuery(query);
       }
     } catch (error) {
-      console.error("Errore dettagliato:", error);
-      toast.error("Errore durante l'elaborazione della richiesta. " + (error as Error).message, {
-        duration: 2000
-      });
+      console.error('Errore nel processare la richiesta AI:', error);
+      throw error;
     }
   };
 
   return {
     isProcessing,
     setIsProcessing,
-    handleAIRequest
+    handleAIRequest,
+    processAIRequest
   };
 };

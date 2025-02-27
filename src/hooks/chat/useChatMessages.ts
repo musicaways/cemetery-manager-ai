@@ -1,7 +1,6 @@
 
 import { useState, useRef } from "react";
 import type { ChatMessage } from "./types";
-import { toast } from "sonner";
 
 export const useChatMessages = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -9,28 +8,40 @@ export const useChatMessages = () => {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   const handleSearch = (searchText: string) => {
-    if (!searchText.trim()) return;
+    if (!searchText) return;
     
-    const foundElement = messages.findIndex(message => 
-      message.content.toLowerCase().includes(searchText.toLowerCase())
-    );
-
-    if (foundElement !== -1) {
-      const element = document.querySelector(`[data-message-index="${foundElement}"]`);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
-        element.classList.add("bg-[#9b87f5]/10");
-        setTimeout(() => {
-          element.classList.remove("bg-[#9b87f5]/10");
-        }, 2000);
+    const elements = document.querySelectorAll('[data-message-index]');
+    elements.forEach(el => {
+      if (el.textContent?.toLowerCase().includes(searchText.toLowerCase())) {
+        el.classList.add('search-highlight');
+      } else {
+        el.classList.remove('search-highlight');
       }
-    } else {
-      toast.error("Nessun risultato trovato");
-    }
+    });
   };
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const addMessage = (message: ChatMessage) => {
+    setMessages(prev => [...prev, message]);
+  };
+
+  const updateLastMessage = (update: Partial<ChatMessage>) => {
+    setMessages(prev => {
+      const newMessages = [...prev];
+      if (newMessages.length > 0) {
+        const lastIndex = newMessages.length - 1;
+        newMessages[lastIndex] = {
+          ...newMessages[lastIndex],
+          ...update
+        };
+      }
+      return newMessages;
+    });
   };
 
   return {
@@ -39,6 +50,8 @@ export const useChatMessages = () => {
     messagesEndRef,
     scrollAreaRef,
     handleSearch,
-    scrollToBottom
+    scrollToBottom,
+    addMessage,
+    updateLastMessage
   };
 };

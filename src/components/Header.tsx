@@ -1,5 +1,5 @@
 
-import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle, Database, Code, WifiOff } from "lucide-react";
+import { Menu, LogOut, Settings, Users, MessageCircle, Search, Bell, Trash2, X, ArrowUp, ArrowDown, Info, AlertCircle, CheckCircle, Database, Code, WifiOff, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -304,18 +304,18 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
               </div>
             )}
 
-            {/* Indicatore di stato offline nella topbar */}
+            {/* Indicatore di stato online/offline nella topbar */}
             <Button
               variant="ghost"
               size="sm"
               className={`h-8 w-8 p-0 rounded-full border-2 transition-all duration-200 ${
                 !isOnline 
                   ? "text-[#ea384c] border-[#ea384c] bg-[#ea384c]/10" 
-                  : "text-gray-400 border-white/20 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
+                  : "text-green-400 border-white/20 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
               }`}
               title={isOnline ? "Connesso" : "Modalità offline"}
             >
-              <WifiOff className="h-4 w-4" />
+              {isOnline ? <Wifi className="h-4 w-4" /> : <WifiOff className="h-4 w-4" />}
             </Button>
 
             <Button

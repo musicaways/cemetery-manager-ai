@@ -12,9 +12,14 @@ import LocalLLMManager from "@/lib/llm/localLLMManager";
 export const useChat = () => {
   const [query, setQuery] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const { messages, addMessage, updateLastMessage } = useChatMessages();
+  const { 
+    messages, 
+    messagesEndRef, 
+    scrollAreaRef, 
+    addMessage, 
+    updateLastMessage,
+    scrollToBottom 
+  } = useChatMessages();
   const { handleCimiteriRequest } = useChatCimiteriHandlers();
   const { executeAIFunction, identifyFunctions } = useAIFunctions();
   const { processAIRequest } = useAIRequestHandler();
@@ -27,12 +32,6 @@ export const useChat = () => {
       console.error('Errore durante il precaricamento del modello:', error);
     });
   }, []);
-
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  };
 
   useEffect(() => {
     scrollToBottom();

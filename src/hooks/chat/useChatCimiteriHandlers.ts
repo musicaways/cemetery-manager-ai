@@ -1,155 +1,103 @@
 
-import { Cimitero } from "@/pages/cimiteri/types";
-import { offlineManager } from "@/lib/offline/offlineManager";
-import { ChatMessage } from "./types";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-interface UseChatCimiteriHandlersParams {
-  findCimiteroByName: (nome: string) => Promise<Cimitero | null>;
-  getAllCimiteri: () => Promise<Cimitero[]>;
-  setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
-  isOnline: boolean;
-}
+export const useChatCimiteriHandlers = () => {
+  const [isProcessing, setIsProcessing] = useState(false);
 
-export const useChatCimiteriHandlers = ({
-  findCimiteroByName,
-  getAllCimiteri,
-  setMessages,
-  isOnline
-}: UseChatCimiteriHandlersParams) => {
-  
-  /**
-   * Funzione per verificare e gestire la richiesta di lista cimiteri
-   */
-  const handleListaCimiteriRequest = async (normalizedQuery: string): Promise<boolean> => {
-    const listaCimiteriExactPhrases = [
-      "mostrami tutti i cimiteri",
-      "mostrami la lista dei cimiteri",
-      "mostrami la lista di tutti i cimiteri",
-      "mostra tutti i cimiteri",
-      "mostra la lista dei cimiteri",
-      "mostra la lista di tutti i cimiteri",
-      "visualizza i cimiteri",
-      "visualizza tutti i cimiteri",
-      "fammi vedere i cimiteri",
-      "fammi vedere tutti i cimiteri",
-      "vedi i cimiteri",
-      "vedi tutti i cimiteri",
-      "lista dei cimiteri",
-      "lista di tutti i cimiteri",
-      "elenco dei cimiteri",
-      "elenco di tutti i cimiteri"
-    ];
+  const handleListaCimiteriRequest = async (normalizedQuery: string) => {
+    // Se la query contiene parole chiave relative alla lista dei cimiteri
+    if (
+      normalizedQuery.includes("mostra tutti i cimiteri") ||
+      normalizedQuery.includes("elenco cimiteri") ||
+      normalizedQuery.includes("lista cimiteri") ||
+      (normalizedQuery.includes("mostra") && normalizedQuery.includes("cimiteri"))
+    ) {
+      try {
+        const { data, error } = await supabase
+          .from('cimiteri')
+          .select('*')
+          .order('nome');
 
-    const isListaCimiteriExactMatch = listaCimiteriExactPhrases.includes(normalizedQuery);
-    
-    if (isListaCimiteriExactMatch) {
-      console.log("MATCH ESATTO trovato per la funzione 'Lista cimiteri'");
-      
-      let cimiteri;
-      if (isOnline) {
-        cimiteri = await getAllCimiteri();
-      } else {
-        // In modalità offline, usa il manager offline
-        cimiteri = await offlineManager.getCimiteri();
+        if (error) throw error;
+
+        return true;
+      } catch (error) {
+        console.error('Errore nel recupero dei cimiteri:', error);
+        return false;
       }
-      
-      setMessages(prev => [...prev, { 
-        type: 'response', 
-        content: 'Ecco la lista dei cimiteri disponibili:',
-        data: {
-          type: 'cimiteri',
-          cimiteri
-        },
-        timestamp: new Date()
-      }]);
-      return true;
     }
     
     return false;
   };
 
-  /**
-   * Funzione per verificare e gestire la richiesta di dettagli cimitero
-   */
-  const handleDettagliCimiteroRequest = async (normalizedQuery: string): Promise<boolean> => {
-    const cimiteroPatterns = [
-      "mostrami il cimitero ",
-      "mostra il cimitero ",
-      "mostrami cimitero ",
-      "mostra cimitero ",
-      "apri il cimitero ",
-      "apri cimitero ",
-      "dettagli cimitero ",
-      "informazioni cimitero ",
-      "mostra informazioni cimitero ",
-      "mostra informazioni sul cimitero ",
-      "mostra informazioni del cimitero ",
-      "voglio vedere il cimitero ",
-      "fammi vedere il cimitero ",
-      "visualizza cimitero ",
-      "visualizza il cimitero "
-    ];
+  const handleDettagliCimiteroRequest = async (normalizedQuery: string) => {
+    // Rileva richieste di dettagli su un cimitero specifico
+    const dettaglioMatch = normalizedQuery.match(/cimitero di ([a-zA-Z\s]+)/i);
+    
+    if (dettaglioMatch && dettaglioMatch[1]) {
+      const nomeCimitero = dettaglioMatch[1].trim();
+      
+      try {
+        const { data, error } = await supabase
+          .from('cimiteri')
+          .select('*')
+          .ilike('nome', `%${nomeCimitero}%`)
+          .limit(1);
 
-    // Verifica se la query inizia con uno dei pattern
-    let matchedPattern = null;
-    let nomeCimitero = null;
-
-    for (const pattern of cimiteroPatterns) {
-      if (normalizedQuery.startsWith(pattern)) {
-        matchedPattern = pattern;
-        nomeCimitero = normalizedQuery.substring(pattern.length).trim();
-        break;
-      }
-    }
-
-    if (matchedPattern) {
-      if (nomeCimitero && nomeCimitero.length > 0) {
-        console.log(`Cercando cimitero con nome: "${nomeCimitero}"`);
+        if (error) throw error;
         
-        let cimitero;
-        if (isOnline) {
-          cimitero = await findCimiteroByName(nomeCimitero);
-        } else {
-          // In modalità offline, cerca tra i cimiteri disponibili localmente
-          const cimiteri = await offlineManager.getCimiteri();
-          cimitero = cimiteri.find(c => 
-            c.Descrizione?.toLowerCase().includes(nomeCimitero.toLowerCase()) ||
-            c.Codice?.toLowerCase().includes(nomeCimitero.toLowerCase())
-          );
+        if (data && data.length > 0) {
+          return true;
         }
-
-        if (cimitero) {
-          setMessages(prev => [...prev, { 
-            type: 'response', 
-            content: `Ho trovato il cimitero "${cimitero.Descrizione}"`,
-            data: {
-              type: 'cimitero',
-              cimitero
-            },
-            timestamp: new Date()
-          }]);
-        } else {
-          setMessages(prev => [...prev, { 
-            type: 'response', 
-            content: `Non ho trovato nessun cimitero con il nome "${nomeCimitero}".`,
-            timestamp: new Date()
-          }]);
-        }
-      } else {
-        setMessages(prev => [...prev, { 
-          type: 'response', 
-          content: `Per favore, specifica quale cimitero desideri visualizzare. Puoi chiedere "mostrami il cimitero [nome]" oppure chiedere "lista dei cimiteri" per vedere tutti i cimiteri disponibili.`,
-          timestamp: new Date()
-        }]);
+        
+        return false;
+      } catch (error) {
+        console.error('Errore nel recupero del cimitero:', error);
+        return false;
       }
-      return true;
     }
-
+    
     return false;
+  };
+
+  const handleCimiteriRequest = async (query: string) => {
+    setIsProcessing(true);
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    try {
+      // Prova a gestire vari tipi di richieste sui cimiteri
+      if (await handleListaCimiteriRequest(normalizedQuery)) {
+        return {
+          message: "Ecco l'elenco di tutti i cimiteri disponibili nel sistema.",
+          data: { type: "cimiteri_list" }
+        };
+      }
+      
+      if (await handleDettagliCimiteroRequest(normalizedQuery)) {
+        return {
+          message: "Ho trovato informazioni sul cimitero richiesto.",
+          data: { type: "cimitero_details" }
+        };
+      }
+      
+      // Se non è stata trovata una gestione specifica, processa come richiesta generica
+      return {
+        message: "La tua richiesta sui cimiteri richiede ulteriori informazioni. Puoi essere più specifico?",
+        data: { type: "generic_response" }
+      };
+    } catch (error) {
+      console.error('Errore nella gestione della richiesta sui cimiteri:', error);
+      throw error;
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return {
     handleListaCimiteriRequest,
-    handleDettagliCimiteroRequest
+    handleDettagliCimiteroRequest,
+    handleCimiteriRequest
   };
 };

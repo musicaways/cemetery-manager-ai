@@ -16,9 +16,9 @@ export const useChatCimiteriHandlers = () => {
     ) {
       try {
         const { data, error } = await supabase
-          .from('cimiteri')
+          .from('Cimitero') // Corrected table name from 'cimiteri' to 'Cimitero'
           .select('*')
-          .order('nome');
+          .order('Descrizione'); // Using correct column name
 
         if (error) throw error;
 
@@ -41,9 +41,9 @@ export const useChatCimiteriHandlers = () => {
       
       try {
         const { data, error } = await supabase
-          .from('cimiteri')
+          .from('Cimitero') // Corrected table name from 'cimiteri' to 'Cimitero'
           .select('*')
-          .ilike('nome', `%${nomeCimitero}%`)
+          .ilike('Descrizione', `%${nomeCimitero}%`) // Using correct column name
           .limit(1);
 
         if (error) throw error;

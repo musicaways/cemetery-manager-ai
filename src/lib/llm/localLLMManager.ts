@@ -49,23 +49,31 @@ class LocalLLMManager {
   private initFallbackResponses() {
     this.fallbackResponses.set(
       "cimiteri",
-      "Ecco le informazioni sui cimiteri disponibili in modalità offline. Posso mostrarti dettagli sui cimiteri salvati localmente. Per informazioni complete, ti consiglio di riconnetterti a internet."
+      "Ecco le informazioni sui cimiteri disponibili in modalità offline. Posso mostrarti dettagli sui cimiteri salvati localmente. Per informazioni complete, ti consiglio di riconnetterti a internet. Puoi comunque consultare i cimiteri che hai già visitato in precedenza e tutte le informazioni che sono state memorizzate nella cache locale."
     );
     this.fallbackResponses.set(
       "defunti",
-      "In modalità offline posso fornirti informazioni sui defunti solo se sono stati precedentemente memorizzati nella cache locale. La ricerca è limitata ai dati disponibili offline."
+      "In modalità offline posso fornirti informazioni sui defunti solo se sono stati precedentemente memorizzati nella cache locale. La ricerca è limitata ai dati disponibili offline. Puoi provare a cercare per cognome o nome completo per i defunti che hai già consultato in precedenza."
     );
     this.fallbackResponses.set(
       "loculi",
-      "Le informazioni sui loculi disponibili in modalità offline potrebbero non essere aggiornate. Posso mostrarti i dati salvati in precedenza."
+      "Le informazioni sui loculi disponibili in modalità offline potrebbero non essere aggiornate. Posso mostrarti i dati salvati in precedenza relativi ai blocchi e ai loculi dei cimiteri che hai già consultato. Per informazioni più aggiornate, ti consiglio di riconnetterti a internet."
     );
     this.fallbackResponses.set(
       "default",
-      "Sono in modalità offline e posso fornirti solo informazioni limitate. Avrai accesso completo alle funzionalità quando tornerai online."
+      "Sono in modalità offline e posso fornirti solo informazioni limitate. Avrai accesso completo alle funzionalità quando tornerai online. Nel frattempo, posso aiutarti con le informazioni che sono state memorizzate nella cache locale del tuo dispositivo."
     );
     this.fallbackResponses.set(
       "funzionalità",
-      "In modalità offline puoi: \n1. Visualizzare i cimiteri già visitati\n2. Consultare i dati salvati nella cache\n3. Visualizzare le informazioni dei defunti già consultati\n\nLe funzionalità di ricerca avanzata, caricamento di immagini e riconoscimento vocale sono disponibili solo online."
+      "In modalità offline puoi: \n1. Visualizzare i cimiteri già visitati\n2. Consultare i dati salvati nella cache\n3. Visualizzare le informazioni dei defunti già consultati\n4. Navigare tra i dati disponibili localmente\n\nLe funzionalità di ricerca avanzata, caricamento di immagini e riconoscimento vocale sono disponibili solo online. Riconnettiti a internet per accedere a tutte le funzionalità."
+    );
+    this.fallbackResponses.set(
+      "aiuto",
+      "Posso aiutarti anche in modalità offline! Ecco cosa puoi chiedermi:\n\n- Informazioni sui cimiteri già consultati\n- Dettagli sui defunti già cercati\n- Informazioni sui loculi disponibili in cache\n- Istruzioni sul funzionamento dell'app\n\nProva a chiedere 'mostra cimiteri disponibili' o 'quali funzionalità posso usare offline?'"
+    );
+    this.fallbackResponses.set(
+      "ricerca",
+      "La ricerca avanzata è disponibile solo quando sei online. In modalità offline, puoi cercare solo tra i dati che sono stati precedentemente memorizzati nella cache locale. Riconnettiti a internet per utilizzare tutte le funzionalità di ricerca."
     );
   }
 
@@ -147,6 +155,10 @@ class LocalLLMManager {
       return this.fallbackResponses.get('loculi') || this.fallbackResponses.get('default')!;
     } else if (queryLower.includes('funzionalità') || queryLower.includes('cosa posso fare') || queryLower.includes('offline')) {
       return this.fallbackResponses.get('funzionalità') || this.fallbackResponses.get('default')!;
+    } else if (queryLower.includes('aiuto') || queryLower.includes('help') || queryLower.includes('aiutami')) {
+      return this.fallbackResponses.get('aiuto') || this.fallbackResponses.get('default')!;
+    } else if (queryLower.includes('cerca') || queryLower.includes('ricerca') || queryLower.includes('trovare')) {
+      return this.fallbackResponses.get('ricerca') || this.fallbackResponses.get('default')!;
     }
     
     // Risposta predefinita se non viene rilevata alcuna parola chiave

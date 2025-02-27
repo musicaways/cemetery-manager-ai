@@ -1,7 +1,5 @@
 
-import React from "react";
 import { Button } from "@/components/ui/button";
-import { MessageSquare, Database, WifiOff } from "lucide-react";
 
 interface SuggestedQuestionsProps {
   onSelect: (question: string) => void;
@@ -9,61 +7,37 @@ interface SuggestedQuestionsProps {
 }
 
 export const SuggestedQuestions = ({ onSelect, offline = false }: SuggestedQuestionsProps) => {
-  const onlineSuggestions = [
-    {
-      text: "Mostrami tutti i cimiteri",
-      description: "Visualizza l'elenco completo dei cimiteri e le loro informazioni"
-    },
-    {
-      text: "Trova i defunti nel Blocco Muri di Cinta",
-      description: "Cerca informazioni specifiche sui defunti in questo blocco"
-    },
-    {
-      text: "Quanti loculi sono disponibili?",
-      description: "Verifica la disponibilità dei loculi nei vari settori"
-    },
-    {
-      text: "Mostrami le statistiche generali",
-      description: "Visualizza un riepilogo dei dati principali del sistema"
-    }
+  const offlineQuestions = [
+    "Quali funzionalità posso usare offline?",
+    "Mostra cimiteri disponibili",
+    "Come cercare un defunto in modalità offline",
+    "Quando sarà disponibile la sincronizzazione dei dati offline?"
   ];
 
-  const offlineSuggestions = [
-    {
-      text: "Mostrami tutti i cimiteri",
-      description: "Visualizza l'elenco dei cimiteri disponibili in modalità offline"
-    },
-    {
-      text: "Mostrami il cimitero di Roma",
-      description: "Visualizza i dettagli di un cimitero specifico (se disponibile offline)"
-    },
-    {
-      text: "Cosa posso fare in modalità offline?",
-      description: "Informazioni sulle funzionalità disponibili offline"
-    }
+  const onlineQuestions = [
+    "Mostra l'elenco dei cimiteri",
+    "Come posso cercare un defunto?",
+    "Quali funzionalità di ricerca sono disponibili?",
+    "Mostra informazioni sul cimitero di Milano"
   ];
 
-  const suggestions = offline ? offlineSuggestions : onlineSuggestions;
-  const icon = offline ? WifiOff : MessageSquare;
+  const questions = offline ? offlineQuestions : onlineQuestions;
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {suggestions.map((suggestion, index) => (
+    <div className="flex flex-wrap gap-2 mt-2">
+      {questions.map((question, index) => (
         <Button
           key={index}
           variant="outline"
-          className={`h-auto p-6 flex flex-col items-start space-y-2 bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 hover:border-blue-500/50 transition-all duration-300 ${
-            offline ? 'border-amber-800/30 hover:border-amber-500/50' : ''
+          size="sm"
+          className={`rounded-full text-xs ${
+            offline 
+              ? "bg-amber-900/20 hover:bg-amber-900/30 border-amber-700/30 text-amber-200" 
+              : "bg-[#2A2A3C] hover:bg-[#3A3A4C] border-[#4A4A5C]"
           }`}
-          onClick={() => onSelect(suggestion.text)}
+          onClick={() => onSelect(question)}
         >
-          <div className="flex items-center space-x-3">
-            {React.createElement(icon, { 
-              className: `w-5 h-5 ${offline ? 'text-amber-400' : 'text-blue-400'}` 
-            })}
-            <span className="font-medium text-gray-100">{suggestion.text}</span>
-          </div>
-          <p className="text-sm text-gray-400 text-left">{suggestion.description}</p>
+          {question}
         </Button>
       ))}
     </div>

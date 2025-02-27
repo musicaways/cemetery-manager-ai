@@ -1,30 +1,17 @@
 
-import { AlertCircle, Wifi, WifiOff } from "lucide-react";
-import { useOnlineStatus } from "@/hooks/chat/useOnlineStatus";
+import { WifiOff } from "lucide-react";
 
 interface OfflineIndicatorProps {
-  isOnline?: boolean;
+  isOnline: boolean;
 }
 
-export const OfflineIndicator = ({ isOnline: propIsOnline }: OfflineIndicatorProps = {}) => {
-  // Use the prop if provided, otherwise use the hook
-  const { isOnline: hookIsOnline } = useOnlineStatus();
-  const isOnline = propIsOnline !== undefined ? propIsOnline : hookIsOnline;
-  
-  if (isOnline) {
-    return (
-      <div className="hidden sm:flex items-center gap-2 bg-green-500/20 text-green-400 text-xs px-3 py-1.5 rounded-full">
-        <Wifi className="h-3.5 w-3.5" />
-        <span>Connesso</span>
-      </div>
-    );
-  }
-  
+export const OfflineIndicator = ({ isOnline }: OfflineIndicatorProps) => {
+  if (isOnline) return null;
+
   return (
-    <div className="flex items-center gap-2 bg-red-500/20 text-red-400 text-xs px-3 py-1.5 rounded-full">
-      <WifiOff className="h-3.5 w-3.5" />
-      <span>Modalità offline</span>
-      <AlertCircle className="h-3.5 w-3.5 ml-1" />
+    <div className="bg-amber-950/60 text-amber-200 py-2 px-4 flex items-center justify-center gap-2 border-b border-amber-800/50 animate-fade-in">
+      <WifiOff className="h-4 w-4" />
+      <span className="text-sm font-medium">Modalità offline - Funzionalità limitate</span>
     </div>
   );
 };

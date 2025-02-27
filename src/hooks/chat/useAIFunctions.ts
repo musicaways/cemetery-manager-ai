@@ -46,9 +46,11 @@ export const useAIFunctions = () => {
       if (!func.trigger_phrases) return;
       
       // Handle both string and string[] types for trigger_phrases
-      const phrases = typeof func.trigger_phrases === 'string' 
-        ? func.trigger_phrases.split(',').map(p => p.trim().toLowerCase())
-        : func.trigger_phrases.map(p => p.trim().toLowerCase());
+      const phrases = Array.isArray(func.trigger_phrases)
+        ? func.trigger_phrases.map(p => p.trim().toLowerCase())
+        : typeof func.trigger_phrases === 'string'
+          ? func.trigger_phrases.split(',').map(p => p.trim().toLowerCase())
+          : [];
       
       phrases.forEach(phrase => {
         if (normalizedQuery.includes(phrase)) {
@@ -65,17 +67,21 @@ export const useAIFunctions = () => {
 
   // Add the missing exactMatchTriggerPhrases function
   const exactMatchTriggerPhrases = (normalizedQuery: string, triggerPhrasesInput: string | string[]): boolean => {
-    const phrases = typeof triggerPhrasesInput === 'string'
-      ? triggerPhrasesInput.split(',').map(p => p.trim().toLowerCase())
-      : triggerPhrasesInput.map(p => p.trim().toLowerCase());
+    const phrases = Array.isArray(triggerPhrasesInput)
+      ? triggerPhrasesInput.map(p => p.trim().toLowerCase())
+      : typeof triggerPhrasesInput === 'string'
+        ? triggerPhrasesInput.split(',').map(p => p.trim().toLowerCase())
+        : [];
       
     return phrases.some(phrase => normalizedQuery === phrase);
   };
 
   const matchTriggerPhrases = (normalizedQuery: string, triggerPhrasesInput: string | string[]): { matched: boolean; score: number; matchedPhrase?: string } => {
-    const phrases = typeof triggerPhrasesInput === 'string'
-      ? triggerPhrasesInput.split(',').map(p => p.trim().toLowerCase())
-      : triggerPhrasesInput.map(p => p.trim().toLowerCase());
+    const phrases = Array.isArray(triggerPhrasesInput)
+      ? triggerPhrasesInput.map(p => p.trim().toLowerCase())
+      : typeof triggerPhrasesInput === 'string'
+        ? triggerPhrasesInput.split(',').map(p => p.trim().toLowerCase())
+        : [];
     
     let bestMatch = { matched: false, score: 0, matchedPhrase: undefined as string | undefined };
     
@@ -143,9 +149,11 @@ export const useAIFunctions = () => {
       if (!func.trigger_phrases) continue;
       
       // Handle both string and string[] types for trigger_phrases
-      const phrases = typeof func.trigger_phrases === 'string'
-        ? func.trigger_phrases.split(',').map(p => p.trim().toLowerCase())
-        : func.trigger_phrases.map(p => p.trim().toLowerCase());
+      const phrases = Array.isArray(func.trigger_phrases)
+        ? func.trigger_phrases.map(p => p.trim().toLowerCase())
+        : typeof func.trigger_phrases === 'string'
+          ? func.trigger_phrases.split(',').map(p => p.trim().toLowerCase())
+          : [];
       
       if (phrases.some(phrase => normalizedQuery.includes(phrase))) {
         return func.id;

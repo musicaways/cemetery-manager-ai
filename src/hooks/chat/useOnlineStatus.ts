@@ -8,8 +8,21 @@ export const useOnlineStatus = () => {
   
   // Gestione dello stato online/offline
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    const handleOnline = () => {
+      setIsOnline(true);
+      toast.success("Connessione ristabilita", {
+        description: "Sei tornato online. Tutte le funzionalità sono disponibili.",
+        duration: 3000
+      });
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.error("Connessione persa", {
+        description: "Sei passato in modalità offline. Alcune funzionalità potrebbero non essere disponibili.",
+        duration: 3000
+      });
+    };
     
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);

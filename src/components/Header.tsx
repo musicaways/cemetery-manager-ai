@@ -310,12 +310,12 @@ export const Header = ({ onSettingsClick, onSearch }: HeaderProps) => {
               size="sm"
               className={`h-8 w-8 p-0 rounded-full border-2 transition-all duration-200 ${
                 !isOnline 
-                  ? "text-amber-400 border-amber-400 bg-amber-400/10" 
-                  : "text-green-400 border-green-400/30 bg-green-400/5"
+                  ? "text-[#ea384c] border-[#ea384c] bg-[#ea384c]/10" 
+                  : "text-gray-400 border-white/20 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
               }`}
               title={isOnline ? "Connesso" : "Modalità offline"}
             >
-              <WifiOff className={`h-4 w-4 ${isOnline ? "opacity-0" : "opacity-100"}`} />
+              <WifiOff className="h-4 w-4" />
             </Button>
 
             <Button

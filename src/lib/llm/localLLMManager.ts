@@ -1,95 +1,173 @@
 
-import { pipeline, env } from '@huggingface/transformers';
-import type { AIResponse } from '@/utils/types';
-
-// Configura l'ambiente per utilizzare la cache del browser
-env.useBrowserCache = true;
-env.useCustomCache = true; // Invece di useCustomBackend che non esiste
+import { HfInference } from '@huggingface/transformers';
+import { toast } from "sonner";
 
 class LocalLLMManager {
-  private model: any = null;
-  private modelLoading = false;
-  private modelReady = false;
-  private modelName = 'onnx-community/mxbai-embed-small';
-  
-  constructor() {
-    // Avvia il precaricamento del modello se il browser è supportato
-    if (typeof window !== 'undefined' && 'navigator' in window) {
-      this.initialize();
-    }
+  private static instance: LocalLLMManager;
+  private hf: HfInference | null = null;
+  private isInitialized: boolean = false;
+  private isInitializing: boolean = false;
+  private modelId: string = 'onnx-community/mxbai-embed-small';
+  private fallbackResponses: Map<string, string> = new Map();
+
+  private constructor() {
+    // Inizializzazione delle risposte predefinite per la modalità offline
+    this.initFallbackResponses();
   }
-  
-  async initialize() {
-    if (this.modelLoading || this.modelReady) return;
+
+  public static getInstance(): LocalLLMManager {
+    if (!LocalLLMManager.instance) {
+      LocalLLMManager.instance = new LocalLLMManager();
+    }
+    return LocalLLMManager.instance;
+  }
+
+  private initFallbackResponses() {
+    this.fallbackResponses.set(
+      "cimiteri",
+      "Ecco le informazioni sui cimiteri disponibili in modalità offline. Posso mostrarti dettagli sui cimiteri salvati localmente. Per informazioni complete, ti consiglio di riconnetterti a internet."
+    );
+    this.fallbackResponses.set(
+      "defunti",
+      "In modalità offline posso fornirti informazioni sui defunti solo se sono stati precedentemente memorizzati nella cache locale. La ricerca è limitata ai dati disponibili offline."
+    );
+    this.fallbackResponses.set(
+      "loculi",
+      "Le informazioni sui loculi disponibili in modalità offline potrebbero non essere aggiornate. Posso mostrarti i dati salvati in precedenza."
+    );
+    this.fallbackResponses.set(
+      "default",
+      "Sono in modalità offline e posso fornirti solo informazioni limitate. Avrai accesso completo alle funzionalità quando tornerai online."
+    );
+    this.fallbackResponses.set(
+      "funzionalità",
+      "In modalità offline puoi: \n1. Visualizzare i cimiteri già visitati\n2. Consultare i dati salvati nella cache\n3. Visualizzare le informazioni dei defunti già consultati\n\nLe funzionalità di ricerca avanzata, caricamento di immagini e riconoscimento vocale sono disponibili solo online."
+    );
+  }
+
+  public async initialize(): Promise<boolean> {
+    if (this.isInitialized) return true;
+    if (this.isInitializing) {
+      console.log('Inizializzazione già in corso...');
+      return false;
+    }
+
+    this.isInitializing = true;
+    console.log('Inizializzazione del modello LLM locale...');
     
-    this.modelLoading = true;
     try {
-      console.log('Initializing local LLM...');
+      // Controllo se siamo in un ambiente che supporta WebGPU o WebGL
+      const hasWebGPU = 'gpu' in navigator;
+      const hasWebGL = 'WebGLRenderingContext' in window;
       
-      // Carica il modello per embedding (più leggero di un modello di generazione)
-      this.model = await pipeline('feature-extraction', this.modelName, {
-        // Utilizziamo solo opzioni supportate
-        revision: 'main'
+      if (!hasWebGPU && !hasWebGL) {
+        console.warn('Questo browser non supporta WebGPU o WebGL, il modello locale potrebbe non funzionare correttamente.');
+      }
+
+      // Inizializza HuggingFace Inference
+      this.hf = new HfInference();
+      
+      // Pre-carica il modello
+      await this.hf.loadModel(this.modelId);
+      
+      console.log('Modello LLM locale inizializzato con successo!');
+      this.isInitialized = true;
+      toast.success('Modello AI locale pronto', {
+        description: 'Il modello locale è stato caricato e sarà utilizzato in caso di disconnessione',
+        duration: 3000
       });
-      
-      this.modelReady = true;
-      console.log('Local LLM initialized successfully');
+      return true;
     } catch (error) {
-      console.error('Failed to load local LLM:', error);
+      console.error('Errore durante l\'inizializzazione del modello LLM locale:', error);
+      toast.error('Errore di inizializzazione AI locale', {
+        description: 'Non è stato possibile caricare il modello locale. Le funzionalità offline saranno limitate.',
+        duration: 5000
+      });
+      return false;
     } finally {
-      this.modelLoading = false;
+      this.isInitializing = false;
     }
   }
-  
-  async isAvailable(): Promise<boolean> {
-    if (!this.modelReady && !this.modelLoading) {
-      this.initialize(); // Inizia a caricare il modello in background
+
+  public async processQuery(query: string): Promise<string> {
+    // Se il modello non è inizializzato, prova a inizializzarlo
+    if (!this.isInitialized && !this.isInitializing) {
+      const initialized = await this.initialize();
+      if (!initialized) {
+        return this.getFallbackResponse(query);
+      }
     }
-    return this.modelReady;
+
+    // Se il modello è in fase di inizializzazione, utilizza le risposte predefinite
+    if (this.isInitializing) {
+      return this.getFallbackResponse(query);
+    }
+
+    try {
+      if (!this.hf) {
+        throw new Error('Modello non inizializzato');
+      }
+
+      // Cerca di generare una risposta con il modello locale
+      const response = await this.hf.text(this.modelId, {
+        inputs: query,
+        parameters: {
+          max_length: 100,
+          temperature: 0.7,
+        }
+      });
+
+      // Se la risposta è vuota o troppo corta, fallback sulle risposte predefinite
+      if (!response || typeof response !== 'string' || response.length < 10) {
+        return this.getFallbackResponse(query);
+      }
+
+      return response;
+    } catch (error) {
+      console.error('Errore durante la generazione della risposta:', error);
+      return this.getFallbackResponse(query);
+    }
   }
-  
-  async processQuery(query: string): Promise<AIResponse> {
-    if (!this.modelReady) {
-      if (!this.modelLoading) {
-        await this.initialize();
-      }
-      
-      // Se il modello non è ancora pronto, ritorna un messaggio appropriato
-      if (!this.modelReady) {
-        return {
-          text: "Modello AI locale non disponibile. Funzionalità limitate in modalità offline.",
-          data: null
-        };
-      }
+
+  private getFallbackResponse(query: string): string {
+    const queryLower = query.toLowerCase();
+    
+    // Verifica se la query contiene parole chiave specifiche
+    if (queryLower.includes('cimitero') || queryLower.includes('cimiteri')) {
+      return this.fallbackResponses.get('cimiteri') || this.fallbackResponses.get('default')!;
+    } else if (queryLower.includes('defunto') || queryLower.includes('defunti') || queryLower.includes('morto')) {
+      return this.fallbackResponses.get('defunti') || this.fallbackResponses.get('default')!;
+    } else if (queryLower.includes('loculo') || queryLower.includes('loculi')) {
+      return this.fallbackResponses.get('loculi') || this.fallbackResponses.get('default')!;
+    } else if (queryLower.includes('funzionalità') || queryLower.includes('cosa posso fare') || queryLower.includes('offline')) {
+      return this.fallbackResponses.get('funzionalità') || this.fallbackResponses.get('default')!;
     }
     
-    try {
-      // Per un modello di embedding, non possiamo generare testo ma possiamo verificare se funziona
-      await this.model(query, { pooling: "mean", normalize: true });
-      
-      // Rispondi con un messaggio predefinito per il caso offline
-      const offlineResponses = [
-        "Mi dispiace, sono in modalità offline. Posso aiutarti con informazioni di base sui cimiteri, ma la mia funzionalità è limitata.",
-        "Sono attualmente in modalità offline. Prova a cercare nella lista dei cimiteri o consulta le informazioni disponibili localmente.",
-        "In modalità offline posso solo fornirti supporto di base. Riconnettiti a internet per utilizzare tutte le funzionalità."
-      ];
-      
-      // Scegli una risposta casuale
-      const responseIndex = Math.floor(Math.random() * offlineResponses.length);
-      
-      return {
-        text: offlineResponses[responseIndex],
-        data: null
-      };
-    } catch (error) {
-      console.error('Error with local LLM:', error);
-      return {
-        text: "Si è verificato un errore con il modello AI locale.",
-        data: null,
-        error: "Errore di elaborazione locale"
-      };
+    // Risposta predefinita se non viene rilevata alcuna parola chiave
+    return this.fallbackResponses.get('default')!;
+  }
+
+  // Metodo per verificare se il modello è inizializzato
+  public isModelInitialized(): boolean {
+    return this.isInitialized;
+  }
+
+  // Metodo per forzare l'inizializzazione del modello (utile per precaricare il modello)
+  public async preloadModel(): Promise<void> {
+    if (!this.isInitialized && !this.isInitializing) {
+      await this.initialize();
+    }
+  }
+
+  // Metodo per impostare un modello personalizzato
+  public setModel(modelId: string): void {
+    if (this.modelId !== modelId) {
+      this.modelId = modelId;
+      this.isInitialized = false;
+      this.isInitializing = false;
+      console.log(`Modello cambiato in: ${modelId}`);
     }
   }
 }
 
-export const localLLM = new LocalLLMManager();
+export default LocalLLMManager;

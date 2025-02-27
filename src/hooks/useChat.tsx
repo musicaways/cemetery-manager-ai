@@ -25,12 +25,10 @@ export const useChat = () => {
   const { processAIRequest } = useAIRequestHandler();
   const { isOnline, webSearchEnabled, toggleWebSearch } = useOnlineStatus();
   
-  // Inizializza il modello locale quando il componente viene montato
+  // Monitora lo stato di connessione e inizializza il modello locale quando necessario
   useEffect(() => {
-    const localLLM = LocalLLMManager.getInstance();
-    localLLM.preloadModel().catch(error => {
-      console.error('Errore durante il precaricamento del modello:', error);
-    });
+    // Il modello locale verrà caricato automaticamente quando si va offline
+    // attraverso l'event listener nel LocalLLMManager
   }, []);
 
   useEffect(() => {

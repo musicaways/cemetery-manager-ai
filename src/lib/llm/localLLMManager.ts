@@ -7,10 +7,36 @@ class LocalLLMManager {
   private isInitializing: boolean = false;
   private modelId: string = 'onnx-community/mxbai-embed-small';
   private fallbackResponses: Map<string, string> = new Map();
+  private wasOfflineMode: boolean = false;
 
   private constructor() {
     // Inizializzazione delle risposte predefinite per la modalità offline
     this.initFallbackResponses();
+    
+    // Aggiungiamo listener per il cambio di stato della connessione
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', this.handleOnline.bind(this));
+      window.addEventListener('offline', this.handleOffline.bind(this));
+    }
+  }
+
+  private handleOnline() {
+    if (this.wasOfflineMode && this.isInitialized) {
+      // Mostra il toast solo se prima eravamo offline e il modello è stato inizializzato
+      toast.success('Connessione ripristinata', {
+        description: `Tornati online. Utilizziamo il provider precedente.`,
+        duration: 3000
+      });
+      this.wasOfflineMode = false;
+    }
+  }
+
+  private handleOffline() {
+    this.wasOfflineMode = true;
+    // Inizializza il modello se non è già inizializzato
+    if (!this.isInitialized && !this.isInitializing) {
+      this.initialize();
+    }
   }
 
   public static getInstance(): LocalLLMManager {
@@ -60,17 +86,25 @@ class LocalLLMManager {
       
       console.log('Modello LLM locale inizializzato con successo!');
       this.isInitialized = true;
-      toast.success('Modello AI locale pronto', {
-        description: 'Il modello locale è stato caricato e sarà utilizzato in caso di disconnessione',
-        duration: 3000
-      });
+      
+      // Mostra il toast solo se siamo offline
+      if (!navigator.onLine) {
+        toast.success('Modello AI locale pronto', {
+          description: 'Il modello locale è stato caricato e sarà utilizzato in modalità offline',
+          duration: 3000
+        });
+      }
       return true;
     } catch (error) {
       console.error('Errore durante l\'inizializzazione del modello LLM locale:', error);
-      toast.error('Errore di inizializzazione AI locale', {
-        description: 'Non è stato possibile caricare il modello locale. Le funzionalità offline saranno limitate.',
-        duration: 5000
-      });
+      
+      // Mostra il toast di errore solo se siamo offline
+      if (!navigator.onLine) {
+        toast.error('Errore di inizializzazione AI locale', {
+          description: 'Non è stato possibile caricare il modello locale. Le funzionalità offline saranno limitate.',
+          duration: 5000
+        });
+      }
       return false;
     } finally {
       this.isInitializing = false;
@@ -126,7 +160,9 @@ class LocalLLMManager {
 
   // Metodo per forzare l'inizializzazione del modello (utile per precaricare il modello)
   public async preloadModel(): Promise<void> {
-    if (!this.isInitialized && !this.isInitializing) {
+    // Non forziamo più il precaricamento all'avvio dell'app
+    // Lo faremo solo quando necessario (quando si va offline)
+    if (!navigator.onLine && !this.isInitialized && !this.isInitializing) {
       await this.initialize();
     }
   }

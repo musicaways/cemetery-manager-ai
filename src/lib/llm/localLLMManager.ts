@@ -2,10 +2,9 @@
 import { pipeline, env } from '@huggingface/transformers';
 import type { AIResponse } from '@/utils/types';
 
-// Configura l'ambiente per utilizzare WebGPU quando disponibile
+// Configura l'ambiente per utilizzare la cache del browser
 env.useBrowserCache = true;
-env.useCustomBackend = true;
-env.preferredDevice = 'auto';
+env.useCustomCache = true; // Invece di useCustomBackend che non esiste
 
 class LocalLLMManager {
   private model: any = null;
@@ -29,7 +28,9 @@ class LocalLLMManager {
       
       // Carica il modello per embedding (più leggero di un modello di generazione)
       this.model = await pipeline('feature-extraction', this.modelName, {
-        quantized: true
+        // Rimuoviamo l'opzione quantized che non è supportata
+        revision: 'main',
+        cache: true
       });
       
       this.modelReady = true;

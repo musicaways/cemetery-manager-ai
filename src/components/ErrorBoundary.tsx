@@ -81,7 +81,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 variant="default" 
                 className="w-full" 
                 onClick={this.resetError}
-                leftIcon={<RefreshCw className="w-4 h-4 mr-2" />}
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Riprova
@@ -91,7 +90,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
                 <Button 
                   variant="outline" 
                   className="w-full"
-                  leftIcon={<Home className="w-4 h-4 mr-2" />}
                 >
                   <Home className="w-4 h-4 mr-2" />
                   Torna alla home

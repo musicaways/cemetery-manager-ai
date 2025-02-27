@@ -8,7 +8,8 @@ export type PerformanceMetricType =
   | 'interaction' 
   | 'resource' 
   | 'memory'
-  | 'custom';
+  | 'custom'
+  | 'error';  // Aggiungiamo 'error' come tipo valido
 
 export interface PerformanceMetric {
   type: PerformanceMetricType;

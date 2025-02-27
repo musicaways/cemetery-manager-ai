@@ -2,6 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AIFunctionFormFields } from "./components/AIFunctionFormFields";
+import { AIFunctionTester } from "./components/AIFunctionTester";
 import { useAIFunctionForm } from "./hooks/useAIFunctionForm";
 import type { AIFunctionEditorProps } from "./types";
 
@@ -63,6 +64,10 @@ export const AIFunctionEditor = ({ open, onClose, initialData }: AIFunctionEdito
             </Button>
           </div>
         </form>
+
+        {initialData && (
+          <AIFunctionTester func={initialData} />
+        )}
       </DialogContent>
     </Dialog>
   );

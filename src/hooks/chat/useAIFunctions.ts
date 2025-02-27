@@ -19,6 +19,46 @@ export const useAIFunctions = () => {
     return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   };
 
+  // Funzione per il matching esatto delle frasi trigger
+  const exactMatchTriggerPhrases = (
+    normalizedQuery: string,
+    triggerPhrases: string[]
+  ): boolean => {
+    // Normalizza la query (rimuovi spazi extra all'inizio/fine e converti in minuscolo)
+    const cleanedQuery = normalizedQuery.toLowerCase().trim();
+    
+    // Normalizza tutte le frasi trigger
+    const normalizedTriggerPhrases = triggerPhrases.map(phrase => 
+      phrase.toLowerCase().trim()
+    );
+    
+    // Verifica se la query corrisponde ESATTAMENTE a una delle frasi trigger
+    return normalizedTriggerPhrases.includes(cleanedQuery);
+  };
+
+  // Funzione di logging per debugging
+  const logFunctionMatching = (
+    query: string,
+    functionName: string,
+    triggerPhrases: string[],
+    matched: boolean,
+    matchType: string
+  ) => {
+    console.log(`Query: "${query}"`);
+    console.log(`Function: "${functionName}"`);
+    console.log(`Match type: ${matchType}`);
+    console.log(`Matched: ${matched}`);
+    if (matched) {
+      console.log('Matched trigger phrases:');
+      triggerPhrases.forEach(phrase => {
+        if (query.toLowerCase().trim() === phrase.toLowerCase().trim()) {
+          console.log(`- "${phrase}" (EXACT MATCH)`);
+        }
+      });
+    }
+    console.log('-------------------');
+  };
+
   // Algoritmo migliorato per il matching delle frasi trigger
   const matchTriggerPhrases = (
     normalizedQuery: string,
@@ -65,6 +105,34 @@ export const useAIFunctions = () => {
     // Soglia minima per considerare una corrispondenza valida
     const MATCHING_THRESHOLD = 0.5;
     
+    // Cerca prima una corrispondenza esatta per la funzione "Lista cimiteri"
+    const listaCimiteriFunction = functions.find(func => 
+      func.name.toLowerCase() === "lista cimiteri" || 
+      func.name.toLowerCase() === "lista dei cimiteri"
+    );
+    
+    if (listaCimiteriFunction) {
+      const isExactMatch = exactMatchTriggerPhrases(normalizedQuery, listaCimiteriFunction.trigger_phrases);
+      
+      // Log per debugging
+      logFunctionMatching(
+        normalizedQuery, 
+        listaCimiteriFunction.name, 
+        listaCimiteriFunction.trigger_phrases, 
+        isExactMatch,
+        "Exact Match"
+      );
+      
+      if (isExactMatch) {
+        return { 
+          function: listaCimiteriFunction, 
+          score: 1.0,
+          matchedPhrase: normalizedQuery
+        };
+      }
+    }
+    
+    // Se non c'è un match esatto per la lista cimiteri, prosegui con l'algoritmo standard
     // Trova la migliore corrispondenza tra tutte le funzioni
     let bestMatchFunction = null;
     let bestMatchScore = MATCHING_THRESHOLD;
@@ -72,6 +140,12 @@ export const useAIFunctions = () => {
     
     // Verifica ogni funzione e calcola il punteggio di corrispondenza
     for (const func of functions) {
+      // Saltiamo la funzione "Lista cimiteri" perché l'abbiamo già verificata
+      if (func.name.toLowerCase() === "lista cimiteri" || 
+          func.name.toLowerCase() === "lista dei cimiteri") {
+        continue;
+      }
+      
       const { matched, score, matchedPhrase } = matchTriggerPhrases(normalizedQuery, func.trigger_phrases);
       
       // Logga per debug
@@ -109,6 +183,7 @@ export const useAIFunctions = () => {
     getActiveFunctions,
     findMatchingFunction,
     processTestQuery,
-    matchTriggerPhrases // Esportiamo anche questa per i test nell'interfaccia di amministrazione
+    matchTriggerPhrases, // Esportiamo anche questa per i test nell'interfaccia di amministrazione
+    exactMatchTriggerPhrases // Esportiamo anche questa per i test nell'interfaccia di amministrazione
   };
 };

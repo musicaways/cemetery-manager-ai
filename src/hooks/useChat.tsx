@@ -33,50 +33,35 @@ export const useChat = (): UseChatReturn => {
       // Verifica funzioni AI attive
       const aiFunctions = await getActiveFunctions();
       
-      // Prima controlla se c'è un match esatto per la lista cimiteri
-      const listaCimiteriTriggers = [
-        "mostra la lista dei cimiteri",
-        "mostrami la lista dei cimiteri",
-        "lista cimiteri",
-        "lista dei cimiteri",
-        "visualizza lista cimiteri",
-        "visualizza la lista dei cimiteri",
-        "elenco cimiteri",
-        "elenco dei cimiteri"
-      ];
-
-      const isExactListaMatch = listaCimiteriTriggers.some(
-        trigger => trigger.toLowerCase() === normalizedQuery
-      );
-
-      if (isExactListaMatch) {
-        const cimiteri = await getAllCimiteri();
-        setMessages(prev => [...prev, { 
-          type: 'response', 
-          content: 'Ecco la lista dei cimiteri disponibili:',
-          data: {
-            type: 'cimiteri',
-            cimiteri
-          },
-          timestamp: new Date()
-        }]);
-        setQuery("");
-        setIsProcessing(false);
-        setTimeout(scrollToBottom, 100);
-        return;
-      }
-
-      // Se non è un match esatto per la lista, cerca altre funzioni AI con il nuovo algoritmo
+      // Cerchiamo le corrispondenze utilizzando il nuovo sistema di matching
       const matchResult = findMatchingFunction(normalizedQuery, aiFunctions);
 
+      // Se abbiamo trovato un match per una funzione
       if (matchResult) {
         console.log("Funzione AI trovata:", matchResult.function.name);
         console.log("Punteggio di matching:", matchResult.score);
         console.log("Frase trigger:", matchResult.matchedPhrase);
         
-        // Qui possiamo aggiungere il codice per eseguire la funzione AI
-        // Per ora, logghiamo solo che l'abbiamo trovata
+        // Se la funzione è "Lista cimiteri", eseguiamo direttamente il codice
+        if (matchResult.function.name.toLowerCase() === "lista cimiteri" || 
+            matchResult.function.name.toLowerCase() === "lista dei cimiteri") {
+          const cimiteri = await getAllCimiteri();
+          setMessages(prev => [...prev, { 
+            type: 'response', 
+            content: 'Ecco la lista dei cimiteri disponibili:',
+            data: {
+              type: 'cimiteri',
+              cimiteri
+            },
+            timestamp: new Date()
+          }]);
+          setQuery("");
+          setIsProcessing(false);
+          setTimeout(scrollToBottom, 100);
+          return;
+        }
         
+        // Per le altre funzioni, possiamo implementare l'esecuzione del codice specifico
         // TODO: implementare l'esecuzione del codice della funzione
         // const result = await executeFunction(matchResult.function, finalQuery);
         // setMessages(prev => [...prev, { 
@@ -90,7 +75,7 @@ export const useChat = (): UseChatReturn => {
         // return;
       }
 
-      // Verifica cimitero specifico
+      // Verifica cimitero specifico 
       const cimiteroRegex = /mostra(mi)?\s+(il\s+)?cimitero\s+(?:di\s+)?(.+)/i;
       const cimiteroMatch = normalizedQuery.match(cimiteroRegex);
 

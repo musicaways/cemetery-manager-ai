@@ -104,36 +104,6 @@ export const useChat = (): UseChatReturn => {
         return;
       }
 
-      // Solo dopo aver verificato i casi speciali, procediamo con il sistema di matching generale
-      // Verifica funzioni AI attive
-      const aiFunctions = await getActiveFunctions();
-      
-      // Cerchiamo le corrispondenze utilizzando il sistema generale (esclusa la lista cimiteri che abbiamo già gestito)
-      const filteredFunctions = aiFunctions.filter(
-        f => f.name.toLowerCase() !== "lista cimiteri" && 
-             f.name.toLowerCase() !== "lista dei cimiteri"
-      );
-      
-      const matchResult = findMatchingFunction(normalizedQuery, filteredFunctions);
-
-      if (matchResult) {
-        console.log("Funzione AI trovata:", matchResult.function.name);
-        console.log("Punteggio di matching:", matchResult.score);
-        console.log("Frase trigger:", matchResult.matchedPhrase);
-        
-        // TODO: implementare l'esecuzione del codice della funzione
-        // const result = await executeFunction(matchResult.function, finalQuery);
-        // setMessages(prev => [...prev, { 
-        //   type: 'response', 
-        //   content: result.text || '',
-        //   data: result.data
-        // }]);
-        // setQuery("");
-        // setIsProcessing(false);
-        // setTimeout(scrollToBottom, 100);
-        // return;
-      }
-
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
@@ -164,6 +134,22 @@ export const useChat = (): UseChatReturn => {
       }
       
       if (response) {
+        // IMPORTANTE: controllo se la risposta contiene dati di tipo 'cimiteri'
+        // Questo è un controllo di sicurezza per evitare che una funzione edge di Supabase
+        // attivi la funzione "Lista cimiteri" quando non dovrebbe
+        if (response.data && response.data.type === 'cimiteri') {
+          // Verifica se la query originale è nella lista delle frasi esatte,
+          // se no, ignora la risposta di tipo 'cimiteri'
+          if (!isListaCimiteriExactMatch) {
+            console.warn("ATTENZIONE: Ricevuta risposta di tipo 'cimiteri' ma la query non era nella lista delle frasi esatte!");
+            // Sostituiamo con una risposta generica
+            response = {
+              text: `Mi dispiace, non ho capito la tua richiesta. Se vuoi vedere la lista dei cimiteri, prova a chiedere "lista dei cimiteri".`,
+              data: null
+            };
+          }
+        }
+        
         setMessages(prev => [...prev, { 
           type: 'response', 
           content: response.text || '',

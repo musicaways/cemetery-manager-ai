@@ -146,14 +146,23 @@ async function handleCimiteriQuery(): Promise<AIResponse> {
 
 async function processQuery(query: string, aiProvider: string): Promise<AIResponse> {
   try {
+    // ************************************************
+    // IMPORTANTE: Disabilitare il rilevamento automatico delle query sui cimiteri
+    // che potrebbe causare falsi positivi
+    // ************************************************
+    
+    // VECCHIO CODICE PROBLEMATICO:
     // Check if query is about cemeteries
-    const cimiteriKeywords = ['cimiteri', 'cimitero', 'lista cimiteri', 'elenco cimiteri', 'mostra cimiteri', 'vedere i cimiteri'];
-    const isCimiteriQuery = cimiteriKeywords.some(keyword => query.toLowerCase().includes(keyword.toLowerCase()));
-
-    if (isCimiteriQuery) {
-      return await handleCimiteriQuery();
-    }
-
+    // const cimiteriKeywords = ['cimiteri', 'cimitero', 'lista cimiteri', 'elenco cimiteri', 'mostra cimiteri', 'vedere i cimiteri'];
+    // const isCimiteriQuery = cimiteriKeywords.some(keyword => query.toLowerCase().includes(keyword.toLowerCase()));
+    // if (isCimiteriQuery) {
+    //   return await handleCimiteriQuery();
+    // }
+    
+    // NUOVO CODICE:
+    // La decisione di mostrare la lista dei cimiteri deve essere gestita solo dal frontend
+    // Non attiveremo più automaticamente la funzione "Lista cimiteri" dal backend
+    
     // Handle normal AI responses
     const aiResponse = await (aiProvider === 'gemini' ? getGeminiResponse(query) : getGroqResponse(query));
     return {

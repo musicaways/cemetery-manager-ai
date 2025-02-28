@@ -26,7 +26,7 @@ export const AIFunctionTester = ({ func }: { func: AIFunction }) => {
     try {
       // Test del matching con frasi trigger
       const normalizedQuery = testQuery.toLowerCase().trim();
-      const phrases = func.trigger_phrases.map(p => p.trim().toLowerCase());
+      const phrases = func.trigger_phrases?.map(p => p.trim().toLowerCase()) || [];
       
       // Test con match esatto
       const exactMatch = exactMatchTriggerPhrases(normalizedQuery, phrases);
@@ -60,7 +60,7 @@ ${partialMatch.matched ? `- Frase matched: "${partialMatch.matchedPhrase}"` : ""
 🧪 Risultato esecuzione:
 `;
 
-      // Esegui la funzione
+      // Esegui la funzione - Ora passiamo l'oggetto AIFunction correttamente
       const testResult = await processTestQuery(func, testQuery);
       setResult(matchInfo + (testResult.text || JSON.stringify(testResult, null, 2)));
     } catch (error) {

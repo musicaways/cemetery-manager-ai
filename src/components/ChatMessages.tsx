@@ -174,6 +174,9 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
           </div>
         )}
         <div ref={messagesEndRef} className="h-4" />
+        
+        {/* Spazio extra per evitare che il contenuto sia nascosto dal footer mobile */}
+        <div className="bottom-nav-spacer md:hidden"></div>
       </div>
     </ScrollArea>
   );

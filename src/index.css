@@ -78,12 +78,14 @@
   }
   
   body {
-    @apply bg-background text-foreground antialiased overflow-hidden;
+    @apply bg-background text-foreground antialiased;
     font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+    /* Rimuoviamo overflow-hidden per permettere lo scrolling */
   }
 
   html {
     @apply scroll-smooth;
+    height: 100%;
   }
 }
 
@@ -98,7 +100,7 @@
   }
   
   .page-content {
-    @apply flex-grow pb-[var(--chat-input-height)];
+    @apply flex-grow pb-[calc(var(--chat-input-height)+50px)];
   }
   
   /* Glassmorphism e card */
@@ -248,7 +250,7 @@
   /* Bottom Navigation */
   .bottom-nav {
     @apply fixed bottom-0 left-0 right-0 bg-background border-t border-border
-           p-2 grid grid-cols-4 gap-1 md:hidden;
+           p-2 grid grid-cols-4 gap-1 md:hidden z-50;
   }
   
   .bottom-nav-item {
@@ -319,4 +321,15 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* Modifiche per correggere lo scrolling su mobile */
+.scroll-area-viewport {
+  height: 100%;
+  overflow-y: auto !important;
+}
+
+/* Aggiustiamo la dimensione del footer per evitare sovrapposizioni */
+.bottom-nav-spacer {
+  height: 56px; /* Altezza del menu di navigazione inferiore */
 }

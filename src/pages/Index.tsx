@@ -4,8 +4,8 @@ import { useChat } from "@/hooks/useChat";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
 import { ChatModals } from "@/components/chat/ChatModals";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { OfflineIndicator } from "@/pages/cimiteri/components/OfflineIndicator";
+import { MobileNav } from "@/components/MobileNav";
+import { Layout } from "@/components/Layout";
 import type { Cimitero } from "@/pages/cimiteri/types";
 import { cn } from "@/lib/utils";
 
@@ -168,6 +168,9 @@ const Index = () => {
         selectedCimitero={selectedCimitero}
         onCimiteroEditorClose={() => setSelectedCimitero(null)}
       />
+
+      {/* Menu di navigazione inferiore per mobile */}
+      <MobileNav />
     </div>
   );
 };

@@ -72,30 +72,81 @@ const Index = () => {
   const safeHandleSubmit = async (e?: React.FormEvent, q?: string) => {
     try {
       // Verifica che q sia una stringa
-      if (q !== undefined && typeof q !== 'string') {
-        console.error('Input non valido per handleSubmit:', q);
-        toast.error('Input non valido');
-        return;
+      if (q !== undefined) {
+        // Se q non è una stringa, tenta di sanitizzarlo
+        if (typeof q !== 'string') {
+          console.error('[Index] Input non valido per handleSubmit:', q);
+          
+          // Tentativo di sanitizzazione sicura
+          const sanitizedQuery = typeof q === 'object' 
+            ? JSON.stringify(q) 
+            : String(q || '');
+            
+          if (!sanitizedQuery.trim()) {
+            toast.error('Input non valido o vuoto');
+            return;
+          }
+          
+          console.log('[Index] Input sanitizzato:', sanitizedQuery);
+          await handleSubmit(e, sanitizedQuery);
+          return;
+        }
+        
+        // Se è una stringa vuota, non procedere
+        if (!q.trim()) {
+          console.warn('[Index] Query vuota, ignoro la richiesta');
+          return;
+        }
       }
       
       await handleSubmit(e, q);
     } catch (err) {
       handleError(err instanceof Error ? err : new Error(String(err)), {
-        inputQuery: q,
+        inputQuery: typeof q === 'string' ? q : JSON.stringify(q),
         component: 'ChatInput'
       });
     }
   };
 
   const handleVoiceRecord = (text: string) => {
-    if (typeof text !== 'string') {
-      console.error('Input vocale non valido:', text);
-      toast.error('Input vocale non valido');
-      return;
+    try {
+      // Verifica che text sia una stringa valida
+      if (typeof text !== 'string') {
+        console.error('[Index] Input vocale non valido:', text);
+        
+        // Tentativo di sanitizzazione sicura
+        const sanitizedText = typeof text === 'object'
+          ? JSON.stringify(text)
+          : String(text || '');
+          
+        console.log('[Index] Input vocale sanitizzato:', sanitizedText);
+        
+        if (!sanitizedText.trim()) {
+          toast.error('Input vocale non valido o vuoto');
+          return;
+        }
+        
+        safeHandleSubmit(undefined, sanitizedText);
+        return;
+      }
+      
+      // Verifica che non sia vuoto
+      if (!text.trim()) {
+        console.warn('[Index] Input vocale vuoto, ignoro la richiesta');
+        toast.error('Input vocale vuoto');
+        return;
+      }
+      
+      // Assicurati che l'input vocale sia una stringa
+      safeHandleSubmit(undefined, text);
+    } catch (voiceError) {
+      console.error('[Index] Errore nella gestione dell\'input vocale:', voiceError);
+      handleError(
+        voiceError instanceof Error ? voiceError : new Error(String(voiceError)), 
+        { component: 'VoiceInput' }
+      );
+      toast.error('Si è verificato un errore con l\'input vocale');
     }
-    
-    // Assicurati che l'input vocale sia una stringa
-    safeHandleSubmit(undefined, text);
   };
 
   // Mostra un indicatore di caricamento mentre l'app si inizializza

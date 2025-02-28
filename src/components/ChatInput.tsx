@@ -73,14 +73,39 @@ export const ChatInput = ({
   };
 
   const handleVoiceRecordComplete = (text: string) => {
-    if (typeof text !== 'string') {
-      console.error("Errore: il testo registrato non è una stringa", text);
-      toast.error("Errore nella registrazione vocale");
-      return;
+    try {
+      // Assicuriamoci che il testo sia effettivamente una stringa
+      if (typeof text !== 'string') {
+        console.error("[ChatInput] Errore: il testo registrato non è una stringa", text);
+        
+        // Tentativo di conversione sicuro
+        const sanitizedText = typeof text === 'object'
+          ? JSON.stringify(text)
+          : String(text || '');
+          
+        console.log("[ChatInput] Testo sanitizzato:", sanitizedText);
+        
+        if (!sanitizedText) {
+          toast.error("Errore nella registrazione vocale: testo vuoto");
+          return;
+        }
+        
+        onVoiceRecord(sanitizedText);
+        return;
+      }
+      
+      // Se è una stringa vuota, non inviare
+      if (!text.trim()) {
+        toast.error("Nessun testo riconosciuto");
+        return;
+      }
+      
+      console.log("[ChatInput] Testo vocale ricevuto:", text);
+      onVoiceRecord(text);
+    } catch (voiceError) {
+      console.error("[ChatInput] Errore nella gestione del testo vocale:", voiceError);
+      toast.error("Si è verificato un errore con l'input vocale");
     }
-    
-    console.log("Testo vocale ricevuto:", text);
-    onVoiceRecord(text);
   };
 
   if (!isMounted) {

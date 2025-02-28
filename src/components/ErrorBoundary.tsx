@@ -34,6 +34,16 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     // Registra l'errore
     console.error("Errore catturato da ErrorBoundary:", error, errorInfo);
     
+    // Per il problema specifico React #31, aggiungi log dettagliato
+    if (error.message.includes('#31') || error.message.includes('object with keys')) {
+      console.error("Errore React #31 rilevato - Dettagli aggiuntivi:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+        componentStack: errorInfo.componentStack,
+      });
+    }
+    
     errorReporter.reportError(error, {
       componentStack: errorInfo.componentStack,
       handledBy: 'ErrorBoundary'

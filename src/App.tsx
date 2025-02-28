@@ -21,13 +21,21 @@ import { Cimiteri } from "./pages/cimiteri/Cimiteri";
 import NotFound from "./pages/NotFound";
 import './styles/chat.css';
 
+// Configurazione di React Query con gestione errori
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minuti
       gcTime: 1000 * 60 * 30, // 30 minuti (sostituisce cacheTime)
       retry: 2,
-      refetchOnWindowFocus: false
+      refetchOnWindowFocus: false,
+      onError: (error) => {
+        console.error('React Query error:', error);
+        errorReporter.reportError(
+          error instanceof Error ? error : new Error(String(error)), 
+          { source: 'react-query' }
+        );
+      }
     }
   }
 });
@@ -35,6 +43,7 @@ const queryClient = new QueryClient({
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [appReady, setAppReady] = useState(false);
+  const [authError, setAuthError] = useState<Error | null>(null);
 
   useEffect(() => {
     // Registra il tempo di avvio dell'app
@@ -63,20 +72,61 @@ function App() {
     }
     
     // Controlla lo stato di autenticazione
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsAuthenticated(!!session);
-    });
+    try {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        try {
+          setIsAuthenticated(!!session);
+        } catch (error) {
+          console.error("Errore durante l'aggiornamento dello stato di autenticazione:", error);
+          setAuthError(error instanceof Error ? error : new Error(String(error)));
+        }
+      });
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setIsAuthenticated(!!session);
-      setAppReady(true);
-    });
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        try {
+          setIsAuthenticated(!!session);
+          setAppReady(true);
+        } catch (error) {
+          console.error("Errore durante l'impostazione della sessione:", error);
+          setAuthError(error instanceof Error ? error : new Error(String(error)));
+        }
+      }).catch(error => {
+        console.error("Errore durante il recupero della sessione:", error);
+        setAuthError(error instanceof Error ? error : new Error(String(error)));
+        setAppReady(true); // Comunque imposta l'app come pronta per mostrare l'errore
+      });
 
-    // Cleanup della sottoscrizione
-    return () => {
-      subscription.unsubscribe();
-    };
+      // Cleanup della sottoscrizione
+      return () => {
+        try {
+          subscription.unsubscribe();
+        } catch (error) {
+          console.error("Errore durante l'annullamento della sottoscrizione:", error);
+        }
+      };
+    } catch (error) {
+      console.error("Errore critico nell'inizializzazione dell'autenticazione:", error);
+      setAuthError(error instanceof Error ? error : new Error(String(error)));
+      setAppReady(true); // Imposta l'app come pronta per mostrare l'errore
+    }
   }, []);
+
+  if (authError) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-background">
+        <div className="max-w-md w-full bg-card p-6 rounded-lg shadow-lg border border-destructive/30">
+          <h1 className="text-xl font-bold mb-4 text-destructive">Errore di autenticazione</h1>
+          <p className="mb-4">{authError.message}</p>
+          <button 
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md w-full"
+            onClick={() => window.location.reload()}
+          >
+            Riprova
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isAuthenticated === null && !appReady) {
     return <LoadingScreen message="Inizializzazione dell'applicazione..." />;
@@ -95,39 +145,51 @@ function App() {
                   <Route
                     path="/"
                     element={
-                      isAuthenticated ? <Index /> : <Auth />
+                      <ErrorBoundary>
+                        {isAuthenticated ? <Index /> : <Auth />}
+                      </ErrorBoundary>
                     }
                   />
                   <Route
                     path="/auth"
                     element={
-                      !isAuthenticated ? <Auth /> : <Index />
+                      <ErrorBoundary>
+                        {!isAuthenticated ? <Auth /> : <Index />}
+                      </ErrorBoundary>
                     }
                   />
                   <Route path="/admin">
                     <Route
                       path="tables"
                       element={
-                        isAuthenticated ? <Tables /> : <Auth />
+                        <ErrorBoundary>
+                          {isAuthenticated ? <Tables /> : <Auth />}
+                        </ErrorBoundary>
                       }
                     />
                     <Route
                       path="users"
                       element={
-                        isAuthenticated ? <Users /> : <Auth />
+                        <ErrorBoundary>
+                          {isAuthenticated ? <Users /> : <Auth />}
+                        </ErrorBoundary>
                       }
                     />
                     <Route
                       path="ai-functions"
                       element={
-                        isAuthenticated ? <AIFunctions /> : <Auth />
+                        <ErrorBoundary>
+                          {isAuthenticated ? <AIFunctions /> : <Auth />}
+                        </ErrorBoundary>
                       }
                     />
                   </Route>
                   <Route
                     path="/cimiteri"
                     element={
-                      isAuthenticated ? <Cimiteri /> : <Auth />
+                      <ErrorBoundary>
+                        {isAuthenticated ? <Cimiteri /> : <Auth />}
+                      </ErrorBoundary>
                     }
                   />
                   <Route path="*" element={<NotFound />} />

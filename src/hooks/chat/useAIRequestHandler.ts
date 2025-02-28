@@ -8,6 +8,10 @@ export const useAIRequestHandler = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleAIRequest = async (query: string) => {
+    if (!query?.trim()) {
+      return "Mi dispiace, non ho ricevuto una domanda valida.";
+    }
+    
     setIsProcessing(true);
     
     try {
@@ -30,27 +34,42 @@ export const useAIRequestHandler = () => {
   };
   
   const processAIRequest = async (query: string, webSearchEnabled: boolean, aiProvider: string, aiModel: string) => {
+    if (!query?.trim()) {
+      return "Mi dispiace, non ho ricevuto una domanda valida.";
+    }
+    
     try {
       // Se è richiesta la ricerca web o se stiamo usando un provider cloud
       if (webSearchEnabled || (aiProvider !== 'huggingface' && navigator.onLine)) {
-        const response = await supabase.functions.invoke('process-query', {
-          body: { 
-            query,
-            webSearch: webSearchEnabled,
-            aiProvider,
-            aiModel
+        try {
+          const response = await supabase.functions.invoke('process-query', {
+            body: { 
+              query,
+              webSearch: webSearchEnabled,
+              aiProvider,
+              aiModel
+            }
+          });
+          
+          if (response.error) {
+            console.error('Errore nella risposta di Supabase Edge Function:', response.error);
+            throw response.error;
           }
-        });
-        
-        if (response.error) {
-          throw response.error;
+          
+          return response.data;
+        } catch (supabaseError) {
+          console.error('Errore durante l\'invocazione della funzione Supabase:', supabaseError);
+          throw supabaseError;
         }
-        
-        return response.data;
       } else {
         // Utilizziamo il modello locale
-        const localLLM = LocalLLMManager.getInstance();
-        return await localLLM.processQuery(query);
+        try {
+          const localLLM = LocalLLMManager.getInstance();
+          return await localLLM.processQuery(query);
+        } catch (localLLMError) {
+          console.error('Errore nell\'utilizzo del modello locale:', localLLMError);
+          throw localLLMError;
+        }
       }
     } catch (error) {
       console.error('Errore nel processare la richiesta AI:', error);

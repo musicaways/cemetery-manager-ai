@@ -25,45 +25,79 @@ export const useChat = () => {
   const { processAIRequest } = useAIRequestHandler();
   const { isOnline, webSearchEnabled, toggleWebSearch } = useOnlineStatus();
   
-  // Monitora lo stato di connessione e inizializza il modello locale quando necessario
+  // Monitora lo stato di connessione
   useEffect(() => {
     // Il modello locale verrà caricato automaticamente quando si va offline
-    // attraverso l'event listener nel LocalLLMManager
   }, []);
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    try {
+      scrollToBottom();
+    } catch (error) {
+      console.error("Errore nello scroll:", error);
+    }
+  }, [messages, scrollToBottom]);
   
   const handleSubmit = async (event?: React.FormEvent, overrideQuery?: string) => {
-    const userQuery = overrideQuery || query;
-    if (event) event.preventDefault();
-    if (!userQuery.trim() || isProcessing) return;
+    // Previeni il comportamento di default del form
+    if (event) {
+      event.preventDefault();
+    }
 
+    // Verifica che ci sia una query valida
+    const userQuery = overrideQuery || query;
+    if (!userQuery?.trim() || isProcessing) {
+      return;
+    }
+
+    // Imposta lo stato di elaborazione
     setIsProcessing(true);
-    addMessage({ 
-      type: "query", 
-      role: "user", 
-      content: userQuery, 
-      timestamp: new Date() 
-    });
-    setQuery("");
+    
+    // Aggiungi messaggio utente
+    try {
+      addMessage({ 
+        type: "query", 
+        role: "user", 
+        content: userQuery, 
+        timestamp: new Date() 
+      });
+      
+      // Reset della query di input
+      setQuery("");
+    } catch (error) {
+      console.error("Errore nell'aggiunta del messaggio:", error);
+      setIsProcessing(false);
+      return;
+    }
 
     try {
       // Identifica eventuali funzioni AI nella query
-      const aiFunction = await identifyFunctions(userQuery);
+      let aiFunction = null;
+      try {
+        aiFunction = await identifyFunctions(userQuery);
+      } catch (identifyError) {
+        console.error("Errore nell'identificazione delle funzioni:", identifyError);
+        aiFunction = null;
+      }
       
       if (aiFunction) {
         // Esegue una funzione AI specifica
-        const result = await executeAIFunction(aiFunction, userQuery);
-        addMessage({ 
-          type: "response", 
-          role: "assistant",
-          content: result.message, 
-          data: result.data,
-          timestamp: new Date()
-        });
-      } else if (userQuery.toLowerCase().includes("cimitero") || userQuery.toLowerCase().includes("cimiteri") || userQuery.toLowerCase().includes("defunto")) {
+        try {
+          const result = await executeAIFunction(aiFunction, userQuery);
+          addMessage({ 
+            type: "response", 
+            role: "assistant",
+            content: result.message || "Funzione eseguita con successo.", 
+            data: result.data,
+            timestamp: new Date()
+          });
+        } catch (functionError) {
+          console.error("Errore nell'esecuzione della funzione AI:", functionError);
+          throw functionError;
+        }
+      } else if (userQuery.toLowerCase().includes("cimitero") || 
+                userQuery.toLowerCase().includes("cimiteri") || 
+                userQuery.toLowerCase().includes("defunto")) {
         // Gestisce richieste relative ai cimiteri
         try {
           const result = await handleCimiteriRequest(userQuery);
@@ -74,61 +108,81 @@ export const useChat = () => {
             data: result.data,
             timestamp: new Date()
           });
-        } catch (error) {
-          console.error("Errore nella gestione della richiesta cimiteri:", error);
+        } catch (cimiteriError) {
+          console.error("Errore nella gestione della richiesta cimiteri:", cimiteriError);
           
           // Se siamo offline, usa il modello locale
           if (!isOnline) {
-            const localLLM = LocalLLMManager.getInstance();
-            const offlineResponse = await localLLM.processQuery(userQuery);
-            
-            addMessage({ 
-              type: "response", 
-              role: "assistant",
-              content: offlineResponse,
-              timestamp: new Date()
-            });
+            try {
+              const localLLM = LocalLLMManager.getInstance();
+              const offlineResponse = await localLLM.processQuery(userQuery);
+              
+              addMessage({ 
+                type: "response", 
+                role: "assistant",
+                content: offlineResponse || "Risposta non disponibile in modalità offline.",
+                timestamp: new Date()
+              });
+            } catch (offlineError) {
+              console.error("Errore nella risposta offline:", offlineError);
+              throw offlineError;
+            }
           } else {
-            throw error; // Rilancia l'errore se siamo online
+            throw cimiteriError; // Rilancia l'errore se siamo online
           }
         }
       } else {
         // Gestisce richieste generiche all'AI
-        addMessage({ 
-          type: "response", 
-          role: "assistant", 
-          content: "", 
-          timestamp: new Date() 
-        });
+        try {
+          addMessage({ 
+            type: "response", 
+            role: "assistant", 
+            content: "", 
+            timestamp: new Date() 
+          });
 
-        // Se siamo offline, utilizza il modello locale
-        if (!isOnline) {
-          const localLLM = LocalLLMManager.getInstance();
-          const offlineResponse = await localLLM.processQuery(userQuery);
-          
-          updateLastMessage({
-            content: offlineResponse,
-            data: { suggestions: true }
-          });
-        } else {
-          // Altrimenti, utilizza il modello online
-          const aiProvider = localStorage.getItem('ai_provider') || 'groq';
-          const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
-          
-          const response = await processAIRequest(userQuery, webSearchEnabled, aiProvider, aiModel);
-          
-          updateLastMessage({
-            content: response,
-            suggestedQuestions: [
-              "Mostra l'elenco dei cimiteri",
-              "Come posso cercare un defunto?",
-              "Quali funzionalità sono disponibili?"
-            ]
-          });
+          // Se siamo offline, utilizza il modello locale
+          if (!isOnline) {
+            try {
+              const localLLM = LocalLLMManager.getInstance();
+              const offlineResponse = await localLLM.processQuery(userQuery);
+              
+              updateLastMessage({
+                content: offlineResponse || "Risposta non disponibile in modalità offline.",
+                data: { suggestions: true }
+              });
+            } catch (localLLMError) {
+              console.error("Errore nel modello locale:", localLLMError);
+              throw localLLMError;
+            }
+          } else {
+            // Altrimenti, utilizza il modello online
+            try {
+              const aiProvider = localStorage.getItem('ai_provider') || 'groq';
+              const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
+              
+              const response = await processAIRequest(userQuery, webSearchEnabled, aiProvider, aiModel);
+              
+              updateLastMessage({
+                content: response || "Non ho ricevuto una risposta valida, riprova più tardi.",
+                suggestedQuestions: [
+                  "Mostra l'elenco dei cimiteri",
+                  "Come posso cercare un defunto?",
+                  "Quali funzionalità sono disponibili?"
+                ]
+              });
+            } catch (processError) {
+              console.error("Errore nell'elaborazione della richiesta AI:", processError);
+              throw processError;
+            }
+          }
+        } catch (genericError) {
+          console.error("Errore nella gestione della richiesta generica:", genericError);
+          throw genericError;
         }
       }
     } catch (error) {
-      console.error("Errore nella gestione della richiesta:", error);
+      console.error("Errore complessivo nella gestione della richiesta:", error);
       
       // Se siamo offline, tentiamo di utilizzare il modello locale come fallback
       if (!isOnline) {
@@ -137,7 +191,7 @@ export const useChat = () => {
           const offlineResponse = await localLLM.processQuery(userQuery);
           
           updateLastMessage({
-            content: offlineResponse,
+            content: offlineResponse || "Risposta di fallback non disponibile.",
             suggestedQuestions: [
               "Quali funzionalità posso usare offline?",
               "Mostra cimiteri disponibili",
@@ -156,7 +210,9 @@ export const useChat = () => {
         });
       }
       
-      toast.error("Errore nella risposta", { description: "Si è verificato un errore durante l'elaborazione della richiesta." });
+      toast.error("Errore nella risposta", { 
+        description: "Si è verificato un errore durante l'elaborazione della richiesta."
+      });
     } finally {
       setIsProcessing(false);
     }

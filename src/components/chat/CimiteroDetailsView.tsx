@@ -36,6 +36,12 @@ export const CimiteroDetailsView = ({ cimitero, onClose }: CimiteroDetailsViewPr
 
   const handleRefresh = () => {
     // Non implementato nella chat
+    console.log("Richiesta di aggiornamento nella chat");
+  };
+
+  const handleClose = () => {
+    console.log("Chiusura dettagli cimitero");
+    onClose();
   };
 
   return (
@@ -49,7 +55,7 @@ export const CimiteroDetailsView = ({ cimitero, onClose }: CimiteroDetailsViewPr
       onInputChange={handleInputChange}
       selectedFile={selectedFile}
       onRefresh={handleRefresh}
-      onClose={onClose}
+      onClose={handleClose}
     />
   );
 };

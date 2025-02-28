@@ -15,6 +15,7 @@ export const CimiteroCard = ({ cimitero, onClick, isOffline = false }: CimiteroC
   const [imageError, setImageError] = useState(false);
   const imageRef = useRef<HTMLImageElement>(null);
   const imageUrl = cimitero.FotoCopertina || cimitero.foto?.[0]?.Url;
+  const cardRef = useRef<HTMLDivElement>(null);
 
   // Utilizziamo IntersectionObserver per il lazy loading
   useEffect(() => {
@@ -23,7 +24,9 @@ export const CimiteroCard = ({ cimitero, onClick, isOffline = false }: CimiteroC
         entries.forEach(entry => {
           if (entry.isIntersecting && imageRef.current) {
             // Quando il componente è visibile, carica l'immagine
-            imageRef.current.src = imageRef.current.dataset.src || '';
+            if (imageRef.current.dataset.src) {
+              imageRef.current.src = imageRef.current.dataset.src;
+            }
             observer.unobserve(entry.target);
           }
         });
@@ -42,9 +45,18 @@ export const CimiteroCard = ({ cimitero, onClick, isOffline = false }: CimiteroC
     };
   }, []);
 
+  // Gestione esplicita del click
+  const handleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Click sulla card del cimitero:", cimitero.Descrizione);
+    onClick();
+  };
+
   return (
     <div
-      onClick={onClick}
+      ref={cardRef}
+      onClick={handleClick}
       className={cn(
         "group relative bg-[#1A1F2C] backdrop-blur-xl rounded-xl overflow-hidden border border-white/10",
         "hover:border-[var(--primary-color)] transition-all duration-300 cursor-pointer hover:scale-[0.98]",

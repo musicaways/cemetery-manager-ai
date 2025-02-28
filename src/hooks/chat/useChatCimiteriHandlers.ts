@@ -1,103 +1,156 @@
 
-import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
+import { useState, useCallback } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Cimitero } from '@/pages/cimiteri/types';
+import { errorReporter } from '@/lib/errorReporter';
+import { toast } from 'sonner';
+import { offlineManager } from '@/lib/offline/offlineManager';
 
 export const useChatCimiteriHandlers = () => {
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [cimiteri, setCimiteri] = useState<Cimitero[]>([]);
+  const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
+  const [loading, setLoading] = useState(false);
 
-  const handleListaCimiteriRequest = async (normalizedQuery: string) => {
-    // Se la query contiene parole chiave relative alla lista dei cimiteri
-    if (
-      normalizedQuery.includes("mostra tutti i cimiteri") ||
-      normalizedQuery.includes("elenco cimiteri") ||
-      normalizedQuery.includes("lista cimiteri") ||
-      (normalizedQuery.includes("mostra") && normalizedQuery.includes("cimiteri"))
-    ) {
-      try {
-        const { data, error } = await supabase
-          .from('Cimitero') // Corrected table name from 'cimiteri' to 'Cimitero'
-          .select('*')
-          .order('Descrizione'); // Using correct column name
-
-        if (error) throw error;
-
-        return true;
-      } catch (error) {
-        console.error('Errore nel recupero dei cimiteri:', error);
-        return false;
-      }
-    }
-    
-    return false;
-  };
-
-  const handleDettagliCimiteroRequest = async (normalizedQuery: string) => {
-    // Rileva richieste di dettagli su un cimitero specifico
-    const dettaglioMatch = normalizedQuery.match(/cimitero di ([a-zA-Z\s]+)/i);
-    
-    if (dettaglioMatch && dettaglioMatch[1]) {
-      const nomeCimitero = dettaglioMatch[1].trim();
+  const fetchCimiteri = useCallback(async () => {
+    try {
+      setLoading(true);
+      console.log("Caricamento cimiteri...");
       
-      try {
+      // Prova prima a caricare i dati da localStorage
+      const cachedData = offlineManager.getCimiteri();
+      if (cachedData && cachedData.length > 0) {
+        console.log("Utilizzando dati in cache:", cachedData.length, "cimiteri");
+        setCimiteri(cachedData);
+      }
+
+      // Poi tenta di aggiornare i dati dal server
+      if (navigator.onLine) {
         const { data, error } = await supabase
-          .from('Cimitero') // Corrected table name from 'cimiteri' to 'Cimitero'
-          .select('*')
-          .ilike('Descrizione', `%${nomeCimitero}%`) // Using correct column name
+          .from('Cimitero')
+          .select(`
+            *,
+            settori:Settore(
+              Id,
+              Codice,
+              Descrizione,
+              blocchi:Blocco(*)
+            ),
+            foto:CimiteroFoto(*),
+            documenti:CimiteroDocumenti(*)
+          `)
+          .order('Descrizione', { ascending: true });
+
+        if (error) {
+          throw error;
+        }
+
+        if (data) {
+          console.log("Dati caricati dal server:", data.length, "cimiteri");
+          setCimiteri(data as Cimitero[]);
+          
+          // Salva i dati nel localStorage per utilizzo offline
+          offlineManager.saveCimiteri(data as Cimitero[]);
+        }
+      }
+    } catch (error) {
+      console.error("Errore nel caricamento dei cimiteri:", error);
+      errorReporter.reportError(error as Error, { action: 'fetchCimiteri' });
+      
+      // Fallback sui dati in cache anche se eravamo online
+      const cachedData = offlineManager.getCimiteri();
+      if (cachedData && cachedData.length > 0 && cimiteri.length === 0) {
+        console.log("Fallback sui dati in cache dopo errore");
+        setCimiteri(cachedData);
+        toast.warning("Utilizzando dati in cache", {
+          description: "Non è stato possibile aggiornare i dati dal server"
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [cimiteri.length]);
+
+  const fetchCimiteroByCodice = useCallback(async (codice: string) => {
+    try {
+      setLoading(true);
+      console.log("Caricamento cimitero con codice:", codice);
+      
+      // Cerca prima nei dati già caricati
+      const cimiteroFromLoaded = cimiteri.find(c => 
+        c.Codice?.toLowerCase() === codice.toLowerCase() || 
+        c.Descrizione?.toLowerCase().includes(codice.toLowerCase())
+      );
+      
+      if (cimiteroFromLoaded) {
+        console.log("Cimitero trovato nei dati già caricati:", cimiteroFromLoaded);
+        setSelectedCimitero(cimiteroFromLoaded);
+        return cimiteroFromLoaded;
+      }
+      
+      // Cerca nella cache
+      const cachedData = offlineManager.getCimiteri();
+      const cimiteroFromCache = cachedData?.find(c => 
+        c.Codice?.toLowerCase() === codice.toLowerCase() || 
+        c.Descrizione?.toLowerCase().includes(codice.toLowerCase())
+      );
+      
+      if (cimiteroFromCache) {
+        console.log("Cimitero trovato nella cache:", cimiteroFromCache);
+        setSelectedCimitero(cimiteroFromCache);
+        return cimiteroFromCache;
+      }
+      
+      // Carica dal server se online
+      if (navigator.onLine) {
+        const { data, error } = await supabase
+          .from('Cimitero')
+          .select(`
+            *,
+            settori:Settore(
+              Id,
+              Codice,
+              Descrizione,
+              blocchi:Blocco(*)
+            ),
+            foto:CimiteroFoto(*),
+            documenti:CimiteroDocumenti(*)
+          `)
+          .or(`Codice.ilike.%${codice}%,Descrizione.ilike.%${codice}%`)
           .limit(1);
 
-        if (error) throw error;
-        
-        if (data && data.length > 0) {
-          return true;
+        if (error) {
+          throw error;
         }
-        
-        return false;
-      } catch (error) {
-        console.error('Errore nel recupero del cimitero:', error);
-        return false;
-      }
-    }
-    
-    return false;
-  };
 
-  const handleCimiteriRequest = async (query: string) => {
-    setIsProcessing(true);
-    const normalizedQuery = query.toLowerCase().trim();
-    
-    try {
-      // Prova a gestire vari tipi di richieste sui cimiteri
-      if (await handleListaCimiteriRequest(normalizedQuery)) {
-        return {
-          message: "Ecco l'elenco di tutti i cimiteri disponibili nel sistema.",
-          data: { type: "cimiteri_list" }
-        };
+        if (data && data.length > 0) {
+          console.log("Cimitero caricato dal server:", data[0]);
+          setSelectedCimitero(data[0] as Cimitero);
+          return data[0] as Cimitero;
+        }
       }
       
-      if (await handleDettagliCimiteroRequest(normalizedQuery)) {
-        return {
-          message: "Ho trovato informazioni sul cimitero richiesto.",
-          data: { type: "cimitero_details" }
-        };
-      }
-      
-      // Se non è stata trovata una gestione specifica, processa come richiesta generica
-      return {
-        message: "La tua richiesta sui cimiteri richiede ulteriori informazioni. Puoi essere più specifico?",
-        data: { type: "generic_response" }
-      };
+      console.log("Nessun cimitero trovato con codice/descrizione:", codice);
+      return null;
     } catch (error) {
-      console.error('Errore nella gestione della richiesta sui cimiteri:', error);
-      throw error;
+      console.error("Errore nel caricamento del cimitero:", error);
+      errorReporter.reportError(error as Error, { action: 'fetchCimiteroByCodice', codice });
+      return null;
     } finally {
-      setIsProcessing(false);
+      setLoading(false);
     }
-  };
+  }, [cimiteri]);
+
+  const clearSelectedCimitero = useCallback(() => {
+    setSelectedCimitero(null);
+  }, []);
 
   return {
-    handleListaCimiteriRequest,
-    handleDettagliCimiteroRequest,
-    handleCimiteriRequest
+    cimiteri,
+    selectedCimitero,
+    loading,
+    fetchCimiteri,
+    fetchCimiteroByCodice,
+    clearSelectedCimitero,
+    setSelectedCimitero
   };
 };

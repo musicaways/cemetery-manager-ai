@@ -1,46 +1,116 @@
 
-/**
- * Utility functions for handling AI function trigger phrases
- */
+import { isAIFunctionTrigger } from "./isAIFunctionTrigger";
 
-export const exactMatchTriggerPhrases = (normalizedQuery: string, triggerPhrases: string[]): boolean => {
-  return triggerPhrases.some(phrase => normalizedQuery === phrase.trim().toLowerCase());
-};
+// Trigger per i cimiteri
+export const triggerShowCimitero = (query: string): { isMatch: boolean; matchedName: string } => {
+  const cimiteroTriggerWords = [
+    "mostrami il cimitero",
+    "mostra il cimitero",
+    "mostrami cimitero",
+    "mostra cimitero",
+    "apri il cimitero",
+    "apri cimitero",
+    "dettagli cimitero",
+    "informazioni cimitero",
+    "mostra informazioni cimitero",
+    "mostra informazioni sul cimitero",
+    "mostra informazioni del cimitero",
+    "voglio vedere il cimitero",
+    "fammi vedere il cimitero",
+    "visualizza cimitero",
+    "visualizza il cimitero"
+  ];
 
-export const matchTriggerPhrases = (normalizedQuery: string, triggerPhrases: string[]): { matched: boolean; score: number; matchedPhrase?: string } => {
-  let bestMatch = { matched: false, score: 0, matchedPhrase: undefined as string | undefined };
-  
-  triggerPhrases.forEach(phrase => {
-    const normalizedPhrase = phrase.trim().toLowerCase();
-    if (normalizedQuery.includes(normalizedPhrase)) {
-      const score = normalizedPhrase.length / normalizedQuery.length;
-      if (score > bestMatch.score) {
-        bestMatch = { matched: true, score, matchedPhrase: normalizedPhrase };
-      }
-    }
-  });
-  
-  return bestMatch;
-};
-
-export const findMatchingFunction = (query: string, functions: any[]) => {
   const normalizedQuery = query.toLowerCase().trim();
-  let bestMatch = { function: null, score: 0, matchedPhrase: "" };
-
-  functions.forEach(func => {
-    if (!func.trigger_phrases) return;
-    
-    const phrases = func.trigger_phrases.map((p: string) => p.trim().toLowerCase());
-    
-    phrases.forEach(phrase => {
-      if (normalizedQuery.includes(phrase)) {
-        const score = phrase.length / normalizedQuery.length;
-        if (score > bestMatch.score) {
-          bestMatch = { function: func, score, matchedPhrase: phrase };
-        }
-      }
-    });
+  
+  // Check con AIFunction prima
+  const functionMatch = isAIFunctionTrigger({
+    query: normalizedQuery,
+    triggerName: "Mostra dettagli cimitero"
   });
+  
+  if (functionMatch.isMatch) {
+    console.log("Corrispondenza funzione AI per cimitero:", functionMatch);
+    // Estraiamo il nome del cimitero dal testo dopo la parola "cimitero"
+    const afterCimitero = normalizedQuery.match(/cimitero\s+(.+)/i);
+    const cimiteroName = afterCimitero ? afterCimitero[1].trim() : '';
+    
+    return {
+      isMatch: true,
+      matchedName: cimiteroName
+    };
+  }
+  
+  // Se la funzione AI non ha fatto match, controlliamo i trigger manuali
+  let matchFound = false;
+  let matchedName = '';
+  
+  for (const trigger of cimiteroTriggerWords) {
+    if (normalizedQuery.includes(trigger)) {
+      matchFound = true;
+      // Estrai il nome del cimitero dal testo dopo il trigger
+      const afterTrigger = normalizedQuery.substring(normalizedQuery.indexOf(trigger) + trigger.length).trim();
+      matchedName = afterTrigger;
+      break;
+    }
+  }
+  
+  return {
+    isMatch: matchFound,
+    matchedName: matchedName
+  };
+};
 
-  return bestMatch;
+export const triggerListCimiteri = (query: string): { isMatch: boolean; matchedTrigger: string | null } => {
+  const listTriggerWords = [
+    "mostrami tutti i cimiteri",
+    "mostrami la lista dei cimiteri",
+    "mostrami la lista di tutti i cimiteri", 
+    "mostra tutti i cimiteri",
+    "mostra la lista dei cimiteri",
+    "mostra la lista di tutti i cimiteri",
+    "visualizza i cimiteri",
+    "visualizza tutti i cimiteri",
+    "fammi vedere i cimiteri", 
+    "fammi vedere tutti i cimiteri",
+    "vedi i cimiteri",
+    "vedi tutti i cimiteri",
+    "lista dei cimiteri",
+    "lista di tutti i cimiteri",
+    "elenco dei cimiteri", 
+    "elenco di tutti i cimiteri",
+    "elenco cimiteri"
+  ];
+
+  const normalizedQuery = query.toLowerCase().trim();
+  
+  // Check con AIFunction prima
+  const functionMatch = isAIFunctionTrigger({
+    query: normalizedQuery,
+    triggerName: "Lista Cimiteri"
+  });
+  
+  if (functionMatch.isMatch) {
+    console.log("Match trovato per lista cimiteri:", functionMatch);
+    return {
+      isMatch: true,
+      matchedTrigger: "elenco cimiteri"
+    };
+  }
+  
+  // Poi controlliamo i trigger manuali
+  for (const trigger of listTriggerWords) {
+    if (normalizedQuery.includes(trigger)) {
+      console.log("Match trovato per lista cimiteri:", trigger);
+      return {
+        isMatch: true,
+        matchedTrigger: trigger
+      };
+    }
+  }
+  
+  return {
+    isMatch: false,
+    matchedTrigger: null
+  };
 };

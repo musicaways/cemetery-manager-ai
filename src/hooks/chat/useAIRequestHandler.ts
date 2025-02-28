@@ -11,11 +11,8 @@ export const useAIRequestHandler = () => {
     setIsProcessing(true);
     
     try {
-      console.log("Gestione richiesta AI:", query);
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
-      
-      console.log("Provider AI:", aiProvider, "Modello:", aiModel);
       
       const response = await processAIRequest(query, false, aiProvider, aiModel);
       
@@ -36,7 +33,6 @@ export const useAIRequestHandler = () => {
     try {
       // Se è richiesta la ricerca web o se stiamo usando un provider cloud
       if (webSearchEnabled || (aiProvider !== 'huggingface' && navigator.onLine)) {
-        console.log("Elaborazione richiesta tramite Edge Function");
         const response = await supabase.functions.invoke('process-query', {
           body: { 
             query,
@@ -47,15 +43,12 @@ export const useAIRequestHandler = () => {
         });
         
         if (response.error) {
-          console.error("Errore Edge Function:", response.error);
           throw response.error;
         }
         
-        console.log("Risposta AI ricevuta:", response.data);
         return response.data;
       } else {
         // Utilizziamo il modello locale
-        console.log("Elaborazione richiesta tramite modello locale");
         const localLLM = LocalLLMManager.getInstance();
         return await localLLM.processQuery(query);
       }

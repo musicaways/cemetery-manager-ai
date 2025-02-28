@@ -1,335 +1,203 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    /* Colori primari (brand) */
-    --primary: 260 80% 70%;
-    --primary-light: 260 80% 80%;
-    --primary-dark: 260 80% 50%;
-    --primary-foreground: 0 0% 100%;
-    
-    /* Colori secondari (accent) */
-    --secondary: 280 75% 65%;
-    --secondary-light: 280 75% 75%;
-    --secondary-dark: 280 75% 45%;
-    --secondary-foreground: 0 0% 100%;
-    
-    /* Colori base */
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
-    
-    /* Colori componenti UI */
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
-    
-    /* Colori semantici */
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --success: 142 70.6% 45.3%;
-    --success-foreground: 144 100% 98%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 48 100% 10%;
-    --info: 201 94% 52%;
-    --info-foreground: 204 100% 97%;
-    
-    /* Altri colori UI */
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 240 4.9% 83.9%;
-    
-    /* Stile chat */
-    --chat-bg: #1A1F2C;
+    --primary-color: #9b87f5;
+    --primary-hover: #7E69AB;
+    --chat-bg: #000000;
     --message-bg: #1A1F2C;
     --border-color: #2A2F3C;
     --button-radius: 0.5rem;
     --input-bg: #1A1F2C;
     --avatar-shape: circle;
-    
-    /* Dimensioni & Radii */
-    --radius: 0.75rem;
-    --header-height: 4rem;
-    --sidebar-width: 280px;
-    --chat-input-height: 8rem;
-    
-    /* Sidebar */
-    --sidebar-background: 240 10% 3.9%;
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 260 80% 70%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 240 4.9% 83.9%;
   }
-}
 
-@layer base {
   * {
-    @apply border-border selection:bg-white/10 selection:text-white;
-  }
-  
-  body {
-    @apply bg-background text-foreground antialiased;
-    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
-    /* Rimuoviamo overflow-hidden per permettere lo scrolling */
+    @apply border-border;
   }
 
-  html {
-    @apply scroll-smooth;
-    height: 100%;
+  body {
+    @apply bg-[var(--chat-bg)] text-foreground transition-colors duration-200;
   }
 }
 
 @layer components {
-  /* Componenti di layout */
-  .responsive-container {
-    @apply px-4 sm:px-6 md:px-8 lg:px-12 xl:container xl:mx-auto;
-  }
-  
-  .page-container {
-    @apply min-h-screen flex flex-col;
-  }
-  
-  .page-content {
-    @apply flex-grow pb-[calc(var(--chat-input-height)+50px)];
-  }
-  
-  /* Glassmorphism e card */
-  .glass-panel {
-    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-lg;
-  }
-  
-  .glass-card {
-    @apply glass-panel rounded-xl p-4 transition-all duration-300 hover:bg-white/10;
-  }
-  
-  .data-card {
-    @apply glass-card flex flex-col h-full;
-  }
-  
-  .card-header {
-    @apply flex justify-between items-center mb-4;
-  }
-  
-  .card-title {
-    @apply text-lg font-semibold;
-  }
-  
-  .card-content {
-    @apply flex-grow;
-  }
-  
-  .card-footer {
-    @apply pt-4 mt-auto;
-  }
-  
-  /* Layout responsive a griglia */
-  .responsive-grid {
-    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6;
-  }
-  
-  .duo-col-layout {
-    @apply grid grid-cols-1 lg:grid-cols-[1fr_300px] xl:grid-cols-[1fr_350px] gap-6;
-  }
-  
-  /* Stili per testo */
-  .text-gradient {
-    @apply bg-gradient-to-br from-primary via-primary-light to-secondary bg-clip-text text-transparent;
-  }
-  
-  /* Badge e stati */
-  .status-badge {
-    @apply px-2 py-0.5 text-xs rounded-full font-medium;
-  }
-  
-  .status-online {
-    @apply status-badge bg-success/20 text-success-foreground;
-  }
-  
-  .status-offline {
-    @apply status-badge bg-warning/20 text-warning-foreground;
-  }
-  
-  .status-error {
-    @apply status-badge bg-destructive/20 text-destructive-foreground;
-  }
-  
-  /* Stili chat */
-  .chat-container {
-    @apply h-full flex flex-col;
-  }
-  
-  .chat-messages {
-    @apply flex-grow overflow-y-auto p-4 space-y-4;
-  }
-  
-  .chat-input-container {
-    @apply bg-background p-4 border-t border-border;
-  }
-  
-  .message-user {
-    @apply bg-primary/20 rounded-2xl rounded-tr-sm p-3 border border-primary/30 backdrop-blur-sm ml-auto max-w-[80%] sm:max-w-[70%] md:max-w-[60%];
-  }
-  
-  .message-assistant {
-    @apply bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm max-w-[80%] sm:max-w-[70%] md:max-w-[60%];
+  .theme-lovable .user-message {
+    @apply bg-[var(--primary-color)] bg-opacity-20 border border-[var(--primary-color)] border-opacity-30 rounded-2xl rounded-tr-sm;
   }
 
-  /* Card del cimitero */
-  .cimitero-card {
-    @apply relative bg-[#1A1F2C] backdrop-blur-xl rounded-xl overflow-hidden border border-white/10
-           hover:border-primary hover:shadow-md hover:shadow-primary/10 transition-all duration-300 cursor-pointer
-           flex flex-col h-full;
+  .theme-lovable .ai-message {
+    @apply bg-[var(--message-bg)] bg-opacity-80 border border-[var(--border-color)] border-opacity-50 rounded-2xl rounded-tl-sm;
   }
-  
-  .cimitero-card-image {
-    @apply aspect-video relative overflow-hidden bg-black/40;
+
+  .theme-chatgpt .user-message {
+    @apply bg-[var(--chat-bg)] border-none rounded-lg;
   }
-  
-  .cimitero-card-content {
-    @apply p-4 flex-grow flex flex-col;
+
+  .theme-chatgpt .ai-message {
+    @apply bg-[var(--message-bg)] border-none rounded-lg;
   }
-  
-  .cimitero-card-title {
-    @apply text-lg font-semibold text-white line-clamp-1 mb-1;
+
+  .theme-claude .user-message {
+    @apply bg-white shadow-sm border border-gray-200 rounded-2xl;
   }
-  
-  .cimitero-card-footer {
-    @apply mt-auto pt-3 flex justify-between items-center;
+
+  .theme-claude .ai-message {
+    @apply bg-[var(--message-bg)] border border-gray-200 rounded-2xl;
   }
-  
-  /* Componenti di navigazione */
-  .sidebar-link {
-    @apply flex items-center gap-2 px-3 py-2 rounded-md text-muted-foreground hover:text-white hover:bg-white/10 transition-colors;
+
+  .theme-modern .user-message {
+    @apply bg-[var(--primary-color)] bg-opacity-10 border border-[var(--primary-color)] border-opacity-20 rounded-3xl rounded-tr-lg;
   }
-  
-  .sidebar-link.active {
-    @apply bg-primary/20 text-primary hover:bg-primary/30;
+
+  .theme-modern .ai-message {
+    @apply bg-[var(--message-bg)] border border-[var(--border-color)] border-opacity-30 rounded-3xl rounded-tl-lg;
   }
-  
-  .breadcrumb-container {
-    @apply mb-4;
+
+  .theme-lovable .chat-input {
+    @apply bg-[var(--input-bg)] bg-opacity-50 border border-[var(--border-color)] border-opacity-50 rounded-lg;
   }
-  
-  /* Loading states */
-  .skeleton {
-    @apply animate-pulse bg-white/10 rounded;
+
+  .theme-chatgpt .chat-input {
+    @apply bg-[var(--input-bg)] border-0 shadow-lg rounded-xl;
   }
-  
-  /* Utilità responsive */
-  .hide-on-mobile {
-    @apply hidden md:block;
+
+  .theme-claude .chat-input {
+    @apply bg-white border border-gray-200 shadow-sm rounded-2xl;
   }
-  
-  .show-on-mobile {
-    @apply block md:hidden;
+
+  .theme-modern .chat-input {
+    @apply bg-[var(--input-bg)] border border-[var(--border-color)] border-opacity-30 shadow-lg rounded-2xl;
   }
-  
-  /* Stile modali */
-  .modal-container {
-    @apply sm:max-w-[90vw] md:max-w-[85vw] lg:max-w-[75vw] xl:max-w-4xl;
+
+  .cimitero-details-enter {
+    @apply animate-in fade-in-0 zoom-in-95 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2;
   }
-  
-  .modal-header {
-    @apply flex flex-col space-y-1.5 text-center sm:text-left;
+
+  .cimitero-details-content {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10;
   }
-  
-  .modal-footer {
-    @apply flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2 pt-4;
-  }
-  
-  /* Bottom Navigation */
-  .bottom-nav {
-    @apply fixed bottom-0 left-0 right-0 bg-background border-t border-border
-           p-2 grid grid-cols-4 gap-1 md:hidden z-50;
-  }
-  
-  .bottom-nav-item {
-    @apply flex flex-col items-center justify-center px-1 py-2 rounded-md
-           text-muted-foreground hover:text-white hover:bg-white/10
-           transition-colors text-xs;
-  }
-  
-  .bottom-nav-item.active {
-    @apply text-primary bg-primary/10;
+
+  .scroll-shadow {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-20 after:bg-gradient-to-t after:from-[#1A1F2C] after:to-transparent after:pointer-events-none;
   }
 }
 
 @layer utilities {
-  .scrollbar-none {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  
-  .scrollbar-none::-webkit-scrollbar {
-    display: none;
+  .theme-lovable button {
+    @apply rounded-[var(--button-radius)] transition-all duration-200;
   }
 
-  .scrollbar-thin {
-    scrollbar-width: thin;
+  .theme-chatgpt button {
+    @apply rounded-[var(--button-radius)] shadow-sm transition-all duration-200;
   }
-  
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
+
+  .theme-claude button {
+    @apply rounded-[var(--button-radius)] shadow-sm border-2 transition-all duration-200;
   }
-  
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    @apply bg-primary/50 rounded-full;
-  }
-  
-  .scrollbar-thin::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-  
-  .text-balance {
-    text-wrap: balance;
+
+  .theme-modern button {
+    @apply rounded-[var(--button-radius)] shadow-lg transition-all duration-200;
   }
 }
 
-/* Transizioni e animazioni */
-.animate-enter {
-  animation: fade-in 0.3s ease-out forwards;
-}
-
-.animate-exit {
-  animation: fade-out 0.3s ease-out forwards;
-}
-
-/* Supporto per Safari */
-@supports (backdrop-filter: blur(1px)) {
-  .glass-panel, .glass-card {
-    backdrop-filter: blur(12px);
-    background-color: rgba(255, 255, 255, 0.05);
-  }
-}
-
-/* Ottimizzazioni di accessibilità */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Modifiche per correggere lo scrolling su mobile */
+/* Scroll area styles */
 .scroll-area-viewport {
-  height: 100%;
-  overflow-y: auto !important;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  transition: all 0.3s ease;
 }
 
-/* Aggiustiamo la dimensione del footer per evitare sovrapposizioni */
-.bottom-nav-spacer {
-  height: 56px; /* Altezza del menu di navigazione inferiore */
+.scroll-area-viewport::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+.scroll-area-viewport.scrolling::-webkit-scrollbar {
+  width: 4px;
+}
+
+.scroll-area-viewport.scrolling::-webkit-scrollbar-thumb {
+  background: var(--primary-color);
+  opacity: 0.3;
+  border-radius: 4px;
+}
+
+.scroll-area-viewport.scrolling::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Chat Styles */
+.chat-modern {
+  --message-padding: 1rem;
+  --message-radius: 1rem;
+  --avatar-size: 2.5rem;
+}
+
+.chat-classic {
+  --message-padding: 0.75rem;
+  --message-radius: 0.5rem;
+  --avatar-size: 2rem;
+}
+
+.chat-compact {
+  --message-padding: 0.5rem;
+  --message-radius: 0.25rem;
+  --avatar-size: 1.75rem;
+}
+
+/* Avatar Shapes */
+.avatar-circle {
+  border-radius: 50%;
+}
+
+.avatar-square {
+  border-radius: 0.5rem;
+}
+
+.avatar-hexagon {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+/* Theme-specific styles */
+.theme-lovable {
+  --primary-color: #9b87f5;
+  --primary-hover: #7E69AB;
+  --chat-bg: #000000;
+  --message-bg: #1A1F2C;
+  --border-color: #2A2F3C;
+  --button-radius: 0.5rem;
+  --input-bg: #1A1F2C;
+}
+
+.theme-chatgpt {
+  --primary-color: #19C37D;
+  --primary-hover: #127C54;
+  --chat-bg: #343541;
+  --message-bg: #444654;
+  --border-color: #565869;
+  --button-radius: 0.25rem;
+  --input-bg: #40414F;
+}
+
+.theme-claude {
+  --primary-color: #7C3AED;
+  --primary-hover: #6D28D9;
+  --chat-bg: #F9FAFB;
+  --message-bg: #F3F4F6;
+  --border-color: #E5E7EB;
+  --button-radius: 0.75rem;
+  --input-bg: #FFFFFF;
+}
+
+.theme-modern {
+  --primary-color: #2563EB;
+  --primary-hover: #1D4ED8;
+  --chat-bg: #0F172A;
+  --message-bg: #1E293B;
+  --border-color: #334155;
+  --button-radius: 1rem;
+  --input-bg: #1E293B;
 }

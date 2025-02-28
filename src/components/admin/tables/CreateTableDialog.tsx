@@ -1,131 +1,114 @@
 
-import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-export interface CreateTableDialogProps {
+interface CreateTableDialogProps {
   open: boolean;
   onClose: () => void;
-  onTableCreated: (name: string) => void;
-  onOpenChange?: (open: boolean) => void;
-  onSuccess?: (name: string) => void;
+  onTableCreated?: () => void;
 }
 
-export const CreateTableDialog = ({ 
-  open, 
-  onClose, 
-  onTableCreated, 
-  onOpenChange, 
-  onSuccess 
-}: CreateTableDialogProps) => {
+export const CreateTableDialog = ({ open, onClose, onTableCreated }: CreateTableDialogProps) => {
   const [tableName, setTableName] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleCreateTable = async () => {
-    if (!tableName.trim()) {
-      setError("Il nome della tabella è obbligatorio");
-      return;
-    }
-
-    // Controllo validità del nome tabella
-    const tableNameRegex = /^[a-zA-Z][a-zA-Z0-9_]*$/;
-    if (!tableNameRegex.test(tableName)) {
-      setError("Il nome della tabella può contenere solo lettere, numeri e underscore, e deve iniziare con una lettera");
-      return;
-    }
-
-    setIsLoading(true);
-    setError("");
-
+  const handleSubmit = async () => {
     try {
-      // Creiamo la tabella con un ID seriale come primary key per default
-      const createTableSQL = `
-        CREATE TABLE "${tableName}" (
-          "id" SERIAL PRIMARY KEY,
-          "created_at" TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-        );
-      `;
+      if (!tableName) {
+        toast.error("Il nome della tabella è obbligatorio");
+        return;
+      }
 
-      const { error: createError } = await supabase.rpc('execute_sql', {
-        sql: createTableSQL
+      // Validazione del nome della tabella
+      if (!/^[a-zA-Z][a-zA-Z0-9_]*$/.test(tableName)) {
+        toast.error("Il nome della tabella può contenere solo lettere, numeri e underscore, e deve iniziare con una lettera");
+        return;
+      }
+
+      setLoading(true);
+      
+      const { error } = await supabase.rpc('execute_sql', {
+        sql: `CREATE TABLE "${tableName}" (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+        
+        CREATE TRIGGER update_${tableName}_updated_at
+          BEFORE UPDATE ON "${tableName}"
+          FOR EACH ROW
+          EXECUTE FUNCTION update_updated_at_column();`
       });
 
-      if (createError) throw new Error(createError.message);
+      if (error) throw error;
 
       toast.success("Tabella creata con successo");
-      // Invochiamo il callback
-      if (onSuccess) {
-        onSuccess(tableName);
-      } else if (onTableCreated) {
-        onTableCreated(tableName);
-      }
-    } catch (err: any) {
-      console.error("Error creating table:", err);
-      setError(err.message);
-      toast.error(`Errore: ${err.message}`);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleClose = () => {
-    setTableName("");
-    setError("");
-    if (onOpenChange) {
-      onOpenChange(false);
-    }
-    if (onClose) {
+      setTableName("");
+      onTableCreated?.();
       onClose();
+    } catch (error: any) {
+      toast.error(`Errore: ${error.message}`);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[425px] bg-[#1A1F2C] text-white border-[#2A2F3C]">
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold text-white">Crea Nuova Tabella</DialogTitle>
+          <DialogTitle>Crea Nuova Tabella</DialogTitle>
+          <DialogDescription>
+            Inserisci il nome della nuova tabella. Verranno automaticamente aggiunti
+            i campi id, created_at e updated_at.
+          </DialogDescription>
         </DialogHeader>
-        <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="tableName">Nome Tabella</Label>
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right text-white">
+              Nome Tabella
+            </Label>
             <Input
-              id="tableName"
-              placeholder="nome_tabella"
+              id="name"
               value={tableName}
-              onChange={(e) => setTableName(e.target.value)}
-              className="bg-[#141825] border-[#2A2F3C] text-white"
+              onChange={(e) => setTableName(e.target.value.toLowerCase())}
+              className="col-span-3 bg-[#2A2F3C] border-[#4F46E5] text-white"
+              placeholder="nome_tabella"
+              disabled={loading}
             />
-            {error && <p className="text-sm text-red-400">{error}</p>}
-          </div>
-          <div className="text-sm text-gray-400">
-            <p>La tabella verrà creata con:</p>
-            <ul className="list-disc list-inside pl-2 mt-1">
-              <li>Una colonna <code className="text-gray-300">id</code> come chiave primaria</li>
-              <li>Una colonna <code className="text-gray-300">created_at</code> per il timestamp</li>
-            </ul>
           </div>
         </div>
-        <div className="flex justify-end gap-3">
-          <Button variant="outline" onClick={handleClose} className="border-[#2A2F3C] text-gray-300 hover:bg-[#2A2F3C] hover:text-white">
+        <DialogFooter>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={onClose} 
+            disabled={loading}
+            className="border-gray-600 text-gray-300 hover:bg-[#2A2F3C] hover:text-white"
+          >
             Annulla
           </Button>
           <Button 
-            onClick={handleCreateTable} 
-            disabled={isLoading}
-            className="bg-[#4F46E5] hover:bg-[#4F46E5]/90"
+            type="button" 
+            onClick={handleSubmit} 
+            disabled={loading}
+            className="bg-[#4F46E5] hover:bg-[#4F46E5]/90 text-white"
           >
-            {isLoading ? (
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-            ) : (
-              "Crea Tabella"
-            )}
+            {loading ? "Creazione..." : "Crea"}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

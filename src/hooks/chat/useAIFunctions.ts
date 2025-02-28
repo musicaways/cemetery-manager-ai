@@ -25,7 +25,6 @@ export const useAIFunctions = () => {
 
       if (error) throw error;
       
-      console.log("Funzioni AI caricate:", data?.length || 0);
       setFunctions(data as unknown as AIFunction[]);
     } catch (error) {
       console.error('Errore nel caricamento delle funzioni AI:', error);
@@ -45,23 +44,13 @@ export const useAIFunctions = () => {
     const normalizedQuery = query.toLowerCase().trim();
     const activeFunctions = await getActiveFunctions();
     
-    console.log("Identificazione funzioni per query:", normalizedQuery);
-    console.log("Funzioni attive disponibili:", activeFunctions.length);
-    
     // Controllo specifico per la funzione lista cimiteri
     if (isListaCimiteriQuery(normalizedQuery)) {
-      console.log("Query identificata come lista cimiteri");
       const listFunction = activeFunctions.find(f => 
-        (f.name.toLowerCase().includes("elenco cimiteri") || 
-        f.name.toLowerCase().includes("lista cimiteri"))
+        f.name.toLowerCase().includes("elenco cimiteri") || 
+        f.name.toLowerCase().includes("lista cimiteri")
       );
-      
-      if (listFunction) {
-        console.log("Trovata funzione lista cimiteri:", listFunction.id);
-        return listFunction.id;
-      } else {
-        console.log("Nessuna funzione lista cimiteri trovata tra le funzioni attive");
-      }
+      if (listFunction) return listFunction.id;
     }
     
     // Controllo generale per altre funzioni
@@ -69,15 +58,12 @@ export const useAIFunctions = () => {
       if (!func.trigger_phrases) continue;
       
       const phrases = func.trigger_phrases.map(p => p.trim().toLowerCase());
-      console.log(`Controllo trigger phrases per ${func.name}:`, phrases);
       
       if (phrases.some(phrase => normalizedQuery.includes(phrase))) {
-        console.log(`Trovata corrispondenza per la funzione ${func.name} con trigger phrase`);
         return func.id;
       }
     }
     
-    console.log("Nessuna funzione trovata per la query");
     return null;
   };
 
@@ -85,10 +71,8 @@ export const useAIFunctions = () => {
   const executeFunctionById = async (functionId: string, query: string) => {
     const func = functions.find(f => f.id === functionId);
     if (!func) {
-      console.error("Funzione non trovata con ID:", functionId);
       throw new Error("Funzione non trovata");
     }
-    console.log("Esecuzione funzione:", func.name);
     return executeAIFunction(functionId, func, query);
   };
 

@@ -1,82 +1,138 @@
 
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { Toaster } from "sonner";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider } from "./lib/themeContext";
+import { Layout } from "./components/Layout";
+import { Toaster } from "./components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { LoadingScreen } from "./components/LoadingScreen";
+import { ConnectivityManager, OfflineBanner } from "./components/ConnectivityManager";
+import { performanceMonitor } from "./lib/performanceMonitor";
+import { errorReporter } from "./lib/errorReporter";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import NotFound from "./pages/NotFound";
 import Tables from "./pages/admin/Tables";
 import Users from "./pages/admin/Users";
-import Settings from "./pages/Settings";
 import { AIFunctions } from "./pages/admin/AIFunctions";
 import { Cimiteri } from "./pages/cimiteri/Cimiteri";
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import "./styles/chat.css";
-import "./App.css";
-import { useEffect } from "react";
-import { useServiceWorker } from "./hooks/useServiceWorker";
-import { ConnectivityManager } from "./components/ConnectivityManager";
-import { errorReporter } from "./lib/errorReporter";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import NotFound from "./pages/NotFound";
+import './styles/chat.css';
 
-// Creiamo un QueryClient per React Query
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minuti
+      gcTime: 1000 * 60 * 30, // 30 minuti (sostituisce cacheTime)
+      retry: 2,
+      refetchOnWindowFocus: false
+    }
+  }
+});
 
 function App() {
-  const { updateAvailable, acceptUpdate } = useServiceWorker();
-  
-  // Inizializza il servizio di error reporting
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [appReady, setAppReady] = useState(false);
+
   useEffect(() => {
-    errorReporter.setup();
+    // Registra il tempo di avvio dell'app
+    performanceMonitor.recordMetric(
+      'navigation', 
+      'app-startup-time', 
+      performance.now(), 
+      'ms'
+    );
+    
+    // Inizializza il Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('SW registered:', registration);
+          })
+          .catch(error => {
+            console.error('SW registration failed:', error);
+            errorReporter.reportError(
+              new Error('Service Worker registration failed'), 
+              { originalError: error }
+            );
+          });
+      });
+    }
+    
+    // Controlla lo stato di autenticazione
+    supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setAppReady(true);
+    });
   }, []);
+
+  if (isAuthenticated === null && !appReady) {
+    return <LoadingScreen message="Inizializzazione dell'applicazione..." />;
+  }
 
   return (
     <ErrorBoundary>
-      <ThemeProvider>
-        <QueryClientProvider client={queryClient}>
-          <Router>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/cimiteri" element={<Cimiteri />} />
-              <Route path="/cimiteri/:id" element={<Cimiteri />} />
-              <Route path="/admin/tables" element={<Tables />} />
-              <Route path="/admin/users" element={<Users />} />
-              <Route path="/admin/ai-functions" element={<AIFunctions />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/404" element={<NotFound />} />
-              <Route path="*" element={<Navigate to="/404" />} />
-            </Routes>
-          </Router>
-          
-          <Toaster 
-            position="bottom-right"
-            toastOptions={{
-              style: {
-                background: 'rgba(20, 24, 33, 0.9)',
-                color: '#fff',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(8px)',
-              },
-              duration: 3000,
-            }}
-          />
-
-          {updateAvailable && (
-            <div className="fixed bottom-20 right-4 p-4 bg-indigo-600 rounded-lg shadow-lg z-50">
-              <p className="text-white mb-2">Nuova versione disponibile</p>
-              <button 
-                onClick={acceptUpdate}
-                className="bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Aggiorna
-              </button>
-            </div>
-          )}
-
-          <ConnectivityManager />
-        </QueryClientProvider>
-      </ThemeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <TooltipProvider>
+            <Router>
+              <ConnectivityManager />
+              <OfflineBanner />
+              <Layout>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      isAuthenticated ? <Index /> : <Auth />
+                    }
+                  />
+                  <Route
+                    path="/auth"
+                    element={
+                      !isAuthenticated ? <Auth /> : <Index />
+                    }
+                  />
+                  <Route path="/admin">
+                    <Route
+                      path="tables"
+                      element={
+                        isAuthenticated ? <Tables /> : <Auth />
+                      }
+                    />
+                    <Route
+                      path="users"
+                      element={
+                        isAuthenticated ? <Users /> : <Auth />
+                      }
+                    />
+                    <Route
+                      path="ai-functions"
+                      element={
+                        isAuthenticated ? <AIFunctions /> : <Auth />
+                      }
+                    />
+                  </Route>
+                  <Route
+                    path="/cimiteri"
+                    element={
+                      isAuthenticated ? <Cimiteri /> : <Auth />
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+              <Toaster />
+            </Router>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }

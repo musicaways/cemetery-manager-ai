@@ -10,8 +10,6 @@ export const useAIFunctionExecution = () => {
     }
 
     try {
-      console.log("Esecuzione funzione AI:", func.name, "Query:", query);
-      
       // Identifica prima se è una richiesta di lista cimiteri
       if (isListaCimiteriQuery(query) || func.name.toLowerCase().includes("elenco cimiteri")) {
         console.log("Esecuzione funzione lista cimiteri");
@@ -20,12 +18,7 @@ export const useAIFunctionExecution = () => {
           .select('*')
           .order('Descrizione');
           
-        if (error) {
-          console.error("Errore query Supabase:", error);
-          throw error;
-        }
-        
-        console.log("Cimiteri trovati:", cimiteri?.length || 0);
+        if (error) throw error;
         
         if (cimiteri && cimiteri.length > 0) {
           return {
@@ -45,7 +38,6 @@ export const useAIFunctionExecution = () => {
       // Gestione dettagli singolo cimitero
       else if (func.name.toLowerCase().includes("dettagli cimitero")) {
         const nomeCimitero = extractCimiteroName(query);
-        console.log("Richiesta dettagli cimitero:", nomeCimitero);
         
         if (!nomeCimitero) {
           return {
@@ -60,12 +52,7 @@ export const useAIFunctionExecution = () => {
           .ilike('Descrizione', `%${nomeCimitero}%`)
           .limit(1);
         
-        if (error) {
-          console.error("Errore query Supabase:", error);
-          throw error;
-        }
-        
-        console.log("Dettagli cimitero trovati:", cimiteri?.length || 0);
+        if (error) throw error;
         
         if (cimiteri && cimiteri.length > 0) {
           return {
@@ -82,7 +69,6 @@ export const useAIFunctionExecution = () => {
           };
         }
       } else {
-        console.log("Nessuna funzione specifica trovata per la query");
         return {
           message: `Non ho capito quale funzione eseguire. Puoi riprovare con una richiesta più chiara?`,
           data: { type: "generic_response" }

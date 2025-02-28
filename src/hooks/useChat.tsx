@@ -41,7 +41,7 @@ export const useChat = () => {
     if (!userQuery.trim() || isProcessing) return;
 
     setIsProcessing(true);
-    addMessage({ type: "query", content: userQuery, role: "user", timestamp: new Date() });
+    addMessage({ type: "query", content: userQuery, timestamp: new Date() });
     setQuery("");
 
     try {
@@ -53,7 +53,6 @@ export const useChat = () => {
         const result = await executeAIFunction(aiFunction, userQuery);
         addMessage({ 
           type: "response", 
-          role: "assistant",
           content: result.message, 
           data: result.data,
           timestamp: new Date()
@@ -64,7 +63,6 @@ export const useChat = () => {
           const result = await handleCimiteriRequest(userQuery);
           addMessage({ 
             type: "response", 
-            role: "assistant",
             content: result.message, 
             data: result.data,
             timestamp: new Date()
@@ -79,7 +77,6 @@ export const useChat = () => {
             
             addMessage({ 
               type: "response", 
-              role: "assistant",
               content: offlineResponse,
               timestamp: new Date()
             });
@@ -89,7 +86,7 @@ export const useChat = () => {
         }
       } else {
         // Gestisce richieste generiche all'AI
-        addMessage({ type: "response", role: "assistant", content: "", timestamp: new Date() });
+        addMessage({ type: "response", content: "", timestamp: new Date() });
 
         // Se siamo offline, utilizza il modello locale
         if (!isOnline) {

@@ -1,9 +1,9 @@
 
 import { useState, useRef } from "react";
-import type { Message } from "./types";
+import type { ChatMessage } from "./types";
 
 export const useChatMessages = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
@@ -26,11 +26,11 @@ export const useChatMessages = () => {
     }
   };
 
-  const addMessage = (message: Message) => {
+  const addMessage = (message: ChatMessage) => {
     setMessages(prev => [...prev, message]);
   };
 
-  const updateLastMessage = (update: Partial<Message>) => {
+  const updateLastMessage = (update: Partial<ChatMessage>) => {
     setMessages(prev => {
       const newMessages = [...prev];
       if (newMessages.length > 0) {

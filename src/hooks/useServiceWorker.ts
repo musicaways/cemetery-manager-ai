@@ -1,75 +1,101 @@
 
-import { useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import { Cimitero } from '@/pages/cimiteri/types';
 
-export const useServiceWorker = () => {
-  // Controlla se il service worker è supportato e registrato
-  const isServiceWorkerActive = (): boolean => {
-    return navigator.serviceWorker && navigator.serviceWorker.controller !== null;
-  };
+interface UseServiceWorkerReturn {
+  hasNewVersion: boolean;
+  updateServiceWorker: () => void;
+  cacheCimiteri: (cimiteri: any[]) => void;
+  clearCache: () => void;
+}
 
-  // Invia un messaggio al service worker
-  const sendMessageToServiceWorker = useCallback(async (message: any): Promise<boolean> => {
-    if (!isServiceWorkerActive()) {
-      console.warn('Service Worker not active, cannot send message');
-      return false;
+export const useServiceWorker = (): UseServiceWorkerReturn => {
+  const [hasNewVersion, setHasNewVersion] = useState(false);
+  const [registration, setRegistration] = useState<ServiceWorkerRegistration | null>(null);
+
+  // Inizializza e monitora il service worker
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      // Cerca un service worker già registrato
+      navigator.serviceWorker.ready.then(reg => {
+        setRegistration(reg);
+        console.log('Service worker pronto');
+      });
+
+      // Event listener per gli aggiornamenti del service worker
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        console.log('Controller cambiato - service worker aggiornato');
+      });
+
+      // Controlla gli aggiornamenti
+      const interval = setInterval(() => {
+        if (registration) {
+          registration.update().catch(error => {
+            console.error('Errore durante l\'aggiornamento del service worker:', error);
+          });
+        }
+      }, 60 * 60 * 1000); // Controlla ogni ora
+
+      return () => clearInterval(interval);
     }
+  }, [registration]);
 
-    try {
-      await navigator.serviceWorker.ready;
-      navigator.serviceWorker.controller?.postMessage(message);
-      return true;
-    } catch (error) {
-      console.error('Error sending message to Service Worker:', error);
-      return false;
+  // Event listener per i messaggi dal service worker
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'NEW_VERSION') {
+        setHasNewVersion(true);
+        toast.info('Nuova versione disponibile', {
+          description: 'Aggiorna per accedere alle nuove funzionalità',
+          action: {
+            label: 'Aggiorna',
+            onClick: () => updateServiceWorker()
+          },
+          duration: 10000
+        });
+      }
+    };
+
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+      return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
     }
   }, []);
 
-  // Memorizza i dati dei cimiteri nel service worker per uso offline
-  const cacheCimiteri = useCallback(async (cimiteri: Cimitero[]): Promise<boolean> => {
-    const success = await sendMessageToServiceWorker({
-      type: 'CACHE_CIMITERI_DATA',
-      data: cimiteri
-    });
-
-    if (success) {
-      console.log(`Cached ${cimiteri.length} cimiteri for offline use`);
+  // Funzione per aggiornare il service worker
+  const updateServiceWorker = () => {
+    if (registration && registration.waiting) {
+      // Invia un messaggio al service worker in attesa per farlo diventare attivo
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      setHasNewVersion(false);
     }
+  };
 
-    return success;
-  }, [sendMessageToServiceWorker]);
-
-  // Pulisce la cache del service worker
-  const clearCache = useCallback(async (): Promise<boolean> => {
-    const success = await sendMessageToServiceWorker({
-      type: 'CLEAR_CACHE'
-    });
-
-    if (success) {
-      toast.success('Cache cancellata con successo');
+  // Funzione per memorizzare i dati dei cimiteri nel service worker
+  const cacheCimiteri = (cimiteri: any[]) => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'CACHE_CIMITERI',
+        cimiteri
+      });
+      console.log('Dati cimiteri inviati al service worker per il caching');
     }
+  };
 
-    return success;
-  }, [sendMessageToServiceWorker]);
-
-  // Forza la sincronizzazione delle modifiche in sospeso
-  const syncPendingChanges = useCallback(async (): Promise<boolean> => {
-    const success = await sendMessageToServiceWorker({
-      type: 'SYNC_PENDING_CHANGES'
-    });
-
-    if (success) {
-      toast.info('Sincronizzazione avviata');
+  // Funzione per pulire la cache
+  const clearCache = () => {
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        type: 'CLEAR_CACHE'
+      });
+      toast.success('Cache pulita con successo');
     }
-
-    return success;
-  }, [sendMessageToServiceWorker]);
+  };
 
   return {
-    isServiceWorkerActive,
+    hasNewVersion,
+    updateServiceWorker,
     cacheCimiteri,
-    clearCache,
-    syncPendingChanges
+    clearCache
   };
 };

@@ -6,7 +6,7 @@ import { TableInfo, SchemaResponse } from "@/types/database";
 import TablesList from "@/components/admin/tables/TablesList";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 
-const TablesAdmin = () => {
+export const TablesAdmin = () => {
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

@@ -1,59 +1,140 @@
 
-import { RouterProvider } from "react-router-dom";
-import { router } from "./router";
-import { ThemeProvider } from "@/lib/themeContext";
-import { ConnectivityManager } from "./components/ConnectivityManager";
-import { ErrorBoundary } from "./components/ErrorBoundary";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/sonner";
-import { useEffect } from "react";
-import { ServiceWorkerCleanup } from "./ServiceWorkerCleanup";
+import { ThemeProvider } from "./lib/themeContext";
+import { Layout } from "./components/Layout";
+import { Toaster } from "./components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { ErrorBoundary } from "./components/ErrorBoundary";
+import { LoadingScreen } from "./components/LoadingScreen";
+import { ConnectivityManager, OfflineBanner } from "./components/ConnectivityManager";
+import { performanceMonitor } from "./lib/performanceMonitor";
+import { errorReporter } from "./lib/errorReporter";
+import Index from "./pages/Index";
+import Auth from "./pages/Auth";
+import Tables from "./pages/admin/Tables";
+import Users from "./pages/admin/Users";
+import { AIFunctions } from "./pages/admin/AIFunctions";
+import { Cimiteri } from "./pages/cimiteri/Cimiteri";
+import NotFound from "./pages/NotFound";
+import './styles/chat.css';
 
-// Crea un client per React Query
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minuti
-    },
-  },
+      staleTime: 1000 * 60 * 5, // 5 minuti
+      gcTime: 1000 * 60 * 30, // 30 minuti (sostituisce cacheTime)
+      retry: 2,
+      refetchOnWindowFocus: false
+    }
+  }
 });
 
-// Definisci un ID di versione per l'applicazione
-// Questo aiuta a forzare un refresh quando viene aggiornato
-const APP_VERSION = "1.0.0";
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [appReady, setAppReady] = useState(false);
 
-const App = () => {
-  // Controlla se è necessario un aggiornamento dell'app
   useEffect(() => {
-    const lastVersion = localStorage.getItem('appVersion');
-    if (lastVersion !== APP_VERSION) {
-      // Aggiorna la versione salvata
-      localStorage.setItem('appVersion', APP_VERSION);
-      
-      // Se non è il primo avvio (c'è già una versione salvata), forza l'aggiornamento
-      if (lastVersion) {
-        console.log(`Aggiornamento dalla versione ${lastVersion} alla ${APP_VERSION}`);
-        // Forza un hard reload dopo un breve ritardo
-        setTimeout(() => {
-          window.location.reload();
-        }, 500);
-      }
+    // Registra il tempo di avvio dell'app
+    performanceMonitor.recordMetric(
+      'navigation', 
+      'app-startup-time', 
+      performance.now(), 
+      'ms'
+    );
+    
+    // Inizializza il Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then(registration => {
+            console.log('SW registered:', registration);
+          })
+          .catch(error => {
+            console.error('SW registration failed:', error);
+            errorReporter.reportError(
+              new Error('Service Worker registration failed'), 
+              { originalError: error }
+            );
+          });
+      });
     }
+    
+    // Controlla lo stato di autenticazione
+    supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      setAppReady(true);
+    });
   }, []);
 
+  if (isAuthenticated === null && !appReady) {
+    return <LoadingScreen message="Inizializzazione dell'applicazione..." />;
+  }
+
   return (
-    <ThemeProvider>
-      <ErrorBoundary>
-        <QueryClientProvider client={queryClient}>
-          <ConnectivityManager />
-          <ServiceWorkerCleanup />
-          <RouterProvider router={router} />
-          <Toaster />
-        </QueryClientProvider>
-      </ErrorBoundary>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <TooltipProvider>
+            <Router>
+              <ConnectivityManager />
+              <OfflineBanner />
+              <Layout>
+                <Routes>
+                  <Route
+                    path="/"
+                    element={
+                      isAuthenticated ? <Index /> : <Auth />
+                    }
+                  />
+                  <Route
+                    path="/auth"
+                    element={
+                      !isAuthenticated ? <Auth /> : <Index />
+                    }
+                  />
+                  <Route path="/admin">
+                    <Route
+                      path="tables"
+                      element={
+                        isAuthenticated ? <Tables /> : <Auth />
+                      }
+                    />
+                    <Route
+                      path="users"
+                      element={
+                        isAuthenticated ? <Users /> : <Auth />
+                      }
+                    />
+                    <Route
+                      path="ai-functions"
+                      element={
+                        isAuthenticated ? <AIFunctions /> : <Auth />
+                      }
+                    />
+                  </Route>
+                  <Route
+                    path="/cimiteri"
+                    element={
+                      isAuthenticated ? <Cimiteri /> : <Auth />
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Layout>
+              <Toaster />
+            </Router>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
-};
+}
 
 export default App;

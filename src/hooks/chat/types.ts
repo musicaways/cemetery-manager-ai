@@ -1,21 +1,23 @@
 
-export interface Message {
-  type: "query" | "response";
-  role: "user" | "assistant";
+import { MutableRefObject } from "react";
+import type { Cimitero } from "@/pages/cimiteri/types";
+
+export interface ChatMessage {
+  type: 'query' | 'response';
   content: string;
-  timestamp: Date;
   data?: any;
-  suggestedQuestions?: string[];
+  timestamp?: Date;
 }
 
-export type ChatMessage = Message;
-
-export interface SearchResult {
-  title: string;
-  url: string;
-  snippet: string;
-}
-
-export interface CimiteriResult {
-  cimiteri: any[];
+export interface UseChatReturn {
+  query: string;
+  setQuery: (query: string) => void;
+  isProcessing: boolean;
+  messages: ChatMessage[];
+  webSearchEnabled: boolean;
+  messagesEndRef: MutableRefObject<HTMLDivElement | null>;
+  scrollAreaRef: MutableRefObject<HTMLDivElement | null>;
+  handleSubmit: (e?: React.FormEvent, query?: string) => void;
+  toggleWebSearch: () => void;
+  isOnline: boolean;
 }

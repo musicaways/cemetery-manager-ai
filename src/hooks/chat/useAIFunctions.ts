@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { AIFunction } from "@/components/admin/ai-functions/types";
 import { findMatchingFunction, matchTriggerPhrases, exactMatchTriggerPhrases } from "./utils/triggerUtils";
-import { isListaCimiteriQuery, debugListaCimiteriMatch } from "./utils/cimiteriUtils";
+import { isListaCimiteriQuery } from "./utils/cimiteriUtils";
 import { useAIFunctionExecution } from "./useAIFunctionExecution";
 
 export const useAIFunctions = () => {
@@ -44,23 +44,13 @@ export const useAIFunctions = () => {
     const normalizedQuery = query.toLowerCase().trim();
     const activeFunctions = await getActiveFunctions();
     
-    console.log("Verifica query:", normalizedQuery);
-    
     // Controllo specifico per la funzione lista cimiteri
     if (isListaCimiteriQuery(normalizedQuery)) {
-      console.log("Match trovato per lista cimiteri:", debugListaCimiteriMatch(normalizedQuery));
-      
       const listFunction = activeFunctions.find(f => 
         f.name.toLowerCase().includes("elenco cimiteri") || 
         f.name.toLowerCase().includes("lista cimiteri")
       );
-      
-      if (listFunction) {
-        console.log("Funzione lista cimiteri trovata:", listFunction.name);
-        return listFunction.id;
-      } else {
-        console.log("Funzione lista cimiteri non trovata tra le funzioni attive");
-      }
+      if (listFunction) return listFunction.id;
     }
     
     // Controllo generale per altre funzioni
@@ -70,7 +60,6 @@ export const useAIFunctions = () => {
       const phrases = func.trigger_phrases.map(p => p.trim().toLowerCase());
       
       if (phrases.some(phrase => normalizedQuery.includes(phrase))) {
-        console.log("Match trovato con la funzione:", func.name);
         return func.id;
       }
     }

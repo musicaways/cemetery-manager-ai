@@ -1,4 +1,5 @@
 
+import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Cimitero } from "../../types";
 import { useState, useCallback, useEffect } from "react";
@@ -20,7 +21,6 @@ interface CimiteroDetailsProps {
   onInputChange: (field: string, value: string | number | null) => void;
   selectedFile?: File | null;
   onRefresh: () => void;
-  onClose?: () => void;
 }
 
 export const CimiteroDetails = ({
@@ -32,8 +32,7 @@ export const CimiteroDetails = ({
   onUpload,
   onInputChange,
   selectedFile,
-  onRefresh,
-  onClose
+  onRefresh
 }: CimiteroDetailsProps) => {
   const [openSection, setOpenSection] = useState<string | null>(null);
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -45,24 +44,22 @@ export const CimiteroDetails = ({
   useEffect(() => {
     if (isMobile) {
       setOpenSection(null);
-    } else {
-      // Su desktop, apri automaticamente la prima sezione
-      setOpenSection('info');
     }
   }, [isMobile]);
 
   if (!cimitero) return null;
 
   return (
-    <div className={cn(
-      "flex flex-col p-0 bg-[#1A1F2C] border-gray-800 rounded-lg",
+    <DialogContent className={cn(
+      "flex flex-col p-0 bg-[#1A1F2C] border-gray-800",
       "h-[calc(100vh-32px)] md:h-[85vh]",
       "transition-all duration-300",
-      "w-full"
+      "w-full max-w-xl mx-auto",
+      isMobile ? "m-0 rounded-none" : "rounded-lg"
     )}>
-      <div className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors cursor-pointer" onClick={onClose || onRefresh}>
+      <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
         <X className="h-5 w-5 text-white" />
-      </div>
+      </DialogClose>
 
       <ScrollArea className="flex-grow">
         <div className="w-full">
@@ -105,8 +102,6 @@ export const CimiteroDetails = ({
           }}
         />
       </div>
-    </div>
+    </DialogContent>
   );
 };
-
-export default CimiteroDetails;

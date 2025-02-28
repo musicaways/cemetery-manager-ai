@@ -11,6 +11,24 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { TableInfo } from "@/types/database";
 
+// Struttura del risultato della funzione get_complete_schema
+interface SchemaResult {
+  tables: Array<{
+    name: string;
+    columns: Array<{
+      name: string;
+      type: string;
+      notnull: boolean;
+      default: string | null;
+    }>;
+    foreign_keys?: Array<{
+      column: string;
+      foreign_table: string;
+      foreign_column: string;
+    }>;
+  }>;
+}
+
 const Tables = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [selectedTable, setSelectedTable] = useState<TableInfo | null>(null);
@@ -41,16 +59,19 @@ const Tables = () => {
       const { data, error } = await supabase.rpc('get_complete_schema');
       if (error) throw error;
       
+      // Cast del risultato al tipo che conosciamo
+      const schemaData = data as unknown as SchemaResult;
+      
       // Estraiamo le informazioni sulle tabelle dal risultato
-      const tablesInfo: TableInfo[] = data?.tables?.map((table: any) => ({
+      const tablesInfo: TableInfo[] = schemaData.tables?.map((table) => ({
         table_name: table.name,
-        columns: table.columns.map((col: any) => ({
+        columns: table.columns.map((col) => ({
           column_name: col.name,
           data_type: col.type,
           is_nullable: col.notnull ? 'NO' : 'YES',
           column_default: col.default
         })),
-        foreign_keys: table.foreign_keys?.map((fk: any) => ({
+        foreign_keys: table.foreign_keys?.map((fk) => ({
           column: fk.column,
           foreign_table: fk.foreign_table,
           foreign_column: fk.foreign_column

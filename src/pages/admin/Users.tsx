@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -43,7 +44,7 @@ type UserUpdate = {
   full_name?: string;
 };
 
-export const UsersAdmin = () => {
+const UsersAdmin = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingUpdates, setPendingUpdates] = useState<UserUpdate[]>([]);

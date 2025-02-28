@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Header } from "./Header";
 import { AISettings } from "./AISettings";
+import { Outlet } from "react-router-dom";
 
 interface LayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }
 
 export const Layout = ({ children }: LayoutProps) => {
@@ -22,6 +23,9 @@ export const Layout = ({ children }: LayoutProps) => {
         onSearch={handleSearch}
       />
       <main className="container mx-auto px-4 py-4">
+        {/* Utilizzare Outlet per renderizzare le routes annidate */}
+        <Outlet />
+        {/* Renderizzare children se fornito */}
         {children}
       </main>
       <AISettings 

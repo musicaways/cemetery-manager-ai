@@ -8,6 +8,8 @@ export interface Message {
   suggestedQuestions?: string[];
 }
 
+export type ChatMessage = Message;
+
 export interface SearchResult {
   title: string;
   url: string;

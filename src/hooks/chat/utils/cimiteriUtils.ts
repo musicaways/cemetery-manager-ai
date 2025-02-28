@@ -71,10 +71,10 @@ export const extractCimiteroName = (query: string): string | null => {
 export const fetchAllCimiteri = async (): Promise<Cimitero[]> => {
   try {
     // Prima verifichiamo se abbiamo dati in cache
-    const cachedData = offlineManager.getCimiteri();
+    const cachedData = await offlineManager.getCimiteri();
     
     // Se siamo offline e abbiamo dati in cache, usiamo quelli
-    if (!navigator.onLine && cachedData?.length) {
+    if (!navigator.onLine && cachedData && cachedData.length > 0) {
       console.log("Utilizzando dati dei cimiteri dalla cache (offline)");
       return cachedData;
     }
@@ -105,13 +105,13 @@ export const fetchAllCimiteri = async (): Promise<Cimitero[]> => {
       if (data) {
         // Salviamo i dati nella cache per utilizzo offline futuro
         // Forziamo il tipo con as unknown as Cimitero[]
-        offlineManager.saveCimitero(data as unknown as Cimitero[]);
+        await offlineManager.saveCimitero(data as unknown as Cimitero[]);
         return data as unknown as Cimitero[];
       }
     }
     
     // Se siamo offline ma abbiamo dati in cache, li usiamo
-    if (cachedData?.length) {
+    if (cachedData && cachedData.length > 0) {
       console.log("Utilizzando dati dei cimiteri dalla cache");
       return cachedData;
     }
@@ -123,8 +123,8 @@ export const fetchAllCimiteri = async (): Promise<Cimitero[]> => {
     errorReporter.reportError(error as Error, { action: 'fetchAllCimiteri' });
     
     // In caso di errore, tentiamo di usare i dati in cache
-    const cachedData = offlineManager.getCimiteri();
-    if (cachedData?.length) {
+    const cachedData = await offlineManager.getCimiteri();
+    if (cachedData && cachedData.length > 0) {
       return cachedData;
     }
     
@@ -138,8 +138,8 @@ export const fetchCimiteroDetails = async (nomeOrCodice: string): Promise<Cimite
     const searchTerm = nomeOrCodice.trim().toLowerCase();
     
     // Prima controlliamo la cache
-    const cachedData = offlineManager.getCimiteri();
-    const cimiteroFromCache = cachedData?.find(c => 
+    const cachedData = await offlineManager.getCimiteri();
+    const cimiteroFromCache = cachedData && cachedData.find(c => 
       c.Codice?.toLowerCase() === searchTerm || 
       c.Descrizione?.toLowerCase().includes(searchTerm)
     );
@@ -196,9 +196,9 @@ export const fetchCimiteroDetails = async (nomeOrCodice: string): Promise<Cimite
     });
     
     // In caso di errore, tentiamo di usare i dati in cache
-    const cachedData = offlineManager.getCimiteri();
+    const cachedData = await offlineManager.getCimiteri();
     const searchTerm = nomeOrCodice.trim().toLowerCase();
-    const cimiteroFromCache = cachedData?.find(c => 
+    const cimiteroFromCache = cachedData && cachedData.find(c => 
       c.Codice?.toLowerCase() === searchTerm || 
       c.Descrizione?.toLowerCase().includes(searchTerm)
     );

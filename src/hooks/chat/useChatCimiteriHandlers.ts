@@ -27,7 +27,7 @@ export const useChatCimiteriHandlers = () => {
       // Poi tenta di aggiornare i dati dal server
       if (navigator.onLine) {
         const allCimiteri = await fetchAllCimiteri();
-        if (allCimiteri.length > 0) {
+        if (allCimiteri && allCimiteri.length > 0) {
           console.log("Dati caricati dal server:", allCimiteri.length, "cimiteri");
           setCimiteri(allCimiteri);
         }
@@ -99,7 +99,7 @@ export const useChatCimiteriHandlers = () => {
         // Carica tutti i cimiteri
         const allCimiteri = await fetchAllCimiteri();
         
-        if (allCimiteri.length === 0) {
+        if (!allCimiteri || allCimiteri.length === 0) {
           return {
             message: "Mi dispiace, non ho trovato cimiteri disponibili al momento.",
             data: null

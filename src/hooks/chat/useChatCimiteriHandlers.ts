@@ -18,7 +18,7 @@ export const useChatCimiteriHandlers = () => {
       console.log("Caricamento cimiteri...");
       
       // Prova prima a caricare i dati da localStorage
-      const cachedData = offlineManager.getCimiteri();
+      const cachedData = await offlineManager.getCimiteri();
       if (cachedData && cachedData.length > 0) {
         console.log("Utilizzando dati in cache:", cachedData.length, "cimiteri");
         setCimiteri(cachedData);
@@ -37,7 +37,7 @@ export const useChatCimiteriHandlers = () => {
       errorReporter.reportError(error as Error, { action: 'fetchCimiteri' });
       
       // Fallback sui dati in cache anche se eravamo online
-      const cachedData = offlineManager.getCimiteri();
+      const cachedData = await offlineManager.getCimiteri();
       if (cachedData && cachedData.length > 0 && cimiteri.length === 0) {
         console.log("Fallback sui dati in cache dopo errore");
         setCimiteri(cachedData);

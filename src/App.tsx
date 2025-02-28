@@ -34,9 +34,8 @@ const queryClient = new QueryClient({
 });
 
 // Aggiungi un gestore globale per intercettare errori non gestiti nelle query
-queryClient.getQueryCache().subscribe(({ type, query }) => {
-  if (type === 'error' && query.state.error) {
-    const error = query.state.error;
+queryClient.getQueryCache().subscribe({
+  onError: (error, query) => {
     console.error('React Query error:', error);
     errorReporter.reportError(
       error instanceof Error ? error : new Error(String(error)), 

@@ -4,26 +4,39 @@
  */
 
 export const extractCimiteroName = (query: string): string | null => {
-  const pattern = /cimitero\s+([a-zA-Z\s]+)/i;
+  console.log("Estrazione nome cimitero da:", query);
+  // Riconosce sia "cimitero di Milano" che "cimitero Milano"
+  const pattern = /cimitero\s+(?:di\s+)?([a-zA-Z\s]+)/i;
   const match = query.match(pattern);
   
   if (match && match[1]) {
-    return match[1].trim();
+    const nome = match[1].trim();
+    console.log("Nome cimitero estratto:", nome);
+    return nome;
   }
   
+  console.log("Nessun nome cimitero trovato nella query");
   return null;
 };
 
 export const isListaCimiteriQuery = (query: string): boolean => {
   const normalizedQuery = query.toLowerCase().trim();
+  console.log("Controllo se è una query lista cimiteri:", normalizedQuery);
+  
   const listTriggers = [
     'mostra elenco dei cimiteri',
     'mostra lista cimiteri',
     'elenco cimiteri',
     'lista cimiteri',
     'vedi tutti i cimiteri',
-    'mostra tutti i cimiteri'
+    'mostra tutti i cimiteri',
+    'mostrami i cimiteri',
+    'mostrami tutti i cimiteri',
+    'visualizza i cimiteri',
+    'visualizza tutti i cimiteri'
   ];
   
-  return listTriggers.some(trigger => normalizedQuery.includes(trigger));
+  const result = listTriggers.some(trigger => normalizedQuery.includes(trigger));
+  console.log("Risultato controllo lista cimiteri:", result);
+  return result;
 };

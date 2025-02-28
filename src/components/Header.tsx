@@ -58,8 +58,8 @@ export const Header = ({ onSettingsClick, onSidebarToggle, onSearch, isSidebarOp
   const [totalMatches, setTotalMatches] = useState(0);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [notifications, setNotifications] = useState([
-    { id: 1, title: "Nuovo messaggio", message: "Hai ricevuto una nuova risposta", read: false, type: "info" },
-    { id: 2, title: "Errore", message: "Si è verificato un errore durante l'elaborazione", read: false, type: "error" },
+    { id: 1, title: "Nuovo messaggio", message: "Hai ricevuto una nuova risposta", read: false, type: "info" as const },
+    { id: 2, title: "Errore", message: "Si è verificato un errore durante l'elaborazione", read: false, type: "error" as const },
   ]);
   const { isOnline } = useOnlineStatus();
 
@@ -301,7 +301,7 @@ export const Header = ({ onSettingsClick, onSidebarToggle, onSearch, isSidebarOp
                     </div>
                   ) : (
                     notifications.map((notification) => {
-                      const type = notification.type as keyof typeof notificationTypes;
+                      const type = notification.type;
                       const NotificationIcon = notificationTypes[type].icon;
                       
                       return (
@@ -371,3 +371,5 @@ export const Header = ({ onSettingsClick, onSidebarToggle, onSearch, isSidebarOp
     </header>
   );
 };
+
+export default Header;

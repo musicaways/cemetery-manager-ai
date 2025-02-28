@@ -10,6 +10,7 @@ import { CollapsibleSections } from "./components/CollapsibleSections";
 import { X } from "lucide-react";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
+import { MediaViewerDescription } from "./components/MediaViewerDescription";
 
 interface CimiteroDetailsProps {
   cimitero: Cimitero | null;
@@ -105,3 +106,5 @@ export const CimiteroDetails = ({
     </DialogContent>
   );
 };
+
+export default CimiteroDetails;

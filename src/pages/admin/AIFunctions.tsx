@@ -240,3 +240,5 @@ export const AIFunctions = () => {
     </Layout>
   );
 };
+
+export default AIFunctions;

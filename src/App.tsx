@@ -29,17 +29,27 @@ const queryClient = new QueryClient({
       gcTime: 1000 * 60 * 30, // 30 minuti (sostituisce cacheTime)
       retry: 2,
       refetchOnWindowFocus: false
+    },
+    mutations: {
+      onError: (error) => {
+        console.error('React Query mutation error:', error);
+        errorReporter.reportError(
+          error instanceof Error ? error : new Error(String(error)), 
+          { source: 'react-query-mutation' }
+        );
+      }
     }
   }
 });
 
 // Aggiungi un gestore globale per intercettare errori non gestiti nelle query
-queryClient.getQueryCache().subscribe({
-  onError: (error, query) => {
+queryClient.getQueryCache().subscribe((event) => {
+  if (event.type === 'updated' && event.query.state.status === 'error') {
+    const error = event.query.state.error;
     console.error('React Query error:', error);
     errorReporter.reportError(
       error instanceof Error ? error : new Error(String(error)), 
-      { source: 'react-query', queryKey: query.queryKey }
+      { source: 'react-query', queryKey: event.query.queryKey }
     );
   }
 });

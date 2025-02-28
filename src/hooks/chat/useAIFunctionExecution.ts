@@ -1,146 +1,129 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { isListaCimiteriQuery, extractCimiteroName } from "./utils/cimiteriUtils";
-import type { AIFunction } from "@/components/admin/ai-functions/types";
+import { offlineManager } from "@/lib/offline/offlineManager";
+import { AIFunction } from "@/components/admin/ai-functions/types";
+import { isListaCimiteriQuery, extractCimiteroName, fetchAllCimiteri, fetchCimiteroDetails } from "./utils/cimiteriUtils";
 
 export const useAIFunctionExecution = () => {
+  // Esegue una funzione AI
   const executeAIFunction = async (functionId: string, func: AIFunction, query: string) => {
-    if (!func) {
-      throw new Error("Funzione non trovata");
-    }
-
+    console.log(`Esecuzione funzione AI: ${func.name}(${functionId}) con query: ${query}`);
+    
     try {
-      // Identifica prima se è una richiesta di lista cimiteri
-      if (isListaCimiteriQuery(query) || func.name.toLowerCase().includes("elenco cimiteri")) {
-        console.log("Esecuzione funzione lista cimiteri");
-        const { data: cimiteri, error } = await supabase
-          .from('Cimitero')
-          .select('*')
-          .order('Descrizione');
-          
-        if (error) throw error;
-        
-        if (cimiteri && cimiteri.length > 0) {
-          return {
-            message: "Ecco l'elenco di tutti i cimiteri disponibili:",
-            data: { 
-              type: "cimiteri",
-              cimiteri: cimiteri
-            }
-          };
-        } else {
-          return {
-            message: "Non ho trovato cimiteri nel database.",
-            data: { type: "generic_response" }
-          };
-        }
-      } 
-      // Gestione dettagli singolo cimitero
-      else if (func.name.toLowerCase().includes("dettagli cimitero")) {
-        const nomeCimitero = extractCimiteroName(query);
-        
-        if (!nomeCimitero) {
-          return {
-            message: "Per favore specifica il nome del cimitero che desideri visualizzare.",
-            data: { type: "generic_response" }
-          };
-        }
-        
-        const { data: cimiteri, error } = await supabase
-          .from('Cimitero')
-          .select('*')
-          .ilike('Descrizione', `%${nomeCimitero}%`)
-          .limit(1);
-        
-        if (error) throw error;
-        
-        if (cimiteri && cimiteri.length > 0) {
-          return {
-            message: `Ecco le informazioni sul Cimitero ${cimiteri[0].Descrizione}`,
-            data: { 
-              type: "cimitero",
-              cimitero: cimiteri[0]
-            }
-          };
-        } else {
-          return {
-            message: `Non ho trovato informazioni sul cimitero "${nomeCimitero}". Posso aiutarti con qualcos'altro?`,
-            data: { type: "generic_response" }
-          };
-        }
+      let result: any = null;
+      
+      // Esecuzioni speciali per funzioni predefinite
+      if (func.name.toLowerCase().includes("lista cimiteri") || 
+          func.name.toLowerCase().includes("elenco cimiteri")) {
+        // Funzione lista cimiteri
+        result = await handleListaCimiteri();
+      } else if (func.name.toLowerCase().includes("mostra dettagli cimitero") || 
+                func.name.toLowerCase().includes("dettagli cimitero")) {
+        // Funzione dettagli cimitero
+        const cimiteroName = extractCimiteroName(query);
+        result = await handleDettagliCimitero(cimiteroName || "");
       } else {
-        return {
-          message: `Non ho capito quale funzione eseguire. Puoi riprovare con una richiesta più chiara?`,
-          data: { type: "generic_response" }
-        };
+        // Esecuzione generica tramite il codice della funzione
+        try {
+          // Usa eval con cautela, solo in modalità di sviluppo
+          const funcCode = `(async (query) => { ${func.code} })`;
+          const executableFunc = eval(funcCode);
+          result = await executableFunc(query);
+        } catch (execError) {
+          console.error("Errore nell'esecuzione del codice funzione:", execError);
+          throw new Error(`Errore nell'esecuzione della funzione: ${execError.message}`);
+        }
       }
+      
+      // Formatta il risultato
+      return {
+        message: result?.message || "Funzione eseguita con successo",
+        data: result?.data || null
+      };
     } catch (error) {
-      console.error('Errore nell\'esecuzione della funzione AI:', error);
-      throw new Error("Errore nell'esecuzione della funzione");
+      console.error(`Errore nell'esecuzione della funzione ${func.name}:`, error);
+      return {
+        message: `Si è verificato un errore: ${error.message}`,
+        data: null
+      };
     }
   };
 
-  // Modifichiamo questa funzione per accettare l'oggetto AIFunction
-  const processTestQuery = async (func: AIFunction, query: string) => {
+  // Gestisce la funzione lista cimiteri
+  const handleListaCimiteri = async () => {
     try {
-      // Simula l'esecuzione della funzione 
-      console.log("Testing function:", func.name, "with query:", query);
+      console.log("Executing lista cimiteri function...");
+      const cimiteri = await fetchAllCimiteri();
       
-      // Utilizziamo la stessa logica di executeAIFunction ma adattata per il test
-      let result;
-      
-      if (isListaCimiteriQuery(query) || func.name.toLowerCase().includes("elenco cimiteri")) {
-        const { data: cimiteri, error } = await supabase
-          .from('Cimitero')
-          .select('*')
-          .order('Descrizione')
-          .limit(10); // Limitiamo a 10 risultati per il test
-          
-        if (error) throw error;
-        
-        result = {
-          text: `Funzione lista cimiteri eseguita. Trovati ${cimiteri?.length || 0} cimiteri.`,
-          data: cimiteri
-        };
-      } 
-      else if (func.name.toLowerCase().includes("dettagli cimitero")) {
-        const nomeCimitero = extractCimiteroName(query);
-        
-        if (!nomeCimitero) {
-          result = {
-            text: "Per favore specifica il nome del cimitero che desideri visualizzare."
-          };
-        } else {
-          const { data: cimiteri, error } = await supabase
-            .from('Cimitero')
-            .select('*')
-            .ilike('Descrizione', `%${nomeCimitero}%`)
-            .limit(1);
-          
-          if (error) throw error;
-          
-          if (cimiteri && cimiteri.length > 0) {
-            result = {
-              text: `Trovate informazioni per il cimitero: ${cimiteri[0].Descrizione}`,
-              data: cimiteri[0]
-            };
-          } else {
-            result = {
-              text: `Non ho trovato informazioni sul cimitero "${nomeCimitero}".`
-            };
-          }
-        }
-      } else {
-        // Per altre funzioni, mostriamo un messaggio generico
-        result = {
-          text: `Test eseguito per la funzione "${func.name}" con la query: "${query}"`
+      if (!cimiteri || cimiteri.length === 0) {
+        return {
+          message: "Non ho trovato cimiteri disponibili.",
+          data: null
         };
       }
       
-      return result;
+      let message = `Ho trovato ${cimiteri.length} cimiteri disponibili:`;
+      
+      return {
+        message: message,
+        data: {
+          type: "cimiteri",
+          cimiteri: cimiteri
+        }
+      };
     } catch (error) {
-      console.error('Errore nel test della query:', error);
+      console.error("Error in handleListaCimiteri:", error);
       throw error;
+    }
+  };
+
+  // Gestisce la funzione dettagli cimitero
+  const handleDettagliCimitero = async (nomeOrCodice: string) => {
+    if (!nomeOrCodice) {
+      return {
+        message: "Potresti specificare il nome o il codice del cimitero che ti interessa?",
+        data: null
+      };
+    }
+    
+    try {
+      console.log(`Executing dettagli cimitero function for: ${nomeOrCodice}`);
+      const cimitero = await fetchCimiteroDetails(nomeOrCodice);
+      
+      if (!cimitero) {
+        return {
+          message: `Non ho trovato informazioni sul cimitero "${nomeOrCodice}".`,
+          data: null
+        };
+      }
+      
+      return {
+        message: `Ecco i dettagli del cimitero "${cimitero.Descrizione}":`,
+        data: {
+          type: "cimiteri",
+          cimiteri: [cimitero]
+        }
+      };
+    } catch (error) {
+      console.error("Error in handleDettagliCimitero:", error);
+      throw error;
+    }
+  };
+
+  // Funzione di test per AIFunctionTester
+  const processTestQuery = async (func: AIFunction, query: string) => {
+    try {
+      const result = await executeAIFunction(func.id || 'test', func, query);
+      return {
+        text: JSON.stringify(result, null, 2),
+        ...result
+      };
+    } catch (error) {
+      console.error("Error in test query execution:", error);
+      return {
+        text: `Error: ${error.message}`,
+        error: true
+      };
     }
   };
 

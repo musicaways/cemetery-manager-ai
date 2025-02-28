@@ -5,6 +5,7 @@ import { Cimitero } from '@/pages/cimiteri/types';
 import { errorReporter } from '@/lib/errorReporter';
 import { toast } from 'sonner';
 import { offlineManager } from '@/lib/offline/offlineManager';
+import { fetchAllCimiteri, fetchCimiteroDetails, isListaCimiteriQuery, extractCimiteroName } from './utils/cimiteriUtils';
 
 export const useChatCimiteriHandlers = () => {
   const [cimiteri, setCimiteri] = useState<Cimitero[]>([]);
@@ -25,31 +26,10 @@ export const useChatCimiteriHandlers = () => {
 
       // Poi tenta di aggiornare i dati dal server
       if (navigator.onLine) {
-        const { data, error } = await supabase
-          .from('Cimitero')
-          .select(`
-            *,
-            settori:Settore(
-              Id,
-              Codice,
-              Descrizione,
-              blocchi:Blocco(*)
-            ),
-            foto:CimiteroFoto(*),
-            documenti:CimiteroDocumenti(*)
-          `)
-          .order('Descrizione', { ascending: true });
-
-        if (error) {
-          throw error;
-        }
-
-        if (data) {
-          console.log("Dati caricati dal server:", data.length, "cimiteri");
-          setCimiteri(data as Cimitero[]);
-          
-          // Salva i dati nel localStorage per utilizzo offline
-          offlineManager.saveCimiteri(data as Cimitero[]);
+        const allCimiteri = await fetchAllCimiteri();
+        if (allCimiteri.length > 0) {
+          console.log("Dati caricati dal server:", allCimiteri.length, "cimiteri");
+          setCimiteri(allCimiteri);
         }
       }
     } catch (error) {
@@ -87,46 +67,11 @@ export const useChatCimiteriHandlers = () => {
         return cimiteroFromLoaded;
       }
       
-      // Cerca nella cache
-      const cachedData = offlineManager.getCimiteri();
-      const cimiteroFromCache = cachedData?.find(c => 
-        c.Codice?.toLowerCase() === codice.toLowerCase() || 
-        c.Descrizione?.toLowerCase().includes(codice.toLowerCase())
-      );
-      
-      if (cimiteroFromCache) {
-        console.log("Cimitero trovato nella cache:", cimiteroFromCache);
-        setSelectedCimitero(cimiteroFromCache);
-        return cimiteroFromCache;
-      }
-      
-      // Carica dal server se online
-      if (navigator.onLine) {
-        const { data, error } = await supabase
-          .from('Cimitero')
-          .select(`
-            *,
-            settori:Settore(
-              Id,
-              Codice,
-              Descrizione,
-              blocchi:Blocco(*)
-            ),
-            foto:CimiteroFoto(*),
-            documenti:CimiteroDocumenti(*)
-          `)
-          .or(`Codice.ilike.%${codice}%,Descrizione.ilike.%${codice}%`)
-          .limit(1);
-
-        if (error) {
-          throw error;
-        }
-
-        if (data && data.length > 0) {
-          console.log("Cimitero caricato dal server:", data[0]);
-          setSelectedCimitero(data[0] as Cimitero);
-          return data[0] as Cimitero;
-        }
+      // Utilizza la funzione dedicata per cercare i dettagli
+      const cimitero = await fetchCimiteroDetails(codice);
+      if (cimitero) {
+        setSelectedCimitero(cimitero);
+        return cimitero;
       }
       
       console.log("Nessun cimitero trovato con codice/descrizione:", codice);
@@ -144,6 +89,64 @@ export const useChatCimiteriHandlers = () => {
     setSelectedCimitero(null);
   }, []);
 
+  // Funzione per gestire le richieste relative ai cimiteri dalla chat
+  const handleCimiteriRequest = async (query: string) => {
+    const normalizedQuery = query.toLowerCase().trim();
+    
+    try {
+      // Verifica se è una richiesta di elenco cimiteri
+      if (isListaCimiteriQuery(normalizedQuery)) {
+        // Carica tutti i cimiteri
+        const allCimiteri = await fetchAllCimiteri();
+        
+        if (allCimiteri.length === 0) {
+          return {
+            message: "Mi dispiace, non ho trovato cimiteri disponibili al momento.",
+            data: null
+          };
+        }
+        
+        return {
+          message: `Ho trovato ${allCimiteri.length} cimiteri. Ecco l'elenco:`,
+          data: {
+            type: "cimiteri",
+            cimiteri: allCimiteri
+          }
+        };
+      }
+      
+      // Verifica se è una richiesta di dettagli di un cimitero specifico
+      const cimiteroName = extractCimiteroName(normalizedQuery);
+      if (cimiteroName) {
+        const cimitero = await fetchCimiteroDetails(cimiteroName);
+        
+        if (!cimitero) {
+          return {
+            message: `Non ho trovato informazioni sul cimitero "${cimiteroName}".`,
+            data: null
+          };
+        }
+        
+        return {
+          message: `Ecco i dettagli del cimitero "${cimitero.Descrizione}":`,
+          data: {
+            type: "cimiteri",
+            cimiteri: [cimitero]
+          }
+        };
+      }
+      
+      // Se non è una richiesta specifica sui cimiteri
+      return {
+        message: "Non ho capito la tua richiesta sui cimiteri. Puoi chiedere l'elenco dei cimiteri o informazioni su un cimitero specifico.",
+        data: null
+      };
+    } catch (error) {
+      console.error("Errore nella gestione della richiesta cimiteri:", error);
+      throw error;
+    }
+  };
+
   return {
     cimiteri,
     selectedCimitero,
@@ -151,6 +154,7 @@ export const useChatCimiteriHandlers = () => {
     fetchCimiteri,
     fetchCimiteroByCodice,
     clearSelectedCimitero,
-    setSelectedCimitero
+    setSelectedCimitero,
+    handleCimiteriRequest
   };
 };

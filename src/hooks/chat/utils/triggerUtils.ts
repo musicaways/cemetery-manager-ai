@@ -1,5 +1,71 @@
 
 import { isAIFunctionTrigger } from "./isAIFunctionTrigger";
+import type { AIFunction } from "@/components/admin/ai-functions/types";
+
+// Funzioni di matching dei trigger
+export const findMatchingFunction = (query: string, functions: AIFunction[]): AIFunction | null => {
+  const normalizedQuery = query.toLowerCase().trim();
+  
+  // Controlla prima i match diretti, poi quelli parziali
+  for (const func of functions) {
+    if (!func.trigger_phrases || func.trigger_phrases.length === 0) continue;
+    
+    // Match esatto
+    if (exactMatchTriggerPhrases(normalizedQuery, func.trigger_phrases)) {
+      return func;
+    }
+  }
+  
+  // Se non ci sono match esatti, cerca match parziali
+  let bestMatch: { func: AIFunction | null; score: number } = { func: null, score: 0 };
+  
+  for (const func of functions) {
+    if (!func.trigger_phrases || func.trigger_phrases.length === 0) continue;
+    
+    const match = matchTriggerPhrases(normalizedQuery, func.trigger_phrases);
+    if (match.matched && match.score > bestMatch.score) {
+      bestMatch = { func, score: match.score };
+    }
+  }
+  
+  return bestMatch.func;
+};
+
+// Verifica match esatto tra query e frasi trigger
+export const exactMatchTriggerPhrases = (query: string, phrases: string[]): boolean => {
+  const normalizedQuery = query.toLowerCase().trim();
+  const normalizedPhrases = phrases.map(p => p.toLowerCase().trim());
+  
+  return normalizedPhrases.some(phrase => normalizedQuery.includes(phrase));
+};
+
+// Verifica match parziale con score
+export const matchTriggerPhrases = (query: string, phrases: string[]): { matched: boolean; score: number; matchedPhrase?: string } => {
+  const normalizedQuery = query.toLowerCase().trim();
+  const words = normalizedQuery.split(/\s+/);
+  
+  let bestMatch = { matched: false, score: 0, matchedPhrase: "" };
+  
+  for (const phrase of phrases) {
+    const normalizedPhrase = phrase.toLowerCase().trim();
+    const phraseWords = normalizedPhrase.split(/\s+/);
+    
+    // Calcola quante parole della frase sono nella query
+    let matchedWords = 0;
+    for (const word of phraseWords) {
+      if (words.includes(word)) matchedWords++;
+    }
+    
+    if (matchedWords > 0) {
+      const score = matchedWords / phraseWords.length;
+      if (score > bestMatch.score) {
+        bestMatch = { matched: true, score, matchedPhrase: phrase };
+      }
+    }
+  }
+  
+  return bestMatch;
+};
 
 // Trigger per i cimiteri
 export const triggerShowCimitero = (query: string): { isMatch: boolean; matchedName: string } => {

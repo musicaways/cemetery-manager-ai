@@ -44,7 +44,7 @@ export const ChatMessages = ({
   };
 
   return (
-    <ScrollArea className="h-full px-4" viewportRef={scrollAreaRef}>
+    <ScrollArea className="h-full px-4" ref={scrollAreaRef}>
       <div className="w-full max-w-2xl mx-auto pb-6">
         {messages.map((message, index) => (
           <div

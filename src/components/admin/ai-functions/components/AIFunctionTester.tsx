@@ -46,7 +46,7 @@ export const AIFunctionTester = ({ func }: { func: AIFunction }) => {
         matchInfo = `
 💡 Debug lista cimiteri:
 - È riconosciuta come query lista cimiteri: ${isCimiteriListQuery ? "✅ Si" : "❌ No"}
-${isCimiteriListQuery ? `- Match trovato: ${cimiteriDebugMatch.matchedTrigger || cimiteriDebugMatch.matchedPattern || "Match generico"}` : ""}
+${isCimiteriListQuery ? `- Match trovato: ${cimiteriDebugMatch.matchedPattern || "Match generico"}` : ""}
 
 `;
       }

@@ -169,7 +169,7 @@ class OfflineManager {
       if (data && data.length > 0) {
         const tx = this.db?.transaction('cimiteri', 'readwrite');
         await Promise.all([
-          ...data.map(cimitero => tx?.store.put(cimitero)),
+          ...data.map(cimitero => tx?.store.put(cimitero as unknown as Cimitero)),
           tx?.done
         ]);
         
@@ -179,7 +179,7 @@ class OfflineManager {
         console.log(`Stored ${data.length} cimiteri in local DB`);
       }
       
-      return data || [];
+      return data as unknown as Cimitero[] || [];
     } catch (error) {
       console.error('Error fetching cimiteri:', error);
       toast.error('Errore nel caricamento dei cimiteri');
@@ -188,14 +188,50 @@ class OfflineManager {
   }
 
   /**
-   * Salva un cimitero, localmente se offline o su Supabase se online
+   * Salva una lista di cimiteri, usato per il caching
    */
-  async saveCimitero(cimitero: Partial<Cimitero>, id?: number): Promise<boolean> {
+  async saveCimiteri(cimiteri: Cimitero[]): Promise<boolean> {
     if (!this.initialized) {
       await this.initialize();
     }
     
     try {
+      if (!cimiteri || cimiteri.length === 0) return false;
+      
+      // Salva tutti i cimiteri nel database locale
+      const tx = this.db?.transaction('cimiteri', 'readwrite');
+      if (!tx) return false;
+      
+      await Promise.all([
+        ...cimiteri.map(cimitero => tx.store.put(cimitero)),
+        tx.done
+      ]);
+      
+      // Aggiorna il timestamp dell'ultimo aggiornamento
+      localStorage.setItem('lastCimiteriUpdate', new Date().toISOString());
+      console.log(`Stored ${cimiteri.length} cimiteri in local DB via saveCimiteri`);
+      
+      return true;
+    } catch (error) {
+      console.error('Error saving cimiteri:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Salva un cimitero, localmente se offline o su Supabase se online
+   */
+  async saveCimitero(cimitero: Partial<Cimitero> | Cimitero[], id?: number): Promise<boolean> {
+    if (!this.initialized) {
+      await this.initialize();
+    }
+    
+    try {
+      // Se riceve un array, usa saveCimiteri
+      if (Array.isArray(cimitero)) {
+        return this.saveCimiteri(cimitero);
+      }
+      
       const timestamp = Date.now();
       const operation = id ? 'update' : 'insert';
       const data = { ...cimitero, Id: id };
@@ -296,9 +332,9 @@ class OfflineManager {
         }
         
         // Salva nel database locale
-        await this.db?.put('cimiteri', data);
+        await this.db?.put('cimiteri', data as unknown as Cimitero);
         
-        return data;
+        return data as unknown as Cimitero;
       }
       
       return localCimitero;

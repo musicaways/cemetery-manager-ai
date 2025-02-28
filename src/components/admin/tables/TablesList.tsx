@@ -35,10 +35,27 @@ export const TablesList = ({ tables: initialTables, onTableChange, onSelectTable
   const loadTables = async () => {
     setLoading(true);
     try {
-      const tablesInfoResult = await supabase.rpc('get_tables_info');
-      if (tablesInfoResult.error) throw tablesInfoResult.error;
+      // Utilizziamo get_complete_schema che è disponibile nei tipi
+      const { data, error } = await supabase.rpc('get_complete_schema');
+      if (error) throw error;
       
-      setTables(tablesInfoResult.data || []);
+      // Estraiamo le informazioni sulle tabelle dal risultato
+      const tablesInfo: TableInfo[] = data?.tables?.map((table: any) => ({
+        table_name: table.name,
+        columns: table.columns.map((col: any) => ({
+          column_name: col.name,
+          data_type: col.type,
+          is_nullable: col.notnull ? 'NO' : 'YES',
+          column_default: col.default
+        })),
+        foreign_keys: table.foreign_keys?.map((fk: any) => ({
+          column: fk.column,
+          foreign_table: fk.foreign_table,
+          foreign_column: fk.foreign_column
+        })) || []
+      })) || [];
+      
+      setTables(tablesInfo);
     } catch (error: any) {
       console.error("Error loading tables:", error);
       toast.error(`Errore nel caricamento delle tabelle: ${error.message}`);

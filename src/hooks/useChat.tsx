@@ -1,5 +1,6 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { toast } from "sonner";
 import { useAIFunctions } from "@/hooks/chat/useAIFunctions";
 import { useAIRequestHandler } from "@/hooks/chat/useAIRequestHandler";
 import { useChatMessages } from "@/hooks/chat/useChatMessages";
@@ -12,6 +13,7 @@ import { UseChatReturn } from "@/hooks/chat/types";
 export const useChat = (): UseChatReturn => {
   const [query, setQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReady, setIsReady] = useState(false);
   
   const { 
     messages, 
@@ -52,6 +54,32 @@ export const useChat = (): UseChatReturn => {
     webSearchEnabled,
     messages
   });
+
+  // Assicura un'inizializzazione completa prima di permettere interazioni
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Se l'hook non è pronto, restituiamo comunque un oggetto valido per evitare errori di rendering
+  if (!isReady) {
+    return {
+      query: "",
+      setQuery: () => {},
+      isProcessing: true, // Imposta come in elaborazione per evitare interazioni premature
+      processingProgress: 0,
+      messages: [],
+      webSearchEnabled: false,
+      messagesEndRef,
+      scrollAreaRef,
+      handleSubmit: () => Promise.resolve(),
+      toggleWebSearch: () => {},
+      isOnline: false
+    };
+  }
 
   return {
     query,

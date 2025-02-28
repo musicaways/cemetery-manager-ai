@@ -1,5 +1,4 @@
 
-import { DialogContent, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Cimitero } from "../../types";
 import { useState, useCallback, useEffect } from "react";
@@ -53,16 +52,15 @@ export const CimiteroDetails = ({
   if (!cimitero) return null;
 
   return (
-    <DialogContent className={cn(
-      "flex flex-col p-0 bg-[#1A1F2C] border-gray-800",
+    <div className={cn(
+      "flex flex-col p-0 bg-[#1A1F2C] border-gray-800 rounded-lg",
       "h-[calc(100vh-32px)] md:h-[85vh]",
       "transition-all duration-300",
-      "w-full max-w-xl mx-auto",
-      isMobile ? "m-0 rounded-none" : "rounded-lg"
+      "w-full"
     )}>
-      <DialogClose className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors">
+      <div className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors cursor-pointer">
         <X className="h-5 w-5 text-white" />
-      </DialogClose>
+      </div>
 
       <ScrollArea className="flex-grow">
         <div className="w-full">
@@ -105,7 +103,7 @@ export const CimiteroDetails = ({
           }}
         />
       </div>
-    </DialogContent>
+    </div>
   );
 };
 

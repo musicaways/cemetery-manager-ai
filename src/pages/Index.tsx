@@ -7,6 +7,7 @@ import { ChatModals } from "@/components/chat/ChatModals";
 import { Breadcrumb } from "@/components/ui/breadcrumb";
 import { OfflineIndicator } from "@/pages/cimiteri/components/OfflineIndicator";
 import type { Cimitero } from "@/pages/cimiteri/types";
+import { toast } from "sonner";
 
 const Index = () => {
   const [isMediaUploadOpen, setIsMediaUploadOpen] = useState(false);
@@ -36,10 +37,17 @@ const Index = () => {
         setIsMediaUploadOpen(true);
         break;
       case 'file':
+        toast.info("Funzionalità non ancora implementata");
         break;
       case 'code':
+        toast.info("Funzionalità non ancora implementata");
         break;
     }
+  };
+
+  const handleCimiteroSelect = (cimitero: Cimitero) => {
+    console.log("Cimitero selezionato:", cimitero);
+    setSelectedCimitero(cimitero);
   };
 
   return (
@@ -53,7 +61,7 @@ const Index = () => {
           onQuestionSelect={(q) => handleSubmit(undefined, q)}
           scrollAreaRef={scrollAreaRef}
           messagesEndRef={messagesEndRef}
-          onCimiteroSelect={setSelectedCimitero}
+          onCimiteroSelect={handleCimiteroSelect}
           isOnline={isOnline}
         />
       </main>

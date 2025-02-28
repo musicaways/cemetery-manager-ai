@@ -5,6 +5,7 @@ import { CimiteroDetails } from "./CimiteroDetails/CimiteroDetails";
 import { useState } from "react";
 import { Cimitero } from "../types";
 import { useCimiteri } from "../hooks/useCimiteri";
+import { toast } from "sonner";
 
 interface CimiteroEditorProps {
   cimitero: Cimitero | null;
@@ -41,9 +42,17 @@ export const CimiteroEditor = ({
 
   const handleSave = async () => {
     if (!cimitero || !editedData) return;
-    await onSave(editedData, selectedFile || undefined);
-    setSelectedFile(null);
-    setEditMode(false);
+    try {
+      await onSave(editedData, selectedFile || undefined);
+      setSelectedFile(null);
+      setEditMode(false);
+      toast.success("Modifiche salvate con successo");
+    } catch (error) {
+      console.error("Errore durante il salvataggio:", error);
+      toast.error("Errore durante il salvataggio", {
+        description: "Si è verificato un errore durante il salvataggio delle modifiche."
+      });
+    }
   };
 
   const handleInputChange = (field: string, value: string | number | null) => {
@@ -59,34 +68,26 @@ export const CimiteroEditor = ({
   };
 
   const handleRefresh = async () => {
-    await loadCimiteri();
+    try {
+      await loadCimiteri();
+    } catch (error) {
+      console.error("Errore durante il refresh dei dati:", error);
+    }
   };
 
   return (
     <>
-      <Dialog 
-        open={!!cimitero} 
-        onOpenChange={(open) => {
-          if (!open) {
-            onClose();
-            setEditMode(false);
-            setEditedData({});
-            setSelectedFile(null);
-          }
-        }}
-      >
-        <CimiteroDetails
-          cimitero={cimitero}
-          editMode={editMode}
-          editedData={editedData}
-          onEdit={handleEdit}
-          onSave={handleSave}
-          onUpload={() => setIsUploadOpen(true)}
-          onInputChange={handleInputChange}
-          selectedFile={selectedFile}
-          onRefresh={handleRefresh}
-        />
-      </Dialog>
+      <CimiteroDetails
+        cimitero={cimitero}
+        editMode={editMode}
+        editedData={editedData}
+        onEdit={handleEdit}
+        onSave={handleSave}
+        onUpload={() => setIsUploadOpen(true)}
+        onInputChange={handleInputChange}
+        selectedFile={selectedFile}
+        onRefresh={handleRefresh}
+      />
 
       <MediaUpload 
         isOpen={isUploadOpen}

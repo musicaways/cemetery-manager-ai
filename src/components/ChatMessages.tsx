@@ -116,7 +116,11 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                             <CimiteroCard 
                               key={`cim-${idx}`}
                               cimitero={cimitero}
-                              onClick={() => onCimiteroSelect?.(cimitero)}
+                              onClick={() => {
+                                if (onCimiteroSelect) {
+                                  onCimiteroSelect(cimitero);
+                                }
+                              }}
                               isOffline={!isOnline}
                             />
                           ))}

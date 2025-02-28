@@ -1,5 +1,5 @@
 
-import { Dialog, DialogContent, DialogClose } from "@/components/ui/dialog";
+import { DialogContent, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Cimitero } from "../../types";
 import { useState, useCallback, useEffect } from "react";
@@ -44,6 +44,9 @@ export const CimiteroDetails = ({
   useEffect(() => {
     if (isMobile) {
       setOpenSection(null);
+    } else {
+      // Su desktop, apri automaticamente la prima sezione
+      setOpenSection('info');
     }
   }, [isMobile]);
 
@@ -105,3 +108,5 @@ export const CimiteroDetails = ({
     </DialogContent>
   );
 };
+
+export default CimiteroDetails;

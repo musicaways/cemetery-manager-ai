@@ -21,6 +21,24 @@ interface ChatMessagesProps {
   isOnline?: boolean;
 }
 
+// Funzione helper sicura per renderizzare contenuti
+const safeRenderContent = (content: any): string => {
+  if (content === null || content === undefined) {
+    return '';
+  }
+  
+  if (typeof content === 'string') {
+    return content;
+  }
+  
+  try {
+    return typeof content === 'object' ? JSON.stringify(content) : String(content);
+  } catch (e) {
+    console.error('Errore nella serializzazione del contenuto:', e);
+    return '[Contenuto non visualizzabile]';
+  }
+};
+
 // Utilizziamo memo per evitare render non necessari
 const MessageContent = memo(({ message, isOnline, onCimiteroSelect, onQuestionSelect }: { 
   message: Message;
@@ -39,7 +57,7 @@ const MessageContent = memo(({ message, isOnline, onCimiteroSelect, onQuestionSe
     return (
       <div className="flex justify-end pr-2">
         <div className="max-w-[95%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-3 border border-[var(--primary-color)]/30 backdrop-blur-sm">
-          <p className="text-sm text-gray-100 whitespace-pre-wrap">{message.content}</p>
+          <p className="text-sm text-gray-100 whitespace-pre-wrap">{safeRenderContent(message.content)}</p>
         </div>
       </div>
     );
@@ -68,11 +86,11 @@ const MessageContent = memo(({ message, isOnline, onCimiteroSelect, onQuestionSe
                   <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
                   <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
                 </div>
-                <span className="ml-3 text-sm text-gray-300">{message.content}</span>
+                <span className="ml-3 text-sm text-gray-300">{safeRenderContent(message.content)}</span>
               </div>
             ) : (
               <div className="mt-2 text-sm text-gray-100 whitespace-pre-wrap pl-2">
-                {message.content}
+                {safeRenderContent(message.content)}
               </div>
             )}
             

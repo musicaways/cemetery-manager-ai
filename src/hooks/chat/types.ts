@@ -2,18 +2,22 @@
 import { MutableRefObject } from "react";
 import type { Cimitero } from "@/pages/cimiteri/types";
 
-export interface ChatMessage {
+export interface Message {
   type: 'query' | 'response';
+  role: 'user' | 'assistant';
   content: string;
+  timestamp: Date;
   data?: any;
-  timestamp?: Date;
+  suggestedQuestions?: string[];
 }
+
+export type ChatMessage = Message;
 
 export interface UseChatReturn {
   query: string;
   setQuery: (query: string) => void;
   isProcessing: boolean;
-  messages: ChatMessage[];
+  messages: Message[];
   webSearchEnabled: boolean;
   messagesEndRef: MutableRefObject<HTMLDivElement | null>;
   scrollAreaRef: MutableRefObject<HTMLDivElement | null>;

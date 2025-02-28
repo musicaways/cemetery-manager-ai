@@ -20,6 +20,7 @@ interface CimiteroDetailsProps {
   onInputChange: (field: string, value: string | number | null) => void;
   selectedFile?: File | null;
   onRefresh: () => void;
+  onClose?: () => void;
 }
 
 export const CimiteroDetails = ({
@@ -31,7 +32,8 @@ export const CimiteroDetails = ({
   onUpload,
   onInputChange,
   selectedFile,
-  onRefresh
+  onRefresh,
+  onClose
 }: CimiteroDetailsProps) => {
   const [openSection, setOpenSection] = useState<string | null>(null);
   const isMobile = useMediaQuery("(max-width: 768px)");
@@ -58,7 +60,7 @@ export const CimiteroDetails = ({
       "transition-all duration-300",
       "w-full"
     )}>
-      <div className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors cursor-pointer">
+      <div className="absolute right-4 top-4 z-50 rounded-full bg-black/40 p-2 hover:bg-black/60 transition-colors cursor-pointer" onClick={onClose || onRefresh}>
         <X className="h-5 w-5 text-white" />
       </div>
 

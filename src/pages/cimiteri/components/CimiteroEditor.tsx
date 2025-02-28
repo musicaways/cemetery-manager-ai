@@ -91,6 +91,7 @@ export const CimiteroEditor = ({
             onInputChange={handleInputChange}
             selectedFile={selectedFile}
             onRefresh={handleRefresh}
+            onClose={onClose}
           />
         </DialogContent>
       </Dialog>

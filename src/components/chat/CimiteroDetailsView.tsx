@@ -49,6 +49,7 @@ export const CimiteroDetailsView = ({ cimitero, onClose }: CimiteroDetailsViewPr
       onInputChange={handleInputChange}
       selectedFile={selectedFile}
       onRefresh={handleRefresh}
+      onClose={onClose}
     />
   );
 };

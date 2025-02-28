@@ -185,6 +185,7 @@ const CimiteroDetailsWrapper = ({ cimitero, onClose }: { cimitero: Cimitero; onC
       onInputChange={handleInputChange}
       selectedFile={selectedFile}
       onRefresh={handleRefresh}
+      onClose={onClose}
     />
   );
 };

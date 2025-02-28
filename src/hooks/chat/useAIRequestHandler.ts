@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import LocalLLMManager from "@/lib/llm/localLLMManager";
@@ -8,11 +8,13 @@ export const useAIRequestHandler = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingProgress, setProcessingProgress] = useState(0);
 
-  const handleAIRequest = async (query: string) => {
+  // Ottimizzato con useCallback per evitare ricreazioni non necessarie
+  const handleAIRequest = useCallback(async (query: string) => {
     if (!query?.trim()) {
       return "Mi dispiace, non ho ricevuto una domanda valida.";
     }
     
+    // Imposta lo stato di elaborazione iniziale
     setIsProcessing(true);
     setProcessingProgress(10); // Avvio elaborazione
     
@@ -21,6 +23,10 @@ export const useAIRequestHandler = () => {
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
       setProcessingProgress(30); // Modello selezionato
+      
+      // Attendi un breve periodo per garantire che l'UI si aggiorni correttamente
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
       const response = await processAIRequest(query, false, aiProvider, aiModel);
       setProcessingProgress(100); // Completato
       
@@ -39,20 +45,24 @@ export const useAIRequestHandler = () => {
         setProcessingProgress(0);
       }, 300);
     }
-  };
+  }, []);
   
-  const processAIRequest = async (query: string, webSearchEnabled: boolean, aiProvider: string, aiModel: string) => {
+  // Ottimizzato con useCallback per evitare ricreazioni non necessarie
+  const processAIRequest = useCallback(async (query: string, webSearchEnabled: boolean, aiProvider: string, aiModel: string) => {
     if (!query?.trim()) {
       return "Mi dispiace, non ho ricevuto una domanda valida.";
     }
     
     try {
       // Incrementa progresso per feedback visivo
-      setProcessingProgress(50);
+      setProcessingProgress(prevProgress => Math.max(prevProgress, 50));
       
       // Se è richiesta la ricerca web o se stiamo usando un provider cloud
       if (webSearchEnabled || (aiProvider !== 'huggingface' && navigator.onLine)) {
         try {
+          // Piccola pausa per evitare flash dello schermo nero
+          await new Promise(resolve => setTimeout(resolve, 50));
+          
           const response = await supabase.functions.invoke('process-query', {
             body: { 
               query,
@@ -78,6 +88,10 @@ export const useAIRequestHandler = () => {
         // Utilizziamo il modello locale
         try {
           setProcessingProgress(60);
+          
+          // Piccola pausa per evitare flash dello schermo nero
+          await new Promise(resolve => setTimeout(resolve, 50));
+          
           const localLLM = LocalLLMManager.getInstance();
           const response = await localLLM.processQuery(query);
           setProcessingProgress(90);
@@ -91,7 +105,7 @@ export const useAIRequestHandler = () => {
       console.error('Errore nel processare la richiesta AI:', error);
       throw error;
     }
-  };
+  }, []);
 
   return {
     isProcessing,

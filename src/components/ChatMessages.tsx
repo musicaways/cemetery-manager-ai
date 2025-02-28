@@ -8,14 +8,10 @@ import { SuggestedQuestions } from "./SuggestedQuestions";
 import { CimiteroCard } from "@/pages/cimiteri/components/CimiteroCard";
 import { CimiteriGrid } from "@/pages/cimiteri/components/CimiteriGrid";
 import { CemeteryTravelInfo } from "@/pages/cimiteri/components/CemeteryTravelInfo";
+import { Message } from "@/hooks/chat/types";
 
 interface ChatMessagesProps {
-  messages: {
-    type: 'query' | 'response';
-    content: string;
-    data?: any;
-    timestamp?: Date;
-  }[];
+  messages: Message[];
   isProcessing: boolean;
   onQuestionSelect: (question: string) => void;
   scrollAreaRef: React.RefObject<HTMLDivElement>;
@@ -65,7 +61,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
 
         {messages.map((message, index) => (
           <div key={index} data-message-index={index} className="animate-fade-in">
-            {message.type === 'query' && (
+            {message.type === 'query' && message.role === 'user' && (
               <div className="flex justify-end pr-2">
                 <div className="max-w-[95%] bg-[var(--primary-color)]/20 rounded-2xl rounded-tr-sm p-3 border border-[var(--primary-color)]/30 backdrop-blur-sm">
                   <p className="text-sm text-gray-100 whitespace-pre-wrap">{message.content}</p>
@@ -73,7 +69,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
               </div>
             )}
             
-            {message.type === 'response' && (
+            {message.type === 'response' && message.role === 'assistant' && (
               <div className="space-y-3 w-full">
                 <div className="flex items-start pl-1">
                   <Bot className="w-8 h-8 text-[#8B5CF6] flex-shrink-0" />
@@ -124,9 +120,10 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                       </div>
                     )}
                     
-                    {message.data?.suggestions && (
+                    {message.suggestedQuestions && message.suggestedQuestions.length > 0 && (
                       <div className="mt-4 pl-2">
                         <SuggestedQuestions 
+                          questions={message.suggestedQuestions}
                           onSelect={onQuestionSelect}
                           offline={!isOnline}
                         />

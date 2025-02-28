@@ -63,7 +63,7 @@ function App() {
     }
     
     // Controlla lo stato di autenticazione
-    supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       setIsAuthenticated(!!session);
     });
 
@@ -71,6 +71,11 @@ function App() {
       setIsAuthenticated(!!session);
       setAppReady(true);
     });
+
+    // Cleanup della sottoscrizione
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (isAuthenticated === null && !appReady) {

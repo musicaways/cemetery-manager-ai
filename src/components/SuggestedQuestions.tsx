@@ -2,11 +2,12 @@
 import { Button } from "@/components/ui/button";
 
 interface SuggestedQuestionsProps {
+  questions?: string[];
   onSelect: (question: string) => void;
   offline?: boolean;
 }
 
-export const SuggestedQuestions = ({ onSelect, offline = false }: SuggestedQuestionsProps) => {
+export const SuggestedQuestions = ({ questions, onSelect, offline = false }: SuggestedQuestionsProps) => {
   const offlineQuestions = [
     "Quali funzionalità posso usare offline?",
     "Mostra cimiteri disponibili",
@@ -21,11 +22,11 @@ export const SuggestedQuestions = ({ onSelect, offline = false }: SuggestedQuest
     "Mostra informazioni sul cimitero di Milano"
   ];
 
-  const questions = offline ? offlineQuestions : onlineQuestions;
+  const displayQuestions = questions && questions.length > 0 ? questions : (offline ? offlineQuestions : onlineQuestions);
 
   return (
     <div className="flex flex-wrap gap-2 mt-2">
-      {questions.map((question, index) => (
+      {displayQuestions.map((question, index) => (
         <Button
           key={index}
           variant="outline"

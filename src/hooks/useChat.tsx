@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAIFunctions } from "@/hooks/chat/useAIFunctions";
@@ -41,7 +41,12 @@ export const useChat = () => {
     if (!userQuery.trim() || isProcessing) return;
 
     setIsProcessing(true);
-    addMessage({ type: "query", content: userQuery, timestamp: new Date() });
+    addMessage({ 
+      type: "query", 
+      role: "user", 
+      content: userQuery, 
+      timestamp: new Date() 
+    });
     setQuery("");
 
     try {
@@ -53,6 +58,7 @@ export const useChat = () => {
         const result = await executeAIFunction(aiFunction, userQuery);
         addMessage({ 
           type: "response", 
+          role: "assistant",
           content: result.message, 
           data: result.data,
           timestamp: new Date()
@@ -63,6 +69,7 @@ export const useChat = () => {
           const result = await handleCimiteriRequest(userQuery);
           addMessage({ 
             type: "response", 
+            role: "assistant",
             content: result.message, 
             data: result.data,
             timestamp: new Date()
@@ -77,6 +84,7 @@ export const useChat = () => {
             
             addMessage({ 
               type: "response", 
+              role: "assistant",
               content: offlineResponse,
               timestamp: new Date()
             });
@@ -86,7 +94,12 @@ export const useChat = () => {
         }
       } else {
         // Gestisce richieste generiche all'AI
-        addMessage({ type: "response", content: "", timestamp: new Date() });
+        addMessage({ 
+          type: "response", 
+          role: "assistant", 
+          content: "", 
+          timestamp: new Date() 
+        });
 
         // Se siamo offline, utilizza il modello locale
         if (!isOnline) {
@@ -106,7 +119,11 @@ export const useChat = () => {
           
           updateLastMessage({
             content: response,
-            data: { suggestions: true }
+            suggestedQuestions: [
+              "Mostra l'elenco dei cimiteri",
+              "Come posso cercare un defunto?",
+              "Quali funzionalità sono disponibili?"
+            ]
           });
         }
       }
@@ -121,7 +138,11 @@ export const useChat = () => {
           
           updateLastMessage({
             content: offlineResponse,
-            data: { suggestions: true }
+            suggestedQuestions: [
+              "Quali funzionalità posso usare offline?",
+              "Mostra cimiteri disponibili",
+              "Come cercare un defunto in modalità offline"
+            ]
           });
         } catch (fallbackError) {
           console.error("Errore nel fallback offline:", fallbackError);

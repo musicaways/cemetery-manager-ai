@@ -1,85 +1,126 @@
 
-import { ImagePlus, MapPin, Image, MapPinned, FileText } from "lucide-react";
-import type { Cimitero } from "@/pages/cimiteri/types";
-import { useState } from "react";
-import { CimiteroEditor } from "@/pages/cimiteri/components/CimiteroEditor";
+import React from "react";
+import { Cimitero } from "@/pages/cimiteri/types";
+import { Button } from "@/components/ui/button";
+import { MapPin, Info, ChevronRight } from "lucide-react";
 
 interface CimiteriListProps {
   cimiteri: Cimitero[];
+  isGrid?: boolean;
+  onSelectCimitero?: (cimitero: Cimitero) => void;
 }
 
-export const CimiteriList = ({ cimiteri }: CimiteriListProps) => {
-  const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
+export const CimiteriList: React.FC<CimiteriListProps> = ({ 
+  cimiteri, 
+  isGrid = false,
+  onSelectCimitero 
+}) => {
+  if (!cimiteri || cimiteri.length === 0) {
+    return (
+      <div className="py-3 px-4 bg-gray-800/50 rounded-lg text-gray-400 text-center">
+        Nessun cimitero trovato.
+      </div>
+    );
+  }
 
-  const handleSave = async (editedData: Partial<Cimitero>, coverImage?: File) => {
-    if (!selectedCimitero) return;
-    // Implementazione del salvataggio se necessario
+  const handleSelect = (cimitero: Cimitero) => {
+    if (onSelectCimitero) {
+      onSelectCimitero(cimitero);
+    }
   };
 
-  const handleUploadComplete = async (url: string) => {
-    if (!selectedCimitero) return;
-    // Implementazione dell'upload se necessario
-  };
-
-  return (
-    <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+  if (isGrid) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {cimiteri.map((cimitero) => (
-          <div
-            key={cimitero.Id}
-            onClick={() => setSelectedCimitero(cimitero)}
-            className="group relative bg-[#1A1F2C] backdrop-blur-xl rounded-xl overflow-hidden border border-white/10 hover:border-[var(--primary-color)] transition-all duration-300 hover:scale-[0.98] cursor-pointer"
+          <div 
+            key={cimitero.Id} 
+            className="bg-gray-800/50 border border-gray-700/50 rounded-lg overflow-hidden hover:bg-gray-700/30 transition-colors cursor-pointer"
+            onClick={() => handleSelect(cimitero)}
           >
-            <div className="aspect-video relative overflow-hidden">
-              {(cimitero.FotoCopertina || cimitero.foto?.[0]?.Url) ? (
-                <img
-                  src={cimitero.FotoCopertina || cimitero.foto[0].Url}
-                  alt={cimitero.Descrizione || "Immagine cimitero"}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-black/20">
-                  <ImagePlus className="w-8 h-8 text-gray-400" />
-                </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
-            </div>
-
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-xl font-semibold text-white line-clamp-1">
-                  {cimitero.Descrizione || "Nome non specificato"}
-                </h3>
-                <div className="flex items-center gap-2 text-gray-400">
-                  <div className="flex items-center">
-                    <Image className="w-4 h-4" />
-                    <span className="ml-1">{cimitero.foto?.length || 0}</span>
+            <div className="p-3 flex items-start space-x-3">
+              <div className="flex-shrink-0 h-16 w-16 bg-gray-700 rounded-md overflow-hidden">
+                {cimitero.FotoCopertina ? (
+                  <img 
+                    src={cimitero.FotoCopertina} 
+                    alt={cimitero.Descrizione} 
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center bg-gray-700 text-gray-500">
+                    <MapPin size={24} />
                   </div>
-                  <div className="flex items-center">
-                    <MapPinned className="w-4 h-4" />
-                    <span className="ml-1">{cimitero.settori?.length || 0}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <FileText className="w-4 h-4" />
-                    <span className="ml-1">{cimitero.documenti?.length || 0}</span>
-                  </div>
-                </div>
+                )}
               </div>
-              <div className="flex items-center text-sm text-gray-400">
-                <MapPin className="w-4 h-4 mr-1" />
-                <span className="line-clamp-1">{cimitero.Indirizzo || cimitero.Codice || "Indirizzo non specificato"}</span>
+              
+              <div className="flex-1 min-w-0">
+                <h4 className="text-white font-medium truncate">{cimitero.Descrizione}</h4>
+                
+                {cimitero.Indirizzo && (
+                  <p className="text-gray-400 text-sm mt-1 flex items-center">
+                    <MapPin size={14} className="mr-1 flex-shrink-0" />
+                    <span className="truncate">{cimitero.Indirizzo}</span>
+                  </p>
+                )}
+                
+                <div className="mt-2 flex">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-xs border-gray-600 bg-gray-700/30"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleSelect(cimitero);
+                    }}
+                  >
+                    <Info size={14} className="mr-1" />
+                    Dettagli
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         ))}
       </div>
+    );
+  }
 
-      <CimiteroEditor
-        cimitero={selectedCimitero}
-        onClose={() => setSelectedCimitero(null)}
-        onSave={handleSave}
-        onUploadComplete={handleUploadComplete}
-      />
-    </>
+  // Visualizzazione a lista
+  return (
+    <div className="space-y-3">
+      {cimiteri.map((cimitero) => (
+        <div 
+          key={cimitero.Id}
+          className="bg-gray-800/50 border border-gray-700/50 rounded-lg overflow-hidden hover:bg-gray-700/30 transition-colors cursor-pointer"
+          onClick={() => handleSelect(cimitero)}
+        >
+          <div className="p-3 flex items-center">
+            <div className="flex-shrink-0 h-12 w-12 mr-3 bg-gray-700 rounded-md overflow-hidden">
+              {cimitero.FotoCopertina ? (
+                <img 
+                  src={cimitero.FotoCopertina} 
+                  alt={cimitero.Descrizione} 
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center bg-gray-700 text-gray-500">
+                  <MapPin size={20} />
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-1 min-w-0">
+              <h4 className="text-white font-medium">{cimitero.Descrizione}</h4>
+              
+              {cimitero.Indirizzo && (
+                <p className="text-gray-400 text-sm truncate">{cimitero.Indirizzo}</p>
+              )}
+            </div>
+            
+            <ChevronRight className="flex-shrink-0 text-gray-500 ml-2" size={20} />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };

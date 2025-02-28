@@ -17,7 +17,10 @@ export type AIFunctionInput = {
 };
 
 export interface AIFunctionEditorProps {
-  open: boolean;
-  onClose: () => void;
-  initialData: AIFunction | null;
+  open?: boolean;
+  onClose?: () => void;
+  initialData?: AIFunction | null;
+  function?: AIFunction | null;
+  onSave?: () => void;
+  onCancel?: () => void;
 }

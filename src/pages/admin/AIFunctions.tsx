@@ -211,7 +211,9 @@ export const AIFunctions = () => {
         <Dialog open={isEditorOpen} onOpenChange={setIsEditorOpen}>
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto p-0">
             <AIFunctionEditor
-              function={selectedFunction}
+              initialData={selectedFunction}
+              open={isEditorOpen} 
+              onClose={() => setIsEditorOpen(false)}
               onSave={handleSave}
               onCancel={() => setIsEditorOpen(false)}
             />

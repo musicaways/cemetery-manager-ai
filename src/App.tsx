@@ -10,7 +10,6 @@ import Users from "./pages/admin/Users";
 import Settings from "./pages/Settings";
 import { AIFunctions } from "./pages/admin/AIFunctions";
 import { Cimiteri } from "./pages/cimiteri/Cimiteri";
-import { CimiteroDetails } from "./pages/cimiteri/components/CimiteroDetails/CimiteroDetails";
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import "./styles/chat.css";
 import "./App.css";
@@ -35,7 +34,7 @@ function App() {
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
             <Route path="/cimiteri" element={<Cimiteri />} />
-            <Route path="/cimiteri/:id" element={<CimiteroDetails />} />
+            <Route path="/cimiteri/:id" element={<Cimiteri />} />
             <Route path="/admin/tables" element={<Tables />} />
             <Route path="/admin/users" element={<Users />} />
             <Route path="/admin/ai-functions" element={<AIFunctions />} />

@@ -28,14 +28,16 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minuti
       gcTime: 1000 * 60 * 30, // 30 minuti (sostituisce cacheTime)
       retry: 2,
-      refetchOnWindowFocus: false,
-      onError: (error) => {
-        console.error('React Query error:', error);
-        errorReporter.reportError(
-          error instanceof Error ? error : new Error(String(error)), 
-          { source: 'react-query' }
-        );
-      }
+      refetchOnWindowFocus: false
+    }
+  },
+  queryCache: {
+    onError: (error) => {
+      console.error('React Query error:', error);
+      errorReporter.reportError(
+        error instanceof Error ? error : new Error(String(error)), 
+        { source: 'react-query' }
+      );
     }
   }
 });
@@ -190,7 +192,7 @@ function App() {
                       <ErrorBoundary>
                         {isAuthenticated ? <Cimiteri /> : <Auth />}
                       </ErrorBoundary>
-                    }
+                      }
                   />
                   <Route path="*" element={<NotFound />} />
                 </Routes>

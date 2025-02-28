@@ -17,10 +17,25 @@ const Tables = () => {
   const params = new URLSearchParams(location.search);
   const tableName = params.get('table');
 
+  const handleTableCreated = (name: string) => {
+    setIsCreateDialogOpen(false);
+    navigate(`?table=${name}`);
+  };
+
   return (
     <Layout>
       <div className="container mx-auto p-4">
-        <Breadcrumb tableName={tableName} />
+        <nav className="flex items-center space-x-1 text-sm text-gray-400 mb-6">
+          <a href="/admin" className="text-gray-300 hover:text-white">Admin</a>
+          <span className="mx-2">/</span>
+          <span className="text-gray-300">Tables</span>
+          {tableName && (
+            <>
+              <span className="mx-2">/</span>
+              <span className="text-gray-300">{tableName}</span>
+            </>
+          )}
+        </nav>
         
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">
@@ -36,18 +51,17 @@ const Tables = () => {
         </div>
         
         {tableName ? (
-          <TableDetails tableName={tableName} />
+          <div className="space-y-8">
+            <TableDetails />
+          </div>
         ) : (
-          <TablesList onSelectTable={(name) => navigate(`?table=${name}`)} />
+          <TablesList />
         )}
         
         <CreateTableDialog 
           open={isCreateDialogOpen} 
           onOpenChange={setIsCreateDialogOpen}
-          onTableCreated={(name) => {
-            setIsCreateDialogOpen(false);
-            navigate(`?table=${name}`);
-          }}
+          onSuccess={handleTableCreated}
         />
       </div>
     </Layout>

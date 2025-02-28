@@ -14,7 +14,7 @@ import { Search, X } from "lucide-react";
 export const Cimiteri = () => {
   const navigate = useNavigate();
   const { isOnline } = useOnlineStatus();
-  const { cimiteri, isLoading, error } = useCimiteri();
+  const { cimiteri, loading, error } = useCimiteri();
   const { searchTerm, setSearchTerm, filteredItems } = useSearch(cimiteri || []);
   const { saveCimiteri: saveCimiteriOffline } = useOfflineCimiteri();
   const [isSaving, setSaving] = useState(false);

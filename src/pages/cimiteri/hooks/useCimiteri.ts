@@ -8,6 +8,7 @@ export const useCimiteri = () => {
   const [cimiteri, setCimiteri] = useState<Cimitero[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
   const loadCimiteri = async () => {
     try {
@@ -41,6 +42,7 @@ export const useCimiteri = () => {
       return cimiteriData;
     } catch (error: any) {
       console.error("Error loading cemeteries:", error);
+      setError(error);
       toast.error("Errore nel caricamento dei cimiteri: " + error.message);
       return [];
     } finally {
@@ -124,6 +126,7 @@ export const useCimiteri = () => {
     cimiteri,
     loading,
     saving,
+    error,
     loadCimiteri,
     updateCimitero
   };

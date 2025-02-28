@@ -34,34 +34,34 @@ export const toSafeString = (value: any): string => {
  * @param props Oggetto delle proprietà
  * @returns Proprietà sanitizzate
  */
-export const sanitizeProps = <T extends Record<string, any>>(props: T): T => {
-  const result = { ...props };
+export const sanitizeProps = <T extends Record<string, any>>(props: T): Record<string, any> => {
+  // Crea un nuovo oggetto invece di modificare direttamente il parametro
+  const result: Record<string, any> = {};
   
   // Controlla tutte le proprietà
-  Object.keys(result).forEach(key => {
-    const value = result[key];
+  Object.keys(props).forEach(key => {
+    const value = props[key];
     
     // Proprietà problematiche specifiche
     if (key === 'content' || key === 'message' || key === 'text') {
       result[key] = toSafeString(value);
-    }
-    
-    // Sanitizza ricorsivamente oggetti annidati, escludendo le funzioni e altri tipi speciali
-    if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+    } else if (value && typeof value === 'object' && !Array.isArray(value) && !(value instanceof Date)) {
+      // Sanitizza ricorsivamente oggetti annidati
       result[key] = sanitizeProps(value);
-    }
-    
-    // Sanitizza gli array
-    if (Array.isArray(value)) {
+    } else if (Array.isArray(value)) {
+      // Sanitizza gli array
       result[key] = value.map(item => 
         typeof item === 'object' && item !== null 
           ? sanitizeProps(item) 
           : item
       );
+    } else {
+      // Copia il valore originale per proprietà non problematiche
+      result[key] = value;
     }
   });
   
-  return result;
+  return result as T;
 };
 
 /**

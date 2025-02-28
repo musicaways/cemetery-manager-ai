@@ -17,6 +17,7 @@ export interface UseChatReturn {
   query: string;
   setQuery: (query: string) => void;
   isProcessing: boolean;
+  processingProgress?: number;
   messages: Message[];
   webSearchEnabled: boolean;
   messagesEndRef: MutableRefObject<HTMLDivElement | null>;

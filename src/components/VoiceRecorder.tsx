@@ -9,9 +9,6 @@ interface VoiceRecorderProps {
   disabled?: boolean;
 }
 
-// Utilizziamo il file di definizione dei tipi esistente
-// Non ridichiareremo l'interfaccia global per Window
-
 export const VoiceRecorder = ({ onRecordingComplete, disabled = false }: VoiceRecorderProps) => {
   const [isRecording, setIsRecording] = useState(false);
   const recognitionRef = useRef<any>(null);
@@ -39,7 +36,13 @@ export const VoiceRecorder = ({ onRecordingComplete, disabled = false }: VoiceRe
     // Gestisci il risultato
     recognitionRef.current.onresult = (event: any) => {
       const transcript = event.results[0][0].transcript;
-      onRecordingComplete(transcript);
+      // Assicurati di passare una stringa e non un oggetto
+      if (typeof transcript === 'string') {
+        onRecordingComplete(transcript);
+      } else {
+        console.error('Transcript non è una stringa:', transcript);
+        toast.error("Errore nel riconoscimento vocale: formato non valido");
+      }
       setIsRecording(false);
     };
     
@@ -85,6 +88,7 @@ export const VoiceRecorder = ({ onRecordingComplete, disabled = false }: VoiceRe
         disabled ? "opacity-50 cursor-not-allowed" : ""
       )}
       disabled={disabled}
+      type="button"
     >
       {isRecording ? <Square /> : <Mic />}
     </button>

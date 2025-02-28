@@ -44,10 +44,18 @@ export const useChatSubmitHandler = ({
     }
 
     // Verifica che ci sia una query valida e che non sia già in corso una richiesta
-    const userQuery = overrideQuery || "";
-    if (!userQuery?.trim()) {
+    if (!overrideQuery && typeof overrideQuery !== 'string') {
+      console.error("Query non valida:", overrideQuery);
       return;
     }
+
+    const userQuery = overrideQuery || "";
+    if (!userQuery.trim()) {
+      console.warn("Query vuota, ignoro la richiesta");
+      return;
+    }
+
+    console.log("Elaborazione query:", userQuery);
 
     // Imposta gli stati di elaborazione
     setIsSubmitting(true);

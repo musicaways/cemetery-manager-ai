@@ -40,7 +40,7 @@ const Index = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitialized(true);
-    }, 150);
+    }, 250); // Aumentato il tempo per garantire un caricamento completo
     
     return () => clearTimeout(timer);
   }, []);
@@ -70,6 +70,13 @@ const Index = () => {
 
   const safeHandleSubmit = async (e?: React.FormEvent, q?: string) => {
     try {
+      // Verifica che q sia una stringa
+      if (q !== undefined && typeof q !== 'string') {
+        console.error('Input non valido per handleSubmit:', q);
+        toast.error('Input non valido');
+        return;
+      }
+      
       await handleSubmit(e, q);
     } catch (err) {
       handleError(err instanceof Error ? err : new Error(String(err)), {
@@ -77,6 +84,17 @@ const Index = () => {
         component: 'ChatInput'
       });
     }
+  };
+
+  const handleVoiceRecord = (text: string) => {
+    if (typeof text !== 'string') {
+      console.error('Input vocale non valido:', text);
+      toast.error('Input vocale non valido');
+      return;
+    }
+    
+    // Assicurati che l'input vocale sia una stringa
+    safeHandleSubmit(undefined, text);
   };
 
   // Mostra un indicatore di caricamento mentre l'app si inizializza
@@ -122,7 +140,7 @@ const Index = () => {
           onSubmit={safeHandleSubmit}
           onMediaUploadClick={() => setIsMediaUploadOpen(true)}
           onFunctionsClick={() => setIsFunctionsOpen(true)}
-          onVoiceRecord={(text) => safeHandleSubmit(undefined, text)}
+          onVoiceRecord={handleVoiceRecord}
           webSearchEnabled={webSearchEnabled}
           onWebSearchToggle={toggleWebSearch}
           isOnline={isOnline}

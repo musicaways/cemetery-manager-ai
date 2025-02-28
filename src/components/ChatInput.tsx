@@ -72,6 +72,17 @@ export const ChatInput = ({
     onMediaUploadClick();
   };
 
+  const handleVoiceRecordComplete = (text: string) => {
+    if (typeof text !== 'string') {
+      console.error("Errore: il testo registrato non è una stringa", text);
+      toast.error("Errore nella registrazione vocale");
+      return;
+    }
+    
+    console.log("Testo vocale ricevuto:", text);
+    onVoiceRecord(text);
+  };
+
   if (!isMounted) {
     return (
       <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ bottom: 0, position: 'fixed', width: '100%', zIndex: 10 }}>
@@ -186,7 +197,7 @@ export const ChatInput = ({
               disabled={!isOnline || isProcessing}
             >
               <VoiceRecorder 
-                onRecordingComplete={onVoiceRecord}
+                onRecordingComplete={handleVoiceRecordComplete}
                 disabled={!isOnline || isProcessing}
               />
             </Button>

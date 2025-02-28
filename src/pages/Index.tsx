@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, lazy, Suspense } from "react";
 import { useChat } from "@/hooks/useChat";
 import { ChatInput } from "@/components/ChatInput";
 import { ChatMessages } from "@/components/ChatMessages";
@@ -10,6 +10,11 @@ import type { Cimitero } from "@/pages/cimiteri/types";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
+
+// Importiamo il componente CimiteroDetails direttamente
+import { CimiteroDetails } from "@/pages/cimiteri/components/CimiteroDetails/CimiteroDetails";
 
 const Index = () => {
   const [isMediaUploadOpen, setIsMediaUploadOpen] = useState(false);
@@ -124,11 +129,16 @@ const Index = () => {
           </SheetContent>
         </Sheet>
       ) : (
-        <CimiteroDetailsDialog 
-          cimitero={selectedCimitero} 
-          isOpen={isDetailOpen}
-          onClose={handleDetailClose}
-        />
+        <Dialog open={isDetailOpen && !!selectedCimitero} onOpenChange={handleDetailClose}>
+          <DialogContent className="p-0 max-w-2xl bg-transparent border-none">
+            {selectedCimitero && (
+              <CimiteroDetailsWrapper 
+                cimitero={selectedCimitero} 
+                onClose={handleDetailClose} 
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );
@@ -164,9 +174,6 @@ const CimiteroDetailsWrapper = ({ cimitero, onClose }: { cimitero: Cimitero; onC
     // No-op
   };
 
-  // Importazione dinamica per evitare problemi di circular dependency
-  const CimiteroDetails = require("@/pages/cimiteri/components/CimiteroDetails/CimiteroDetails").CimiteroDetails;
-
   return (
     <CimiteroDetails
       cimitero={cimitero}
@@ -179,30 +186,6 @@ const CimiteroDetailsWrapper = ({ cimitero, onClose }: { cimitero: Cimitero; onC
       selectedFile={selectedFile}
       onRefresh={handleRefresh}
     />
-  );
-};
-
-// Dialog per i dettagli del cimitero su desktop
-const CimiteroDetailsDialog = ({ 
-  cimitero, 
-  isOpen, 
-  onClose 
-}: { 
-  cimitero: Cimitero | null; 
-  isOpen: boolean; 
-  onClose: () => void 
-}) => {
-  const Dialog = require("@/components/ui/dialog").Dialog;
-  const DialogContent = require("@/components/ui/dialog").DialogContent;
-
-  if (!cimitero) return null;
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="p-0 max-w-2xl bg-transparent border-none">
-        <CimiteroDetailsWrapper cimitero={cimitero} onClose={onClose} />
-      </DialogContent>
-    </Dialog>
   );
 };
 

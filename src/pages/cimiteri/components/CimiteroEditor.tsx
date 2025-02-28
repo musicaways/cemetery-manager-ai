@@ -1,5 +1,5 @@
 
-import { Dialog } from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { MediaUpload } from "@/components/MediaUpload";
 import { CimiteroDetails } from "./CimiteroDetails/CimiteroDetails";
 import { useState } from "react";
@@ -75,19 +75,25 @@ export const CimiteroEditor = ({
     }
   };
 
+  if (!cimitero) return null;
+
   return (
     <>
-      <CimiteroDetails
-        cimitero={cimitero}
-        editMode={editMode}
-        editedData={editedData}
-        onEdit={handleEdit}
-        onSave={handleSave}
-        onUpload={() => setIsUploadOpen(true)}
-        onInputChange={handleInputChange}
-        selectedFile={selectedFile}
-        onRefresh={handleRefresh}
-      />
+      <Dialog open={!!cimitero} onOpenChange={onClose}>
+        <DialogContent className="p-0 max-w-4xl bg-transparent border-none">
+          <CimiteroDetails
+            cimitero={cimitero}
+            editMode={editMode}
+            editedData={editedData}
+            onEdit={handleEdit}
+            onSave={handleSave}
+            onUpload={() => setIsUploadOpen(true)}
+            onInputChange={handleInputChange}
+            selectedFile={selectedFile}
+            onRefresh={handleRefresh}
+          />
+        </DialogContent>
+      </Dialog>
 
       <MediaUpload 
         isOpen={isUploadOpen}

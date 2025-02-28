@@ -1,154 +1,89 @@
 
 import { useState, useEffect } from "react";
-import { useOfflineCimiteri } from "./hooks/useOfflineCimiteri";
-import { useSearch } from "./hooks/useSearch";
+import { useNavigate } from "react-router-dom";
 import { CimiteriGrid } from "./components/CimiteriGrid";
-import { CimiteroEditor } from "./components/CimiteroEditor";
-import { Cimitero } from "./types";
+import { SearchInput } from "./components/SearchInput";
 import { Breadcrumb } from "./components/Breadcrumb";
 import { OfflineIndicator } from "./components/OfflineIndicator";
-import { useServiceWorker } from "@/hooks/useServiceWorker";
-import { Button } from "@/components/ui/button";
-import { RefreshCw, Database, MapPin } from "lucide-react";
-import { performanceMonitor } from "@/lib/performanceMonitor";
-import { eventBus, AppEvents } from "@/lib/eventBus";
-import { useErrorHandler } from "@/hooks/useErrorHandler";
+import { useCimiteri } from "./hooks/useCimiteri";
+import { toast } from "sonner";
+import { useOfflineCimiteri } from "./hooks/useOfflineCimiteri";
+import { useOnlineStatus } from "@/hooks/chat/useOnlineStatus";
+import { useSearch } from "./hooks/useSearch";
+import { Layout } from "@/components/Layout";
 
 export const Cimiteri = () => {
-  const { cimiteri, loading, updateCimitero, loadCimiteri, isOnline } = useOfflineCimiteri();
-  const { searchTerm } = useSearch();
-  const [selectedCimitero, setSelectedCimitero] = useState<Cimitero | null>(null);
-  const { cacheCimiteri, clearCache } = useServiceWorker();
-  const { handleError, wrapAsync } = useErrorHandler({ context: 'CimiteriPage' });
+  const navigate = useNavigate();
+  const { isOnline } = useOnlineStatus();
+  const { cimiteri, isLoading, error } = useCimiteri();
+  const { searchTerm, setSearchTerm, filteredItems } = useSearch(cimiteri || []);
+  const { saveCimiteriOffline } = useOfflineCimiteri();
+  const [saving, setSaving] = useState(false);
 
-  // Memorizziamo le metriche di performance
+  // Gestione errori
   useEffect(() => {
-    const endMeasure = performanceMonitor.startMeasure(
-      'cimiteri-page-render',
-      'render'
-    );
+    if (error) {
+      toast.error("Errore", { description: "Impossibile caricare i cimiteri" });
+    }
+  }, [error]);
+
+  // Sincronizzazione offline
+  const handleSync = async () => {
+    if (!cimiteri?.length) return;
     
-    return () => {
-      endMeasure();
-    };
-  }, []);
-
-  // Memorizziamo i dati dei cimiteri nel service worker quando vengono caricati
-  useEffect(() => {
-    if (cimiteri.length > 0) {
-      cacheCimiteri(cimiteri);
-      
-      // Pubblica l'evento di dati aggiornati
-      eventBus.publish(AppEvents.DATA_UPDATED, {
-        type: 'cimiteri',
-        count: cimiteri.length
+    setSaving(true);
+    try {
+      await saveCimiteriOffline(cimiteri);
+      toast.success("Sincronizzazione completata", { 
+        description: `Sincronizzati ${cimiteri.length} cimiteri per l'uso offline` 
       });
-    }
-  }, [cimiteri, cacheCimiteri]);
-
-  // Carica i cimiteri con gestione errori
-  const refreshCimiteri = wrapAsync(async () => {
-    try {
-      await loadCimiteri();
-    } catch (error) {
-      console.error("Errore nel caricamento dei cimiteri:", error);
-      throw error; // L'errore sarà gestito dal wrapAsync
-    }
-  }, { action: 'refresh-cimiteri' });
-
-  const handleSave = async (editedData: Partial<Cimitero>, coverImage?: File) => {
-    if (!selectedCimitero) return;
-    
-    try {
-      await updateCimitero(selectedCimitero.Id, editedData, coverImage);
-    } catch (error: any) {
-      handleError(
-        error instanceof Error ? error : new Error(error.message || 'Errore sconosciuto'),
-        { action: 'save-cimitero', cimiteroId: selectedCimitero.Id }
-      );
+    } catch (e) {
+      console.error("Errore durante la sincronizzazione:", e);
+      toast.error("Errore di sincronizzazione", { 
+        description: "Impossibile salvare i dati offline" 
+      });
+    } finally {
+      setSaving(false);
     }
   };
-
-  const handleUploadComplete = async (url: string) => {
-    if (!selectedCimitero) return;
-    
-    try {
-      await updateCimitero(selectedCimitero.Id, { FotoCopertina: url });
-    } catch (error: any) {
-      handleError(
-        error instanceof Error ? error : new Error(error.message || 'Errore sconosciuto'),
-        { action: 'update-cover', cimiteroId: selectedCimitero.Id }
-      );
-    }
-  };
-
-  const filteredCimiteri = cimiteri.filter(cimitero =>
-    cimitero.Descrizione?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    cimitero.Codice?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[calc(100vh-4rem)]">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--primary-color)]"></div>
-      </div>
-    );
-  }
 
   return (
-    <>
-      <Breadcrumb />
-      <OfflineIndicator isOnline={isOnline} />
-      <div className="container mx-auto px-4 py-4 mt-7">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Cimiteri</h1>
-            <p className="text-gray-400 text-sm">
-              {filteredCimiteri.length} cimiter{filteredCimiteri.length === 1 ? 'o' : 'i'} disponibil{filteredCimiteri.length === 1 ? 'e' : 'i'}
-              {searchTerm && ` per la ricerca "${searchTerm}"`}
-            </p>
+    <Layout>
+      <div className="page-container">
+        <div className="p-4">
+          <Breadcrumb items={[{ label: "Home", path: "/" }, { label: "Cimiteri" }]} />
+          
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4 mb-6">
+            <h1 className="text-2xl font-bold">Cimiteri</h1>
+            <div className="flex items-center gap-2">
+              {!isOnline && <OfflineIndicator />}
+              
+              <SearchInput 
+                value={searchTerm}
+                onChange={setSearchTerm}
+                placeholder="Cerca cimitero..." 
+                className="w-full md:w-64"
+              />
+              
+              {isOnline && (
+                <button
+                  onClick={handleSync}
+                  disabled={saving || !cimiteri?.length}
+                  className="btn-secondary text-xs px-3 py-2"
+                >
+                  {saving ? "Sincronizzazione..." : "Sincronizza Offline"}
+                </button>
+              )}
+            </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            {!isOnline && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="flex items-center gap-2 bg-amber-950/20 text-amber-200 border-amber-800/30 hover:bg-amber-950/40 hover:text-amber-100"
-              >
-                <Database className="h-4 w-4" />
-                Modalità locale
-              </Button>
-            )}
-            
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => refreshCimiteri()} 
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className="h-4 w-4" />
-              Aggiorna
-            </Button>
-          </div>
+          <CimiteriGrid 
+            cimiteri={filteredItems} 
+            isLoading={isLoading}
+            onSelect={(id) => navigate(`/cimiteri/${id}`)}
+          />
         </div>
-        
-        <CimiteriGrid 
-          cimiteri={filteredCimiteri}
-          onSelectCimitero={setSelectedCimitero}
-          isOnline={isOnline}
-        />
-
-        <CimiteroEditor
-          cimitero={selectedCimitero}
-          onClose={() => setSelectedCimitero(null)}
-          onSave={handleSave}
-          onUploadComplete={handleUploadComplete}
-          isOnline={isOnline}
-        />
       </div>
-    </>
+    </Layout>
   );
 };
-
-export default Cimiteri;

@@ -30,15 +30,18 @@ const queryClient = new QueryClient({
       retry: 2,
       refetchOnWindowFocus: false
     }
-  },
-  queryCache: {
-    onError: (error) => {
-      console.error('React Query error:', error);
-      errorReporter.reportError(
-        error instanceof Error ? error : new Error(String(error)), 
-        { source: 'react-query' }
-      );
-    }
+  }
+});
+
+// Aggiungi un gestore globale per intercettare errori non gestiti nelle query
+queryClient.getQueryCache().subscribe(({ type, query }) => {
+  if (type === 'error' && query.state.error) {
+    const error = query.state.error;
+    console.error('React Query error:', error);
+    errorReporter.reportError(
+      error instanceof Error ? error : new Error(String(error)), 
+      { source: 'react-query', queryKey: query.queryKey }
+    );
   }
 });
 

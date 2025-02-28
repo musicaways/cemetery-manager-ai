@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { useErrorHandler } from "@/hooks/useErrorHandler";
 import type { Cimitero } from "@/pages/cimiteri/types";
 import { LoadingScreen } from "@/components/LoadingScreen";
+import { toast } from "sonner";
 
 const Index = () => {
   const [isMediaUploadOpen, setIsMediaUploadOpen] = useState(false);

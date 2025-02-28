@@ -1,75 +1,187 @@
-/* Stili per il tema moderno */
-.chat-modern .message {
-  @apply rounded-lg shadow-md mb-4;
+
+:root {
+  --chat-bg: #1A1D24;
+  --sidebar-bg: #14161B;
+  --primary-color: #8B5CF6;
+  --message-bg: #232731;
+  --border-color: #3E4654;
+  --text-primary: #F1F5F9;
+  --text-secondary: #A1A1AA;
+  --accent-color: #8B5CF6;
+  --success-color: #10B981;
+  --error-color: #EF4444;
+  --warning-color: #F59E0B;
+  --info-color: #3B82F6;
 }
 
-/* Stili per il tema classico */
-.chat-classic .message {
-  @apply rounded-none border-b border-gray-200 mb-2;
-}
-
-/* Stili per il tema compatto */
-.chat-compact .message {
-  @apply rounded-sm shadow-sm mb-1 p-2;
-}
-
-/* Stili per le forme degli avatar */
-.avatar-circle {
-  border-radius: 50%;
-}
-
-.avatar-square {
-  border-radius: 0.5rem;
-}
-
-.avatar-hexagon {
-  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-}
-
-/* Animazioni messaggi */
-.animate-fade-in {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
+/* Animazioni */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Animazioni notifiche */
-@keyframes slideOut {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(100%);
-  }
+@keyframes shimmer {
+  0% { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
 }
 
-.notification-slide {
-  transform: translateX(0);
-  transition: transform 0.3s ease-out;
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
-.notification-slide.sliding {
-  animation: slideOut 0.3s ease-out forwards;
+/* Utilità di animazione */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
 }
 
-/* Stili per il testo formattato */
-.whitespace-pre-wrap {
-  white-space: pre-wrap;
+.animate-shimmer {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.05) 8%, rgba(255, 255, 255, 0.1) 18%, rgba(255, 255, 255, 0.05) 33%);
+  background-size: 800px 104px;
+  animation: shimmer 1.5s infinite linear;
+}
+
+.animate-pulse {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
+/* Stili per evidenziazione della ricerca */
+.search-highlight {
+  position: relative;
+}
+
+.search-highlight::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  border: 2px solid var(--primary-color);
+  border-radius: 0.5rem;
+  animation: pulse 1.5s infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+/* Stili per skeleton loading */
+.skeleton {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  display: inline-block;
+  height: 1em;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeleton::after {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, 
+    rgba(255, 255, 255, 0) 0%, 
+    rgba(255, 255, 255, 0.05) 20%, 
+    rgba(255, 255, 255, 0.1) 60%, 
+    rgba(255, 255, 255, 0)
+  );
+  animation: shimmer 2s infinite;
+  content: '';
+}
+
+/* Migliora la leggibilità del testo */
+.text-shadow {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Effetto di transizione per tutti gli elementi interattivi */
+a, button, input, textarea, .interactive {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Stili specifici per i messaggi di chat */
+.chat-message {
+  position: relative;
+  max-width: 85%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  margin-bottom: 0.5rem;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  overflow-wrap: break-word;
   word-break: break-word;
 }
 
-/* Stile per evidenziare le corrispondenze di ricerca */
-.search-highlight {
-  background: rgba(139, 92, 246, 0.2);
-  border-radius: 0.25rem;
-  transition: background-color 0.3s ease;
+.chat-message.user {
+  margin-left: auto;
+  border-top-right-radius: 0.25rem;
+  background-color: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.chat-message.assistant {
+  margin-right: auto;
+  border-top-left-radius: 0.25rem;
+  background-color: rgba(41, 47, 63, 0.8);
+  border: 1px solid rgba(62, 70, 84, 0.5);
+}
+
+.chat-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+
+.chat-avatar.user {
+  background-color: rgba(139, 92, 246, 0.2);
+  color: var(--primary-color);
+}
+
+.chat-avatar.assistant {
+  background-color: rgba(139, 92, 246, 0.1);
+  color: var(--primary-color);
+}
+
+/* Stili per le card e componenti speciali */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Ottimizza scrollbar per tema scuro */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(139, 92, 246, 0.7);
+}
+
+/* Media queries per responsive design */
+@media (max-width: 640px) {
+  .chat-message {
+    max-width: 90%;
+  }
 }

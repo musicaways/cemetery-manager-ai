@@ -23,8 +23,21 @@ export function useErrorHandler(options: {
    */
   const handleError = useCallback((error: Error, metadata: Record<string, any> = {}) => {
     const contextPrefix = context ? `[${context}] ` : '';
-    const errorWithContext = new Error(`${contextPrefix}${error.message}`);
+    
+    // Se l'errore è già formattato, non aggiungere il prefisso
+    const errorMessage = error.message.startsWith('[') 
+      ? error.message 
+      : `${contextPrefix}${error.message}`;
+      
+    const errorWithContext = new Error(errorMessage);
     errorWithContext.stack = error.stack;
+
+    // Log esteso dell'errore nella console
+    console.group('Errore gestito');
+    console.error('Messaggio:', errorMessage);
+    console.error('Stack:', error.stack);
+    console.error('Metadati:', metadata);
+    console.groupEnd();
 
     // Riporta l'errore
     errorReporter.reportError(errorWithContext, {
@@ -35,13 +48,20 @@ export function useErrorHandler(options: {
 
     // Mostra un toast di errore se richiesto
     if (showToast) {
+      const errorDescription = metadata?.userMessage || error.message;
+      
       toast.error('Si è verificato un errore', {
-        description: error.message,
+        description: errorDescription.length > 100 
+          ? errorDescription.substring(0, 100) + '...' 
+          : errorDescription,
         duration: toastDuration,
         action: {
           label: 'Dettagli',
           onClick: () => {
-            console.error(error);
+            toast.info('Dettagli errore', {
+              description: error.message,
+              duration: 10000
+            });
           }
         }
       });

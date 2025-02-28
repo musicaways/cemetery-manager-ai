@@ -13,6 +13,7 @@ import { Message } from "@/hooks/chat/types";
 interface ChatMessagesProps {
   messages: Message[];
   isProcessing: boolean;
+  processingProgress?: number;
   onQuestionSelect: (question: string) => void;
   scrollAreaRef: React.RefObject<HTMLDivElement>;
   messagesEndRef: React.RefObject<HTMLDivElement>;
@@ -23,20 +24,28 @@ interface ChatMessagesProps {
 export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
   messages,
   isProcessing,
+  processingProgress = 0,
   onQuestionSelect,
   scrollAreaRef,
   messagesEndRef,
   onCimiteroSelect,
   isOnline = true
 }, ref) => {
+  // Helper per determinare se un messaggio è un placeholder di caricamento
+  const isLoadingMessage = (message: Message) => {
+    return message.role === 'assistant' && 
+      (message.content === 'Sto elaborando la tua richiesta...' || 
+       message.content === 'Sto cercando informazioni sui cimiteri...');
+  };
+
   return (
     <ScrollArea 
       ref={scrollAreaRef}
       className="h-[calc(100vh-8.5rem)]"
     >
-      <div className="space-y-6">
+      <div className="space-y-6 px-2">
         {messages.length === 0 && !isProcessing && (
-          <div className="flex flex-col items-center justify-center h-full">
+          <div className="flex flex-col items-center justify-center min-h-[50vh] py-10">
             {!isOnline ? (
               <div className="flex flex-col items-center text-center p-6 max-w-md">
                 <WifiOff className="h-12 w-12 text-amber-400 mb-4" />
@@ -52,9 +61,26 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                 </div>
               </div>
             ) : (
-              <p className="text-gray-400 text-sm">
-                Inizia una nuova conversazione.
-              </p>
+              <div className="text-center max-w-md">
+                <Bot className="w-16 h-16 text-[#8B5CF6] mx-auto mb-4" />
+                <p className="text-gray-300 text-lg font-medium mb-2">
+                  Benvenuto nell'assistente dei cimiteri
+                </p>
+                <p className="text-gray-400 text-sm mb-6">
+                  Inizia una nuova conversazione facendo una domanda. Puoi chiedere informazioni sui cimiteri, cercare defunti o esplorare le funzionalità disponibili.
+                </p>
+                <div className="mt-4">
+                  <SuggestedQuestions 
+                    questions={[
+                      "Mostra l'elenco dei cimiteri",
+                      "Come posso cercare un defunto?",
+                      "Quali funzionalità sono disponibili?"
+                    ]}
+                    onSelect={onQuestionSelect}
+                    offline={false}
+                  />
+                </div>
+              </div>
             )}
           </div>
         )}
@@ -84,9 +110,20 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
                       </div>
                     </div>
                     
-                    <div className="mt-2 text-sm text-gray-100 whitespace-pre-wrap pl-2">
-                      {message.content}
-                    </div>
+                    {isLoadingMessage(message) ? (
+                      <div className="mt-2 pl-2 flex items-center">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                          <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                          <div className="w-1.5 h-1.5 bg-[#E5DEFF] rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                        </div>
+                        <span className="ml-3 text-sm text-gray-300">{message.content}</span>
+                      </div>
+                    ) : (
+                      <div className="mt-2 text-sm text-gray-100 whitespace-pre-wrap pl-2">
+                        {message.content}
+                      </div>
+                    )}
                     
                     {message.data?.type === 'cimitero' && message.data.cimitero && (
                       <div className="mt-4 pl-2 space-y-4">
@@ -136,7 +173,7 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
           </div>
         ))}
 
-        {isProcessing && (
+        {isProcessing && messages.length > 0 && !messages[messages.length - 1].content.includes('Sto elaborando') && (
           <div className="flex items-start pl-1">
             <Bot className="w-8 h-8 text-[#8B5CF6] flex-shrink-0" />
             <div className="bg-[#2A2F3C]/80 rounded-2xl rounded-tl-sm p-3 border border-[#3A3F4C]/50 backdrop-blur-sm ml-2">
@@ -148,6 +185,21 @@ export const ChatMessages = forwardRef<HTMLDivElement, ChatMessagesProps>(({
             </div>
           </div>
         )}
+        
+        {/* Indicatore di progresso */}
+        {isProcessing && processingProgress > 0 && (
+          <div className="fixed bottom-24 left-0 right-0 flex justify-center pointer-events-none">
+            <div className="bg-[#2A2F3C]/70 rounded-lg px-4 py-2 backdrop-blur-sm border border-[#3A3F4C]/50 shadow-lg">
+              <div className="w-48 h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-[#8B5CF6] rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${processingProgress}%` }}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+        
         <div ref={messagesEndRef} className="h-4" />
       </div>
     </ScrollArea>

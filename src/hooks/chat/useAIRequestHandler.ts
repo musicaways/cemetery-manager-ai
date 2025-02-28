@@ -6,6 +6,7 @@ import LocalLLMManager from "@/lib/llm/localLLMManager";
 
 export const useAIRequestHandler = () => {
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingProgress, setProcessingProgress] = useState(0);
 
   const handleAIRequest = async (query: string) => {
     if (!query?.trim()) {
@@ -13,12 +14,15 @@ export const useAIRequestHandler = () => {
     }
     
     setIsProcessing(true);
+    setProcessingProgress(10); // Avvio elaborazione
     
     try {
       const aiProvider = localStorage.getItem('ai_provider') || 'groq';
       const aiModel = localStorage.getItem('ai_model') || 'mixtral-8x7b-32768';
       
+      setProcessingProgress(30); // Modello selezionato
       const response = await processAIRequest(query, false, aiProvider, aiModel);
+      setProcessingProgress(100); // Completato
       
       return response;
     } catch (error) {
@@ -29,7 +33,11 @@ export const useAIRequestHandler = () => {
       
       return "Mi dispiace, si è verificato un errore nell'elaborazione della richiesta. Riprova più tardi.";
     } finally {
-      setIsProcessing(false);
+      // Breve ritardo prima di disattivare lo stato di elaborazione per garantire una transizione fluida
+      setTimeout(() => {
+        setIsProcessing(false);
+        setProcessingProgress(0);
+      }, 300);
     }
   };
   
@@ -39,6 +47,9 @@ export const useAIRequestHandler = () => {
     }
     
     try {
+      // Incrementa progresso per feedback visivo
+      setProcessingProgress(50);
+      
       // Se è richiesta la ricerca web o se stiamo usando un provider cloud
       if (webSearchEnabled || (aiProvider !== 'huggingface' && navigator.onLine)) {
         try {
@@ -50,6 +61,8 @@ export const useAIRequestHandler = () => {
               aiModel
             }
           });
+          
+          setProcessingProgress(90);
           
           if (response.error) {
             console.error('Errore nella risposta di Supabase Edge Function:', response.error);
@@ -64,8 +77,11 @@ export const useAIRequestHandler = () => {
       } else {
         // Utilizziamo il modello locale
         try {
+          setProcessingProgress(60);
           const localLLM = LocalLLMManager.getInstance();
-          return await localLLM.processQuery(query);
+          const response = await localLLM.processQuery(query);
+          setProcessingProgress(90);
+          return response;
         } catch (localLLMError) {
           console.error('Errore nell\'utilizzo del modello locale:', localLLMError);
           throw localLLMError;
@@ -79,7 +95,9 @@ export const useAIRequestHandler = () => {
 
   return {
     isProcessing,
+    processingProgress,
     setIsProcessing,
+    setProcessingProgress,
     handleAIRequest,
     processAIRequest
   };

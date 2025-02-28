@@ -47,7 +47,7 @@ export const ChatInput = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    if (!query.trim() || isProcessing) return;
     onSubmit(e);
   };
 
@@ -60,7 +60,7 @@ export const ChatInput = ({
   };
 
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ bottom: 0, position: 'fixed', width: '100%' }}>
+    <footer className="fixed bottom-0 left-0 right-0 bg-[#333333] border-t border-white/5 backdrop-blur-xl p-4" style={{ bottom: 0, position: 'fixed', width: '100%', zIndex: 10 }}>
       <div className="max-w-5xl mx-auto space-y-3">
         {!isOnline && (
           <div className="bg-amber-800/40 text-amber-200 px-3 py-2 rounded-lg text-sm flex items-center mb-3">
@@ -73,7 +73,7 @@ export const ChatInput = ({
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Chiedi qualcosa..."
-            className="w-full bg-[#333333] text-white placeholder-gray-400 focus:outline-none resize-none pr-12 transition-all duration-200 ease-in-out"
+            className={`w-full bg-[#333333] text-white placeholder-gray-400 focus:outline-none resize-none pr-12 transition-all duration-200 ease-in-out ${isProcessing ? 'opacity-70' : 'opacity-100'}`}
             style={{ textAlign: 'left' }}
             disabled={isProcessing}
             onKeyDown={(e) => {
@@ -85,7 +85,7 @@ export const ChatInput = ({
             minRows={1}
             maxRows={5}
           />
-          {query.trim() && (
+          {query.trim() && !isProcessing && (
             <Button 
               type="submit" 
               size="sm"
@@ -96,6 +96,12 @@ export const ChatInput = ({
             >
               <SendHorizonal className="h-4 w-4" />
             </Button>
+          )}
+          
+          {isProcessing && (
+            <div className="absolute right-0 top-0 h-8 w-8 flex items-center justify-center">
+              <div className="h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+            </div>
           )}
         </div>
 
@@ -108,10 +114,10 @@ export const ChatInput = ({
                 webSearchEnabled 
                   ? "text-[#9b87f5] border-[#9b87f5] bg-[#9b87f5]/10" 
                   : "text-gray-400 border-white/20 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10"
-              }`}
+              } ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={onWebSearchToggle}
               title={webSearchEnabled ? "Modalità Internet attiva" : "Modalità Database attiva"}
-              disabled={!isOnline}
+              disabled={!isOnline || isProcessing}
             >
               <Globe className="h-4 w-4" />
             </Button>
@@ -119,9 +125,9 @@ export const ChatInput = ({
             <Button
               variant="ghost"
               size="sm"
-              className={`h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 ${!isOnline ? 'opacity-50' : ''}`}
+              className={`h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 ${(!isOnline || isProcessing) ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={handleMediaUploadClick}
-              disabled={!isOnline}
+              disabled={!isOnline || isProcessing}
             >
               <Paperclip className="h-4 w-4" />
             </Button>
@@ -129,8 +135,9 @@ export const ChatInput = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200"
+              className={`h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 ${isProcessing ? 'opacity-50 cursor-not-allowed' : ''}`}
               onClick={onFunctionsClick}
+              disabled={isProcessing}
             >
               <Settings className="h-4 w-4" />
             </Button>
@@ -139,12 +146,12 @@ export const ChatInput = ({
           <Button
             variant="ghost"
             size="sm"
-            className={`h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 [&_svg]:h-4 [&_svg]:w-4 [&_.recording]:bg-[#9b87f5]/10 [&_.recording]:text-[#9b87f5] [&_.recording]:border-[#9b87f5] ${!isOnline ? 'opacity-50' : ''}`}
-            disabled={!isOnline}
+            className={`h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 [&_svg]:h-4 [&_svg]:w-4 [&_.recording]:bg-[#9b87f5]/10 [&_.recording]:text-[#9b87f5] [&_.recording]:border-[#9b87f5] ${(!isOnline || isProcessing) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={!isOnline || isProcessing}
           >
             <VoiceRecorder 
               onRecordingComplete={onVoiceRecord}
-              disabled={!isOnline}
+              disabled={!isOnline || isProcessing}
             />
           </Button>
         </div>

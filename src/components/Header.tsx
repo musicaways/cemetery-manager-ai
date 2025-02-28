@@ -175,6 +175,7 @@ export const Header = ({ onSettingsClick, onSidebarToggle, onSearch, isSidebarOp
               {location.pathname.startsWith('/admin/tables') && 'Amministrazione Tabelle'}
               {location.pathname.startsWith('/admin/users') && 'Gestione Utenti'}
               {location.pathname.startsWith('/admin/ai-functions') && 'Funzioni AI'}
+              {location.pathname === '/settings' && 'Impostazioni'}
             </h1>
           </div>
 
@@ -251,6 +252,16 @@ export const Header = ({ onSettingsClick, onSidebarToggle, onSearch, isSidebarOp
             >
               <Search className="h-4 w-4" />
             </Button>
+
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSettingsClick}
+              className="h-8 w-8 p-0 rounded-full border-2 border-white/20 text-gray-400 hover:text-[#9b87f5] hover:border-[#9b87f5] hover:bg-[#9b87f5]/10 transition-all duration-200 relative"
+            >
+              <Settings className="h-4 w-4" />
+            </Button>
+
             <Sheet>
               <SheetTrigger asChild>
                 <Button

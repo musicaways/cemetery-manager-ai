@@ -2,9 +2,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { CimiteriGrid } from "./components/CimiteriGrid";
-import { SearchInput } from "@/components/ui/input";
-import { Breadcrumb } from "@/components/ui/breadcrumb";
-import { OfflineIndicator } from "./components/OfflineIndicator";
 import { useCimiteri } from "./hooks/useCimiteri";
 import { toast } from "sonner";
 import { useOfflineCimiteri } from "./hooks/useOfflineCimiteri";
@@ -17,27 +14,24 @@ import { Search, X } from "lucide-react";
 export const Cimiteri = () => {
   const navigate = useNavigate();
   const { isOnline } = useOnlineStatus();
-  const { cimiteri, loading: isLoading, saving, updateCimitero } = useCimiteri();
-  const { searchTerm } = useSearch();
+  const { cimiteri, isLoading, error } = useCimiteri();
+  const { searchTerm, setSearchTerm, filteredItems } = useSearch(cimiteri || []);
+  const { saveCimiteri: saveCimiteriOffline } = useOfflineCimiteri();
+  const [isSaving, setSaving] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-  const { cimiteri: offlineCimiteri, saveCimiteri: saveCimiteriOffline } = useOfflineCimiteri();
-  const [saving, setSaving] = useState(false);
-  const [filteredItems, setFilteredItems] = useState(cimiteri || []);
 
-  // Gestione della ricerca
+  // Gestione errori
   useEffect(() => {
-    if (cimiteri) {
-      const filtered = cimiteri.filter(item => 
-        item.Descrizione.toLowerCase().includes(searchInput.toLowerCase()) ||
-        (item.Indirizzo && item.Indirizzo.toLowerCase().includes(searchInput.toLowerCase()))
-      );
-      setFilteredItems(filtered);
+    if (error) {
+      toast.error("Errore", { description: "Impossibile caricare i cimiteri" });
     }
-  }, [searchInput, cimiteri]);
+  }, [error]);
 
-  // Sincronizzazione input con stato globale
+  // Aggiorna la ricerca locale quando cambia il termine di ricerca globale
   useEffect(() => {
-    setSearchInput(searchTerm || "");
+    if (searchTerm) {
+      setSearchInput(searchTerm);
+    }
   }, [searchTerm]);
 
   // Sincronizzazione offline
@@ -84,9 +78,15 @@ export const Cimiteri = () => {
     );
   };
 
+  // Aggiorna il termine di ricerca globale quando cambia l'input locale
+  const handleSearchChange = (value) => {
+    setSearchInput(value);
+    setSearchTerm(value);
+  };
+
   return (
     <Layout>
-      <div className="page-container">
+      <div className="container mx-auto px-4">
         <div className="p-4">
           <nav className="flex items-center space-x-1 text-sm text-gray-400 mb-6">
             <a href="/" className="text-gray-300 hover:text-white">Home</a>
@@ -97,14 +97,16 @@ export const Cimiteri = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-4 mb-6">
             <h1 className="text-2xl font-bold">Cimiteri</h1>
             <div className="flex items-center gap-2">
-              {!isOnline && <div className="text-amber-400 text-xs flex items-center">
-                <span className="w-2 h-2 bg-amber-400 rounded-full mr-2"></span>
-                Modalità offline
-              </div>}
+              {!isOnline && (
+                <div className="text-amber-400 text-xs flex items-center">
+                  <span className="w-2 h-2 bg-amber-400 rounded-full mr-2"></span>
+                  Modalità offline
+                </div>
+              )}
               
               <CustomSearchInput 
                 value={searchInput}
-                onChange={setSearchInput}
+                onChange={handleSearchChange}
                 placeholder="Cerca cimitero..." 
                 className="w-full md:w-64"
               />
@@ -112,10 +114,10 @@ export const Cimiteri = () => {
               {isOnline && (
                 <button
                   onClick={handleSync}
-                  disabled={saving || !cimiteri?.length}
+                  disabled={isSaving || !cimiteri?.length}
                   className="btn-secondary text-xs px-3 py-2"
                 >
-                  {saving ? "Sincronizzazione..." : "Sincronizza Offline"}
+                  {isSaving ? "Sincronizzazione..." : "Sincronizza Offline"}
                 </button>
               )}
             </div>

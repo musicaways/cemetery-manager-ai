@@ -66,7 +66,7 @@ export const Layout = ({ children }: LayoutProps) => {
         />
         
         <main className={cn(
-          "container mx-auto px-4 py-4 flex-grow transition-all duration-300",
+          "container mx-auto py-4 flex-grow transition-all duration-300",
           // Quando la sidebar è aperta su desktop, adatta il margine
           isSidebarOpen && !isMobile ? "lg:ml-0" : ""
         )}>

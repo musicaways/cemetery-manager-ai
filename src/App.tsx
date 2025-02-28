@@ -36,7 +36,7 @@ const App = () => {
         console.log(`Aggiornamento dalla versione ${lastVersion} alla ${APP_VERSION}`);
         // Forza un hard reload dopo un breve ritardo
         setTimeout(() => {
-          window.location.reload(true);
+          window.location.reload();
         }, 500);
       }
     }
